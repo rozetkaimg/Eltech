@@ -1,0 +1,143 @@
+package com.rozetka.epolitech.weights
+
+import android.content.Context
+import android.util.Log
+import androidx.glance.appwidget.GlanceAppWidgetManager
+import androidx.glance.appwidget.state.updateAppWidgetState
+import androidx.glance.appwidget.updateAll
+import androidx.work.CoroutineWorker
+import androidx.work.WorkerParameters
+import com.rozetka.epolitech.R
+import com.rozetka.data.SecureStorage
+import com.rozetka.domain.repository.ScheduleRepository
+import com.rozetka.model.Lesson
+import com.rozetka.model.ScheduleModel
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.catch
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
+import java.time.DayOfWeek
+import java.time.LocalDate
+import java.time.temporal.TemporalAdjusters
+
+data class WeekInfo(
+    val startDate: LocalDate,
+    val endDate: LocalDate
+)
+
+class ScheduleWidgetWorker(
+    private val context: Context,
+    workerParameters: WorkerParameters
+) : CoroutineWorker(context, workerParameters), KoinComponent {
+
+    companion object {
+        const val WORK_NAME = "com.rozetka.epolitech.widgets.ScheduleWidgetWorker"
+        private const val TAG = "ScheduleWidgetWorker"
+    }
+
+    private val scheduleRepository: ScheduleRepository by inject()
+    private val secureStorage: SecureStorage by inject()
+
+    override suspend fun doWork(): Result {
+        Log.d(TAG, context.getString(R.string.worker_log_started))
+        val manager = GlanceAppWidgetManager(context)
+        val glanceIds = manager.getGlanceIds(TodayScheduleWidget::class.java)
+
+        glanceIds.forEach { glanceId ->
+            updateAppWidgetState(context, glanceId) { prefs ->
+                prefs[TodayScheduleWidget.scheduleStateKey] = json.encodeToString(
+                    ScheduleWidgetState.serializer(),
+                    ScheduleWidgetState.Loading
+                )
+            }
+        }
+        TodayScheduleWidget().updateAll(context)
+
+        try {
+            val groupName = secureStorage.getGroupName()
+            if (groupName.isNullOrBlank()) {
+                throw IllegalStateException(context.getString(R.string.worker_error_group_not_found))
+            }
+
+            var workerResult: Result = Result.failure()
+
+            scheduleRepository.getSchedule(groupName)
+                .map { result ->
+                    result.onSuccess { scheduleData ->
+                        val today = LocalDate.now()
+                        val weekInfo = findCurrentWeek(scheduleData)
+                        val todayKey = today.dayOfWeek.value.toString()
+                        val lessonsForToday = scheduleData.grid[todayKey]?.flatMap { (lessonNumber, lessons) ->
+                            lessons
+                                .filter { lesson -> isLessonInWeek(lesson, weekInfo) }
+                                .map { lesson -> lessonNumber to lesson }
+                        }?.sortedBy { (lessonNumber, _) -> lessonNumber.toInt() } ?: emptyList()
+
+                        val successState = ScheduleWidgetState.Success(lessonsForToday, today.toString())
+
+                        glanceIds.forEach { glanceId ->
+                            updateAppWidgetState(context, glanceId) { prefs ->
+                                prefs[TodayScheduleWidget.scheduleStateKey] = json.encodeToString(
+                                    ScheduleWidgetState.serializer(), successState
+                                )
+                            }
+                        }
+                        TodayScheduleWidget().updateAll(context)
+                        workerResult = Result.success()
+                    }
+                    result.onFailure { throwable ->
+                        throw throwable
+                    }
+                }
+                .catch { e ->
+                    throw e
+                }
+                .first()
+
+            return workerResult
+
+        } catch (e: Exception) {
+            val defaultError = context.getString(R.string.worker_error_loading_schedule)
+            val errorState = ScheduleWidgetState.Error(e.message ?: defaultError)
+
+            glanceIds.forEach { glanceId ->
+                updateAppWidgetState(context, glanceId) { prefs ->
+                    prefs[TodayScheduleWidget.scheduleStateKey] = json.encodeToString(
+                        ScheduleWidgetState.serializer(), errorState
+                    )
+                }
+            }
+            TodayScheduleWidget().updateAll(context)
+            return Result.failure()
+        }
+    }
+
+    private fun findCurrentWeek(schedule: ScheduleModel): WeekInfo {
+        val semesterStart = LocalDate.parse(schedule.group.dateFrom)
+        val semesterEnd = LocalDate.parse(schedule.group.dateTo)
+        val today = LocalDate.now()
+
+        var currentStart = semesterStart.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
+        while (!currentStart.isAfter(semesterEnd)) {
+            val currentEnd = currentStart.plusDays(6)
+            if (!today.isBefore(currentStart) && !today.isAfter(currentEnd)) {
+                return WeekInfo(currentStart, currentEnd)
+            }
+            currentStart = currentStart.plusWeeks(1)
+        }
+        return WeekInfo(
+            semesterStart.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY)),
+            semesterStart.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY)).plusDays(6)
+        )
+    }
+    private fun isLessonInWeek(lesson: Lesson, week: WeekInfo): Boolean {
+        return try {
+            val lessonStart = LocalDate.parse(lesson.df)
+            val lessonEnd = LocalDate.parse(lesson.dt)
+            !lessonStart.isAfter(week.endDate) && !lessonEnd.isBefore(week.startDate)
+        } catch (_: Exception) {
+            true
+        }
+    }
+}

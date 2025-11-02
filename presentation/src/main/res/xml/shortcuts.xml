@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <shortcut
+        android:shortcutId="schedule_search"
+        android:enabled="true"
+        android:icon="@drawable/baseline_search_24"
+        android:shortcutShortLabel="@string/search_groups_placeholder"
+        android:shortcutLongLabel="@string/search_groups_placeholder">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:data="app://com.rozetka.epotitech/search_group" />
+        <categories android:name="android.shortcut.conversation" />
+    </shortcut>
+
+    <shortcut
+        android:shortcutId="schedule"
+        android:enabled="true"
+        android:icon="@drawable/calendar_outline_24"
+        android:shortcutShortLabel="@string/schedule"
+        android:shortcutLongLabel="@string/schedule">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:data="app://com.rozetka.epotitech/schedule/251-353" />
+        <categories android:name="android.shortcut.conversation" />
+    </shortcut>
+
+
+
+</shortcuts>

@@ -1,0 +1,32 @@
+package com.rozetka.domain.model
+
+data class User(
+    val id: Int,
+    val name: String,
+    val surname: String,
+    val patronymic: String,
+    val email: String,
+    val group: String,
+    val avatar: String,
+    val accounts: List<String>,
+    val birthday: String,
+    val code: String,
+    val course: String,
+    val degreeLength: String,
+    val degreeLevel: String,
+    val educationForm: String,
+    val enterYear: String,
+    val faculty: String,
+    val finance: String,
+    val hasAlerts: Boolean,
+    val lastaccess: String,
+    val orders: List<String>,
+    val phone: String,
+    val sex: String,
+    val specialization: String,
+    val specialty: String,
+    val status: String,
+    val userStatus: String,
+    val vacationEnd: String?,
+    val vacationStart: String?
+)

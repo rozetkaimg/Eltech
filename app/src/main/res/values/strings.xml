@@ -1,0 +1,39 @@
+<resources>
+    <string name="app_name" translatable="false">Eltech</string>
+    <string name="worker_log_started">Worker started. Setting Loading state.</string>
+    <string name="worker_log_requesting_schedule">Requesting schedule for group: %s</string>
+    <string name="worker_log_filtered_lessons">Filtered %d lessons for today.</string>
+    <string name="worker_log_updating_to_success">Updating widget state to Success.</string>
+    <string name="worker_log_finished_success">Worker finished successfully.</string>
+    <string name="worker_log_finished_error">Worker finished with an error</string>
+    <string name="worker_error_group_not_found">Group name not found in SecureStorage.</string>
+    <string name="worker_error_loading_schedule">Error loading schedule</string>
+
+    <string name="widget_log_json_read">Read JSON from state: %s</string>
+    <string name="widget_log_json_error">Error decoding JSON</string>
+    <string name="widget_log_size_width">Widget width: %s</string>
+    <string name="widget_error_display">Error displaying data</string>
+    <string name="widget_title_schedule">Schedule</string>
+    <string name="widget_status_loading">Loading…</string>
+    <string name="widget_status_no_lessons">No classes today</string>
+    <string name="widget_error_prefix">Error: %s</string>
+    <string name="widget_acc_refresh">Refresh</string>
+    <string-array name="lesson_times">
+        <item>09:00 - 10:30</item>
+        <item>10:40 - 12:10</item>
+        <item>12:20 - 13:50</item>
+        <item>14:30 - 16:00</item>
+        <item>16:10 - 17:40</item>
+        <item>17:50 - 19:20</item>
+        <item>19:30 - 21:00</item>
+    </string-array>
+    <string name="lesson_type_lab_full">Lab</string>
+    <string name="lesson_type_lecture_full">Lecture</string>
+    <string name="lesson_type_practice_full">Practice</string>
+
+    <string name="lesson_type_lab_short">Lab</string>
+    <string name="lesson_type_lecture_short">Lec</string>
+    <string name="lesson_type_practice_short">Pr</string>
+
+    <string name="lesson_type_unknown">N/A</string>
+</resources>
