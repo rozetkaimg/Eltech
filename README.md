@@ -11,9 +11,13 @@ This project was created to provide convenient and fast access to university ser
 
 ## ✨ Key Features
 
-* View class schedules
-* Access university news and announcements
-* (You can add other features here, e.g., campus navigation, grades, contacts, etc.)
+* 📅 **Convenient Schedule:** View up-to-date class and practice schedules.
+* 📄 **Digital Services:** Quickly order official documents and submit applications online, with status tracking.
+* 🎓 **Track Your Grades:** Access session results and academic points.
+* 🚀 **Project Activity:** Keep track of information on your academic projects.
+* 🏃 **Physical Education:** Monitor attendance and points.
+* 🗺️ **Campus Map:** Navigate university campuses and buildings.
+* 💳 **Service Payments:** Access university payment services.
 
 ## 📱 Screenshots
 
