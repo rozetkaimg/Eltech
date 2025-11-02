@@ -22,19 +22,19 @@ This project was created to provide convenient and fast access to university ser
 ## 📱 Screenshots
 
 <p align="center">
-  <strong>Access to applications</strong>
+  <strong>Convenient class schedule</strong>
   <br>
   <img src="Image/Screen 1.png" alt="Access to applications" width="800" style="margin-top: 30px;"/>
 </p>
 
 <p align="center">
-  <strong>Convenient class schedule</strong>
+  <strong>University services on your smartphone</strong>
   <br>
   <img src="Image/screen 2.png" alt="Convenient class schedule" width="800" style="margin-top: 30px;"/>
 </p>
 
 <p align="center">
-  <strong>University services on your smartphone</strong>
+  <strong>Access to applications</strong>
   <br>
   <img src="Image/screen 3.png" alt="University services" width="800" style="margin-top: 30px;"/>
 </p>
