@@ -13,15 +13,22 @@ android {
         applicationId = "com.rozetka.eltech"
         minSdk = 26
         targetSdk = 36
-        versionCode = 2
-        versionName = "1.0.0−alpha_0.1.4"
+        versionCode = 3
+        versionName = "1.0.0−alpha_0.1.15"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+    dependenciesInfo {
+        // Disables dependency metadata when building APKs.
+        includeInApk = false
+        // Disables dependency metadata when building Android App Bundles.
+        includeInBundle = false
     }
 
     buildTypes {
         release {
             isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"

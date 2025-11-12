@@ -1,15 +1,16 @@
 package com.rozetka.presentation.ui.settings.components
 
-
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
@@ -20,92 +21,93 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.rozetka.presentation.util.ThemeObject.ColorThemeState
 
-
 @Composable
 fun StaticColorItem(
+    modifier: Modifier = Modifier,
     onClick: () -> Unit,
     position: Int,
     colorOne: Color,
     colorTwo: Color,
     colorThree: Color,
 ) {
-
-    Card(
-        Modifier
-            .size(82.dp)
-            .border(
-                if (ColorThemeState.value == position) 2.dp else 0.dp,
-                if (ColorThemeState.value == position) MaterialTheme.colorScheme.surfaceVariant else MaterialTheme.colorScheme.background,
-                shape = RoundedCornerShape(22.dp)
-            ),
-        RoundedCornerShape(22.dp)
+    BoxWithConstraints(
+        modifier = modifier
+            .aspectRatio(1f)
     ) {
-        Box(
+        val totalSize = maxWidth
+
+        val outerPadding = totalSize * (5f / 82f)
+        val innerPadding = totalSize * (6f / 82f)
+
+        val outerCornerRadius = totalSize * (22f / 82f)
+        val innerCornerRadius = totalSize * (18f / 82f)
+
+        val borderWidth = if (ColorThemeState.value == position) totalSize * (2f / 82f) else 0.dp
+
+        Card(
             Modifier
                 .fillMaxSize()
-                .background(MaterialTheme.colorScheme.surfaceContainerLow)
+                .border(
+                    width = borderWidth,
+                    color = if (ColorThemeState.value == position) MaterialTheme.colorScheme.surfaceVariant else MaterialTheme.colorScheme.background,
+                    shape = RoundedCornerShape(outerCornerRadius)
+                ),
+            shape = RoundedCornerShape(outerCornerRadius)
         ) {
-            Card(
+            Box(
                 Modifier
-                    .height(72.dp)
-                    .width(72.dp)
-                    .align(Alignment.Center),
-                shape = RoundedCornerShape(18.dp)
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.surfaceContainerLow)
+                    .padding(outerPadding),
+                contentAlignment = Alignment.Center
             ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .clickable {
-                            onClick
-                            ColorThemeState.value = position
-
-                        }
+                Card(
+                    Modifier
+                        .fillMaxSize(),
+                    shape = RoundedCornerShape(innerCornerRadius)
                 ) {
-                    Card(
+                    Box(
                         modifier = Modifier
-                            .align(Alignment.Center)
-                            .height(60.dp)
-                            .width(60.dp),
-                        shape = RoundedCornerShape(100)
+                            .fillMaxSize()
+                            .clickable {
+                                onClick()
+                                ColorThemeState.value = position
+                            }
+                            .padding(innerPadding),
+                        contentAlignment = Alignment.Center
                     ) {
-                        Box(Modifier.fillMaxSize()) {
-                            Box(
-                                Modifier
-                                    .height(30.dp)
-                                    .fillMaxWidth()
-                                    .background(
-                                        colorOne
-                                    )
-                            ) {
-
-                            }
-                            Box(
-                                Modifier
-                                    .size(30.dp)
-                                    .background(
-                                        colorTwo
-                                    )
-                                    .align(Alignment.BottomStart)
-                            ) {
-
-                            }
-                            Box(
-                                Modifier
-                                    .size(30.dp)
-                                    .background(
-                                        colorThree
-                                    )
-                                    .align(Alignment.BottomEnd)
-                            ) {
-
+                        Card(
+                            modifier = Modifier
+                                .fillMaxSize(),
+                            shape = CircleShape
+                        ) {
+                            Box(Modifier.fillMaxSize()) {
+                                Box(
+                                    Modifier
+                                        .fillMaxWidth()
+                                        .fillMaxHeight(0.5f)
+                                        .background(colorOne)
+                                        .align(Alignment.TopCenter)
+                                )
+                                Box(
+                                    Modifier
+                                        .fillMaxWidth(0.5f)
+                                        .fillMaxHeight(0.5f)
+                                        .background(colorTwo)
+                                        .align(Alignment.BottomStart)
+                                )
+                                Box(
+                                    Modifier
+                                        .fillMaxWidth(0.5f)
+                                        .fillMaxHeight(0.5f)
+                                        .background(colorThree)
+                                        .align(Alignment.BottomEnd)
+                                )
                             }
                         }
-
                     }
-
                 }
             }
         }
-
     }
 }

@@ -17,28 +17,17 @@ import com.rozetka.model.UserStudentCard
 
 interface MospolytechApi {
 
-    suspend fun  getScheduleByGroup(group: String): ScheduleModel
+    suspend fun getScheduleByGroup(group: String): ScheduleModel
     suspend fun getStudentProfile(credentials: Credentials): StudentProfile?
-
-    suspend fun  getPayInfo(toke: String): PayModel
-
-    suspend fun  getLastNews(token: String): List<NewsModelItem>
-
-
-    suspend fun  getUserInfo(token: String): UseModel
-
-    suspend fun  getAppData(toke: String): UserStudentCard
-
-    suspend fun  getMsgDialogues(token: String): List<MessageModelItem>
-
-    suspend fun  getDialogByID(token: String, userID: String): List<MessageDialogItem>
-
-    suspend fun  getAcademicPerformanceBySemestr(token: String, semestr: String): AcademicPerformance
-
+    suspend fun getPayInfo(toke: String): PayModel
+    suspend fun getLastNews(token: String): List<NewsModelItem>
+    suspend fun getUserInfo(token: String): UseModel
+    suspend fun getAppData(toke: String): UserStudentCard
+    suspend fun getMsgDialogues(token: String): List<MessageModelItem>
+    suspend fun getDialogByID(token: String, userID: String): List<MessageDialogItem>
+    suspend fun getAcademicPerformanceBySemestr(token: String, semestr: String): AcademicPerformance
     suspend fun getAppRequests(token: String): List<DigitalServiceModelItem>
-
     suspend fun getPhysedjourna(sguid: String): PhysEdJournalResponse
-    suspend fun  getGroups(group: String, token: String): SearchGroupModel
-
-    suspend fun  getPDInfo( token: String): PDModel
+    suspend fun getGroups(group: String, token: String): SearchGroupModel
+    suspend fun getPDInfo(token: String): PDModel
 }

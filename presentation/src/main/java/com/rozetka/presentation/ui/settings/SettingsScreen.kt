@@ -22,6 +22,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -76,7 +78,7 @@ import com.rozetka.presentation.ui.settings.components.StaticColorItem
 import com.rozetka.presentation.ui.settings.components.ThemeComponent
 import com.rozetka.presentation.util.ThemeObject.DynamicColorState
 import org.koin.androidx.compose.koinViewModel
-
+import androidx.compose.ui.graphics.Color
 enum class ItemPosition {
     TOP, MIDDLE, BOTTOM, STANDALONE
 }
@@ -98,6 +100,12 @@ fun SettingsScreen(
             settingsViewModel.onNotificationPermissionResult(isGranted)
         }
     )
+    data class ThemeColorConfig(
+        val colorOne: Color,
+        val colorTwo: Color,
+        val colorThree: Color
+    )
+
 
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
@@ -294,40 +302,47 @@ fun SettingsScreen(
                     Box(
                         Modifier
                             .fillMaxWidth()
-                            .padding(16.dp)
+                            .padding( vertical = 16.dp)
                     ) {
-                        Row(Modifier.align(Alignment.TopCenter)) {
-                            StaticColorItem(
-                                { settingsViewModel.setThemeState(0) },
-                                0,
-                                PixelColor().oneColor,
-                                PixelColor().twoColor,
-                                PixelColor().threeColor
+                        val themeConfigs = remember {
+                            listOf(
+                                ThemeColorConfig(
+                                    colorOne = PixelColor().oneColor,
+                                    colorTwo = PixelColor().twoColor,
+                                    colorThree = PixelColor().threeColor
+                                ),
+                                ThemeColorConfig(
+                                    colorOne = GreenColor().oneColor,
+                                    colorTwo = GreenColor().twoColor,
+                                    colorThree = GreenColor().threeColor
+                                ),
+                                ThemeColorConfig(
+                                    colorOne = OrangeColor().oneColor,
+                                    colorTwo = OrangeColor().twoColor,
+                                    colorThree = OrangeColor().threeColor
+                                ),
+                                ThemeColorConfig(
+                                    colorOne = PinkColor().oneColor,
+                                    colorTwo = PinkColor().twoColor,
+                                    colorThree = PinkColor().threeColor
+                                )
                             )
-                            Spacer(Modifier.size(4.dp))
-                            StaticColorItem(
-                                { settingsViewModel.setThemeState(1) },
-                                1,
-                                GreenColor().oneColor,
-                                GreenColor().twoColor,
-                                GreenColor().threeColor
-                            )
-                            Spacer(Modifier.size(4.dp))
-                            StaticColorItem(
-                                { settingsViewModel.setThemeState(2) },
-                                2,
-                                OrangeColor().oneColor,
-                                OrangeColor().twoColor,
-                                OrangeColor().threeColor
-                            )
-                            Spacer(Modifier.size(4.dp))
-                            StaticColorItem(
-                                { settingsViewModel.setThemeState(3) },
-                                3,
-                                PinkColor().oneColor,
-                                PinkColor().twoColor,
-                                PinkColor().threeColor
-                            )
+                            }
+                        LazyRow(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            itemsIndexed(themeConfigs) { index, theme ->
+
+                                StaticColorItem(
+                                    modifier = Modifier.size(82.dp),
+                                    onClick = { settingsViewModel.setThemeState(index) },
+                                    position = index,
+                                    colorOne = theme.colorOne,
+                                    colorTwo = theme.colorTwo,
+                                    colorThree = theme.colorThree
+                                )
+                            }
                         }
                     }
                 }

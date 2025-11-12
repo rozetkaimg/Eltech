@@ -94,12 +94,14 @@ fun ScheduleScreen(
                         }
                     }
                 },
-                title = { Text(text = stringResource(R.string.schedule) + if(groupName != StringObject.groupName) {
+                title = {
+
+                    Text(text = if(groupName != StringObject.groupName) {
                     stringResource(R.string.schedule_for_group, groupName)
 
                 } else {
-                    ""
-                }, fontWeight = FontWeight.Bold) },
+                        stringResource(R.string.schedule)
+                    }, fontWeight = FontWeight.Bold) },
                 actions = {
                     if(groupName == StringObject.groupName) {
                         IconButton(onClick = { showMenu = !showMenu }) {
@@ -362,13 +364,14 @@ fun WeekScheduleContent(schedule: ScheduleModel, week: WeekInfo) {
 
 
 fun isLessonInWeek(lesson: Lesson, week: WeekInfo): Boolean {
+    if (lesson.df.isBlank() && lesson.dt.isBlank()) {
+        return true
+    }
     return try {
         val lessonStart = LocalDate.parse(lesson.df)
         val lessonEnd = LocalDate.parse(lesson.dt)
         !lessonStart.isAfter(week.endDate) && !lessonEnd.isBefore(week.startDate)
     } catch (_: Exception) {
-        true
+        false
     }
 }
-
-

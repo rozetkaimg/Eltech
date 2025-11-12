@@ -9,6 +9,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
+import com.example.myapplication.SubmitAnApplicationScreen
 import com.rozetka.presentation.ui.aboutApplication.AboutScreen
 import com.rozetka.presentation.ui.academicPerformance.AcademicPerformanceScreen
 import com.rozetka.presentation.ui.digitalService.DigitalServiceScreen
@@ -91,7 +92,9 @@ fun AppNavHost(
 
         }
 
-
+        composable(Screen.SubmitAnApplication.route) {
+            SubmitAnApplicationScreen(navController)
+        }
         composable(Screen.DigitalService.route) {
             DigitalServiceScreen(navController)
         }
@@ -106,7 +109,8 @@ fun AppNavHost(
                 uriPattern = "app://com.rozetka.epotitech/schedule/{groupName}"
             })
         ) { backStackEntry ->
-            val groupName = backStackEntry.arguments?.getString("groupName") ?: StringObject.groupName
+            val groupName =
+                backStackEntry.arguments?.getString("groupName") ?: StringObject.groupName
             ScheduleScreen(navController, groupName)
         }
 
@@ -126,7 +130,9 @@ fun AppNavHost(
         composable(Screen.Payment.route) {
             PayScreen(navController)
         }
-        composable(Screen.Settings.route) {
+        composable(Screen.Settings.route, deepLinks = listOf(navDeepLink {
+            uriPattern = "app://com.rozetka.epotitech/settings"
+        })) {
             SettingsScreen(navController = navController)
         }
         composable(Screen.Profile.route) {

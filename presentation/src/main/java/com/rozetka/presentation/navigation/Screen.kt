@@ -98,7 +98,13 @@ sealed class Screen(
         parentRoute = Service.route
 
     )
-
+    data object SubmitAnApplication: Screen(
+        route = "submitAnApplication",
+        titleResId = R.string.session_results,
+        icon = MailOutline28,
+        isFullScreen = false,
+        parentRoute = Service.route
+    )
     data object Home : Screen(
         route = "home",
         titleResId = R.string.home,
