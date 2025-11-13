@@ -1,8 +1,8 @@
-package com.example.myapplication // Замените на ваш пакет
+package com.rozetka.presentation.ui.submitanApplication
 
 import android.util.Log
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -19,7 +19,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Assignment
 import androidx.compose.material.icons.filled.Link
@@ -45,7 +44,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
@@ -53,11 +51,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import androidx.navigation.NavType
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
-import androidx.navigation.navArgument
 
 data class ServiceLink(
     val title: String,
@@ -250,78 +243,9 @@ fun SubmitAnApplicationScreen(navController: NavController) {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun ApplicationDetailScreen(
-    bidType: String?,
-    navController: NavController
-) {
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Создание заявки") },
-                navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Назад")
-                    }
-                }
-            )
-        }
-    ) { paddingValues ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .padding(16.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(
-                    text = "Здесь будет форма для создания справки",
-                    style = MaterialTheme.typography.titleLarge,
-                    textAlign = TextAlign.Center
-                )
-                Spacer(Modifier.height(16.dp))
-                Text(
-                    text = "Тип заявки (bid_type):\n$bidType",
-                    style = MaterialTheme.typography.bodyMedium,
-                    textAlign = TextAlign.Center
-                )
-            }
-        }
-    }
-}
 
-@Composable
-fun AppNavigation() {
-    val navController = rememberNavController()
 
-    NavHost(
-        navController = navController,
-        startDestination = "application_list"
-    ) {
 
-        composable(route = "application_list") {
-            SubmitAnApplicationScreen(navController = navController)
-        }
-
-        composable(
-            route = "bid/{bid_type}",
-            arguments = listOf(
-                navArgument("bid_type") {
-                    type = NavType.StringType
-                }
-            )
-        ) { backStackEntry ->
-            val bidType = backStackEntry.arguments?.getString("bid_type")
-
-            ApplicationDetailScreen(
-                bidType = bidType,
-                navController = navController
-            )
-        }
-    }
-}
 
 @Composable
 fun ServiceSectionItem(
@@ -342,7 +266,7 @@ fun ServiceSectionItem(
 
         Column(
             modifier = Modifier.padding(horizontal = 16.dp),
-            verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             section.links.forEach { link ->
                 ServiceLinkItem(

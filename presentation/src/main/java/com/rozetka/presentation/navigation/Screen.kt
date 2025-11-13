@@ -105,12 +105,26 @@ sealed class Screen(
         isFullScreen = false,
         parentRoute = Service.route
     )
+    data object Employees: Screen(
+        route = "employees",
+        titleResId = R.string.session_results,
+        icon = MailOutline28,
+        isFullScreen = false,
+        parentRoute = Schedule.route
+    )
     data object Home : Screen(
         route = "home",
         titleResId = R.string.home,
         icon = HomeOutline28
     )
 
+    data object TeacherSchedule : Screen(
+        route = "teacherSchedule/{fio}",
+        titleResId = R.string.schedule,
+        icon = CalendarOutline28,
+        isFullScreen = false,
+        parentRoute = Schedule.route
+    )
     data object Service : Screen(
         route = "Service",
         titleResId = R.string.services,

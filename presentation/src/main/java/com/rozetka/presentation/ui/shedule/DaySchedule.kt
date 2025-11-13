@@ -78,7 +78,7 @@ private object LessonTimeUtil {
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun DaySchedule(dayKey: String, lessonsByTime: Map<String, List<Lesson>>, week: WeekInfo) {
+fun DaySchedule(dayKey: String, lessonsByTime: Map<String, List<Lesson>>, week: WeekInfo, onLinkClick: (String) -> Unit) {
     var selectedLesson by remember { mutableStateOf<Lesson?>(null) }
 
     val dayName = when (dayKey) {
@@ -226,7 +226,9 @@ fun DaySchedule(dayKey: String, lessonsByTime: Map<String, List<Lesson>>, week: 
                 lesson = selectedLesson!!,
                 onDismissRequest = {
                     selectedLesson = null
-                }
+                },
+                onLinkClick = onLinkClick
+
             )
         }
     }

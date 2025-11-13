@@ -3,6 +3,7 @@ package com.rozetka.presentation.ui.shedule
 
 import android.widget.Toast
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -32,6 +33,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import androidx.navigation.NavController
 import com.rozetka.model.Auditory
 import com.rozetka.model.Lesson
 import com.rozetka.presentation.R
@@ -40,7 +42,8 @@ import com.rozetka.presentation.util.getRandomRoundedCornerShape
 @Composable
 fun LessonDetailsDialog(
     lesson: Lesson,
-    onDismissRequest: () -> Unit
+    onDismissRequest: () -> Unit,
+    onLinkClick: (String) -> Unit
 ) {
     Dialog(onDismissRequest = onDismissRequest) {
         Card(shape = RoundedCornerShape(28.dp)) {
@@ -95,14 +98,22 @@ fun LessonDetailsDialog(
                     if (lesson.teacher.isNotBlank()) {
                         val teachers = lesson.teacher.split(",").map { it.trim() }
                         Text(
-                            text = if (teachers.size > 1) stringResource(R.string.label_teachers) else stringResource(R.string.label_teacher_single),
+                            text = if (teachers.size > 1) stringResource(R.string.label_teachers) else stringResource(
+                                R.string.label_teacher_single
+                            ),
                             style = MaterialTheme.typography.bodyLarge,
-                            fontWeight = FontWeight.Bold
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.clickable {
+
+                            }
                         )
                         teachers.forEach { teacher ->
                             Text(
                                 text = teacher,
                                 style = MaterialTheme.typography.bodyLarge,
+                                modifier = Modifier.clickable {
+                                    onLinkClick(teacher)
+                                }
                             )
                         }
                     }

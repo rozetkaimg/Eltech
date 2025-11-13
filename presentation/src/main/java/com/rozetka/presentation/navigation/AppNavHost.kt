@@ -9,7 +9,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
-import com.example.myapplication.SubmitAnApplicationScreen
+import com.rozetka.presentation.ui.submitanApplication.SubmitAnApplicationScreen
 import com.rozetka.presentation.ui.aboutApplication.AboutScreen
 import com.rozetka.presentation.ui.academicPerformance.AcademicPerformanceScreen
 import com.rozetka.presentation.ui.digitalService.DigitalServiceScreen
@@ -26,6 +26,8 @@ import com.rozetka.presentation.ui.settings.SettingsScreen
 import com.rozetka.presentation.ui.shedule.ScheduleScreen
 import com.rozetka.presentation.ui.studentCard.StudentCardScreen
 import com.rozetka.domain.util.StringObject
+import com.rozetka.presentation.ui.employees.EmployeesScreen
+import com.rozetka.presentation.ui.teacherSchedule.TeacherScheduleScreen
 
 @Composable
 fun AppNavHost(
@@ -85,7 +87,9 @@ fun AppNavHost(
             ProjectActivityScreen(navController)
 
         }
-
+        composable(Screen.Employees.route) {
+            EmployeesScreen(navController)
+        }
 
         composable(Screen.Maps.route) {
             MapsScreen(navController)
@@ -113,7 +117,15 @@ fun AppNavHost(
                 backStackEntry.arguments?.getString("groupName") ?: StringObject.groupName
             ScheduleScreen(navController, groupName)
         }
-
+        composable(
+            route = Screen.TeacherSchedule.route,
+            arguments = listOf(
+                navArgument("fio") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val fio = backStackEntry.arguments?.getString("fio") ?: ""
+            TeacherScheduleScreen(navController = navController, fio = fio)
+        }
         composable(Screen.Mail.route) {
             MessagesScreen(navController = navController)
         }

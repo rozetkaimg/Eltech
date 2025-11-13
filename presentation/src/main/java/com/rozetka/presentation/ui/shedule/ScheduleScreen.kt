@@ -51,6 +51,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import com.rozetka.model.Lesson
 import com.rozetka.model.ScheduleModel
@@ -123,7 +124,7 @@ fun ScheduleScreen(
 
                             DropdownMenuItem(
                                 text = { Text(stringResource(R.string.employees)) },
-                                onClick = { }
+                                onClick = { navController.navigate(Screen.Employees.route) }
                             )
 
                         }
@@ -163,9 +164,12 @@ fun ScheduleScreen(
 
                 is ScheduleUiState.Success -> {
                     if (viewModel.getScheduleState()) {
-                        WeekSchedule(state.data, paddingValues)
+                        WeekSchedule(state.data, paddingValues, navController)
                     } else {
-                        DaySchedule(state.data, paddingValues)
+                        DaySchedule(state.data, paddingValues) {
+                            it
+                            navController.navigate("teacherSchedule/${it}")
+                        }
 
                     }
                 }
@@ -177,7 +181,7 @@ fun ScheduleScreen(
 }
 
 @Composable
-fun WeekSchedule(state: ScheduleScreenData, paddingValues: PaddingValues) {
+fun WeekSchedule(state: ScheduleScreenData, paddingValues: PaddingValues, navController: NavController) {
     val screenData = state
     val pagerState = rememberPagerState(
         initialPage = screenData.initialWeekIndex,
@@ -213,7 +217,8 @@ fun WeekSchedule(state: ScheduleScreenData, paddingValues: PaddingValues) {
             val selectedWeek = screenData.weeks[pageIndex]
             WeekScheduleContent(
                 schedule = screenData.fullSchedule,
-                week = selectedWeek
+                week = selectedWeek,
+                navController = navController
             )
         }
     }
@@ -221,7 +226,7 @@ fun WeekSchedule(state: ScheduleScreenData, paddingValues: PaddingValues) {
 }
 
 @Composable
-fun DaySchedule(state: ScheduleScreenData, paddingValues: PaddingValues) {
+fun DaySchedule(state: ScheduleScreenData, paddingValues: PaddingValues, onLinkClick: (String) -> Unit) {
 
     val screenData = state
     val startDate = screenData.weeks.first().startDate
@@ -293,7 +298,7 @@ fun DaySchedule(state: ScheduleScreenData, paddingValues: PaddingValues) {
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     item {
-                        DaySchedule(dayKey, lessonsForDay, weekInfo)
+                        DaySchedule(dayKey, lessonsForDay, weekInfo, onLinkClick)
                     }
                     item { Spacer(Modifier.size(getNavigationBarHeightDp() + 80.dp)) }
                 }
@@ -345,7 +350,7 @@ fun DaySchedule(state: ScheduleScreenData, paddingValues: PaddingValues) {
 }
 
 @Composable
-fun WeekScheduleContent(schedule: ScheduleModel, week: WeekInfo) {
+fun WeekScheduleContent(schedule: ScheduleModel, week: WeekInfo, navController: NavController) {
     val sortedDays = schedule.grid.entries.sortedBy { it.key.toInt() }
 
     LazyColumn(
@@ -355,7 +360,10 @@ fun WeekScheduleContent(schedule: ScheduleModel, week: WeekInfo) {
     ) {
         sortedDays.forEach { (dayKey, lessonsByTime) ->
             item {
-                DaySchedule(dayKey, lessonsByTime, week)
+                DaySchedule(dayKey, lessonsByTime, week){
+                    it
+                    navController.navigate("teacherSchedule/${it}")
+                }
             }
         }
         item { Spacer(Modifier.size(getNavigationBarHeightDp() + 80.dp)) }
@@ -363,15 +371,4 @@ fun WeekScheduleContent(schedule: ScheduleModel, week: WeekInfo) {
 }
 
 
-fun isLessonInWeek(lesson: Lesson, week: WeekInfo): Boolean {
-    if (lesson.df.isBlank() && lesson.dt.isBlank()) {
-        return true
-    }
-    return try {
-        val lessonStart = LocalDate.parse(lesson.df)
-        val lessonEnd = LocalDate.parse(lesson.dt)
-        !lessonStart.isAfter(week.endDate) && !lessonEnd.isBefore(week.startDate)
-    } catch (_: Exception) {
-        false
-    }
-}
+

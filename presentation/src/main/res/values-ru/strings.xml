@@ -314,4 +314,7 @@
     <string name="latest_news">Последние новости</string>
     <string name="try_again_button">Попробовать снова</string>
     <string name="cd_news_image">News Image</string>
+    <string name="error_auth_fail">Ошибка аутентификации. Пожалуйста, войдите снова.</string>
+    <string name="error_teacher_fio_not_found">ФИО преподавателя не найдено.</string>
+    <string name="error_unknown">Произошла неизвестная ошибка.</string>
 </resources>

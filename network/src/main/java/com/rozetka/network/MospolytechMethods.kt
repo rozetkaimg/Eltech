@@ -3,12 +3,14 @@ package com.rozetka.network
 import com.rozetka.model.AcademicPerformance
 import com.rozetka.model.Credentials
 import com.rozetka.model.DigitalServiceModelItem
+import com.rozetka.model.EmployeesModel
 import com.rozetka.model.MessageDialogItem
 import com.rozetka.model.MessageModelItem
 import com.rozetka.model.NewsModelItem
 import com.rozetka.model.PDModel
 import com.rozetka.model.PayModel
 import com.rozetka.model.PhysEdJournalResponse
+import com.rozetka.model.ScheduleByDay
 import com.rozetka.model.ScheduleModel
 import com.rozetka.model.SearchGroupModel
 import com.rozetka.model.StudentProfile
@@ -21,6 +23,8 @@ import io.ktor.client.request.headers
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.parameters
 import org.jsoup.Jsoup
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 
 class MospolytechMethods() : MospolytechApi {
     override suspend fun getScheduleByGroup(group: String): ScheduleModel {
@@ -95,7 +99,24 @@ class MospolytechMethods() : MospolytechApi {
     override suspend fun getPhysedjourna(sguid: String): PhysEdJournalResponse = provideUnsecureHttpClientClean().get("https://api.mospolytech.ru/physedjournal/student/${sguid}").body()
     override suspend fun getGroups(group: String, token: String): SearchGroupModel =  provideUnsecureHttpClient().get("/?getGroups=${group}&perpage=100000&page=1&token=${token}").body()
     override suspend fun getPDInfo(token: String): PDModel = provideUnsecureHttpClient().get("/?PDinfo&token=${token}").body()
+    override suspend fun getStaff(
+        token: String,
+        division: String,
+        page: Int,
+        perpage: Int
+    ): EmployeesModel {
+        return provideUnsecureHttpClient().get("/?getStaff&search=${division}&page=${page}&perpage=${perpage}&token=${token}").body()
+    }
 
+    override suspend fun getScheduleTeacher(
+        fio: String,
+        session: String,
+        token: String?
+    ): ScheduleByDay {
+
+        val encodedFio = URLEncoder.encode(fio, StandardCharsets.UTF_8.toString())
+        return provideUnsecureHttpClient().get("/?getScheduleTeacher&fio=${encodedFio}&token=${token}").body()
+    }
 
     private fun parseProfile(html: String): StudentProfile {
         val doc = Jsoup.parse(html)
