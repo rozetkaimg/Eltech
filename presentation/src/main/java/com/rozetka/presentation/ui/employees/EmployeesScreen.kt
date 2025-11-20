@@ -15,6 +15,7 @@ import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.material3.MaterialShapes.Companion.Cookie9Sided
+import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -34,7 +35,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import coil.compose.SubcomposeAsyncImage
 import com.rozetka.model.ItemX
+import com.rozetka.model.campus.TeacherSmall
 import com.rozetka.presentation.R
+import com.rozetka.presentation.navigation.Screen
 import com.rozetka.presentation.ui.pay.LoadingState
 import org.koin.androidx.compose.koinViewModel
 
@@ -46,6 +49,9 @@ fun EmployeesScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val searchQuery by viewModel.searchQuery.collectAsStateWithLifecycle()
+    val selectedTab by viewModel.selectedTab.collectAsStateWithLifecycle()
+    val teachersUiState by viewModel.teachersUiState.collectAsStateWithLifecycle()
+
     var selectedEmployee by remember { mutableStateOf<ItemX?>(null) }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
@@ -104,18 +110,65 @@ fun EmployeesScreen(
             modifier = Modifier
                 .padding(contentPadding)
                 .fillMaxSize()
-                .padding(horizontal = 16.dp, vertical = 8.dp)
+                .padding(vertical = 8.dp)
         ) {
+            TabRow(
+                selectedTabIndex = selectedTab.ordinal,
+                containerColor = MaterialTheme.colorScheme.surface,
+                contentColor = MaterialTheme.colorScheme.primary,
+                indicator = { tabPositions ->
+                    TabRowDefaults.SecondaryIndicator(
+                        Modifier.tabIndicatorOffset(tabPositions[selectedTab.ordinal])
+                    )
+                }
+            ) {
+                EmployeeTab.values().forEach { tab ->
+                    Tab(
+                        selected = selectedTab == tab,
+                        onClick = { viewModel.onTabSelected(tab) },
+                        text = { Text(text = tab.title) }
+                    )
+                }
+            }
+
             Spacer(Modifier.height(16.dp))
+
+            val displayedItems = remember(uiState, selectedTab, teachersUiState) {
+                if (uiState is EmployeesUiState.Content) {
+                    val allItems = (uiState as EmployeesUiState.Content).items
+                    when (selectedTab) {
+                        EmployeeTab.ALL -> allItems
+                        EmployeeTab.TEACHERS -> allItems.filter { employee ->
+                            viewModel.findTeacherByFio(employee.fio) != null
+                        }
+                    }
+                } else {
+                    emptyList()
+                }
+            }
 
             when (val state = uiState) {
                 is EmployeesUiState.Loading -> LoadingState()
-                is EmployeesUiState.Content -> EmployeesList(
-                    items = state.items,
-                    isLoadingMore = state.isLoadingMore,
-                    onLoadMore = viewModel::loadNextPage,
-                    onItemClick = { selectedEmployee = it }
-                )
+                is EmployeesUiState.Content -> {
+                    if (selectedTab == EmployeeTab.TEACHERS && displayedItems.isEmpty() && state.items.isNotEmpty()) {
+                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            Text(
+                                "Преподаватели не найдены",
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    } else {
+                        EmployeesList(
+                            items = displayedItems,
+                            isLoadingMore = state.isLoadingMore,
+                            onLoadMore = viewModel::loadNextPage,
+                            onItemClick = { selectedEmployee = it },
+                            viewModel = viewModel,
+                            modifier = Modifier.padding(horizontal = 16.dp),
+                            navController = navController
+                        )
+                    }
+                }
                 is EmployeesUiState.Error -> ErrorState(
                     message = state.message,
                     onRetry = { viewModel.searchEmployees() }
@@ -133,7 +186,7 @@ fun EmployeesScreen(
                 EmployeeDetailsBottomSheet(
                     employee = selectedEmployee!!,
                     onScheduleClick = {
-                       navController.navigate("teacherSchedule/${selectedEmployee!!.fio}")
+                        navController.navigate("teacherSchedule/${selectedEmployee!!.fio}")
                     }
                 )
             }
@@ -146,9 +199,13 @@ private fun EmployeesList(
     items: List<ItemX>,
     isLoadingMore: Boolean,
     onLoadMore: () -> Unit,
-    onItemClick: (ItemX) -> Unit
+    onItemClick: (ItemX) -> Unit,
+    viewModel: EmployeesViewModel,
+    modifier: Modifier = Modifier,
+    navController: NavController
 ) {
     LazyColumn(
+        modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(12.dp),
         contentPadding = PaddingValues(bottom = 16.dp)
     ) {
@@ -156,10 +213,18 @@ private fun EmployeesList(
             if (index >= items.size - 1 && !isLoadingMore) {
                 onLoadMore()
             }
-
+           var teacherSmall =  viewModel.findTeacherByFio(employee.fio)
             EmployeeItem(
                 employee = employee,
-                onClick = { onItemClick(employee) }
+                onClick = {
+                    if (teacherSmall  != null){
+                        val route = Screen.TeacherRating.route + "/${teacherSmall.id}?fio=${employee.fio}&avatar=${employee.avatar}&division=${employee.division}&email=${employee.email}&id=${employee.id}&post=${employee.post}"
+                        navController.navigate(route)
+
+                    } else {
+
+                    onItemClick(employee)} },
+                teacherSmall = teacherSmall
             )
         }
 
@@ -182,7 +247,8 @@ private fun EmployeesList(
 @Composable
 private fun EmployeeItem(
     employee: ItemX,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    teacherSmall: TeacherSmall?
 ) {
     Card(
         shape = RoundedCornerShape(28.dp),
@@ -197,33 +263,52 @@ private fun EmployeeItem(
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            SubcomposeAsyncImage(
-                model = employee.avatar,
-                contentDescription = null,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier
-                    .size(64.dp)
-                    .clip(Cookie9Sided.toShape()).align(Alignment.CenterVertically),
-                loading = {
-                    Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
-                        LoadingIndicator()
+            Column(modifier = Modifier.align(Alignment.CenterVertically)) {
+                SubcomposeAsyncImage(
+                    model = employee.avatar,
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .size(64.dp)
+                        .clip(Cookie9Sided.toShape()),
+                    loading = {
+                        Box(
+                            contentAlignment = Alignment.Center,
+                            modifier = Modifier.fillMaxSize()
+                        ) {
+                            LoadingIndicator()
+                        }
+                    },
+                    error = {
+                        Box(
+                            contentAlignment = Alignment.Center,
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(MaterialTheme.colorScheme.onPrimary)
+                        ) {
+                            Icon(
+                                painterResource(R.drawable.ic_profile),
+                                contentDescription = stringResource(R.string.cd_profile_photo_placeholder),
+                                modifier = Modifier.size(96.dp).padding(16.dp)
+                            )
+                        }
                     }
-                },
-                error = {
-                    Box(
-                        contentAlignment = Alignment.Center,
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(MaterialTheme.colorScheme.onPrimary)
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+
+                if (teacherSmall != null) {
+                    Badge(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.align(Alignment.CenterHorizontally)
                     ) {
-                        Icon(
-                            painterResource(R.drawable.ic_profile),
-                            contentDescription = stringResource(R.string.cd_profile_photo_placeholder),
-                            modifier = Modifier.size(96.dp)
+                        Text(
+                            text = String.format("%.2f", teacherSmall.rating.value),
+                            modifier = Modifier.padding(4.dp),
+                            style = MaterialTheme.typography.labelMedium
                         )
                     }
                 }
-            )
+            }
 
             Spacer(modifier = Modifier.width(16.dp))
 
@@ -252,6 +337,13 @@ private fun EmployeeItem(
                         overflow = TextOverflow.Ellipsis
                     )
                 }
+                if (teacherSmall != null) {
+                    Text(
+                        text = "${teacherSmall.rating.count} отзывов",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
         }
     }
@@ -276,7 +368,7 @@ private fun EmployeeDetailsBottomSheet(
             contentDescription = null,
             contentScale = ContentScale.Crop,
             modifier = Modifier
-                .size(240.dp)
+                .size(180.dp)
                 .clip(Cookie9Sided.toShape()),
             loading = {
                 Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {

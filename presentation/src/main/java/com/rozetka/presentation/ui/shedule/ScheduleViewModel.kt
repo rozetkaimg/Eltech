@@ -5,7 +5,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.rozetka.data.SecureStorage
 import com.rozetka.domain.repository.ScheduleRepository
+import com.rozetka.domain.util.StringObject.campusToken
 import com.rozetka.model.ScheduleModel
+import com.rozetka.network.campus.CampusApi
 import com.rozetka.presentation.R
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -36,14 +38,25 @@ data class ScheduleScreenData(
 
 class ScheduleViewModel(
     private val scheduleRepository: ScheduleRepository,
-    val application: Application
+    val application: Application,
+    private val campusApi: CampusApi
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<ScheduleUiState>(ScheduleUiState.Initial)
     val uiState: StateFlow<ScheduleUiState> = _uiState.asStateFlow()
     private val secureStorage: SecureStorage = SecureStorage(application)
 
+init {
+    try {
+        viewModelScope.launch {
+            campusToken = campusApi.getBearerToken().token
+        }
+    } catch (e: Exception){
 
+    }
+
+
+}
 
     fun getSchedule(group: String) {
         viewModelScope.launch {

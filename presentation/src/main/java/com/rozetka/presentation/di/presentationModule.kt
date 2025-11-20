@@ -17,6 +17,7 @@ import com.rozetka.presentation.ui.searchGroup.SearchGroupViewModel
 import com.rozetka.presentation.ui.settings.SettingsViewModel
 import com.rozetka.presentation.ui.shedule.ScheduleViewModel
 import com.rozetka.presentation.ui.studentCard.StudentCardViewModel
+import com.rozetka.presentation.ui.teachersRaiting.TeacherRatingViewModel
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
 
@@ -38,4 +39,7 @@ val presentationModule = module {
     viewModelOf(::PhysEdJournalViewModel)
     viewModelOf(::SearchGroupViewModel)
     viewModelOf(::ProjectActivityViewModel)
+    viewModelOf(::TeacherRatingViewModel)
+
+
 }

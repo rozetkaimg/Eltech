@@ -28,6 +28,7 @@ import com.rozetka.presentation.ui.studentCard.StudentCardScreen
 import com.rozetka.domain.util.StringObject
 import com.rozetka.presentation.ui.employees.EmployeesScreen
 import com.rozetka.presentation.ui.teacherSchedule.TeacherScheduleScreen
+import com.rozetka.presentation.ui.teachersRaiting.TeacherRatingScreen
 
 @Composable
 fun AppNavHost(
@@ -103,6 +104,38 @@ fun AppNavHost(
             DigitalServiceScreen(navController)
         }
 
+
+        composable(
+            route = Screen.TeacherRating.route + "/{teacherID}?fio={fio}&avatar={avatar}&division={division}&email={email}&id={id}&post={post}",
+            arguments = listOf(
+                navArgument("teacherID") { type = NavType.StringType },
+                navArgument("fio") { type = NavType.StringType; defaultValue = "" },
+                navArgument("avatar") { type = NavType.StringType; defaultValue = "" },
+                navArgument("division") { type = NavType.StringType; defaultValue = "" },
+                navArgument("email") { type = NavType.StringType; defaultValue = "" },
+                navArgument("id") { type = NavType.StringType; defaultValue = "" },
+                navArgument("post") { type = NavType.StringType; defaultValue = "" }
+            )
+        ) { backStackEntry ->
+            val teacherId = backStackEntry.arguments?.getString("teacherID") ?: ""
+            val fio = backStackEntry.arguments?.getString("fio") ?: ""
+            val avatar = backStackEntry.arguments?.getString("avatar") ?: ""
+            val division = backStackEntry.arguments?.getString("division") ?: ""
+            val email = backStackEntry.arguments?.getString("email") ?: ""
+            val id = backStackEntry.arguments?.getString("id") ?: ""
+            val post = backStackEntry.arguments?.getString("post") ?: ""
+
+            TeacherRatingScreen(
+                navController = navController,
+                teacherId = teacherId,
+                avatar = avatar,
+                division = division,
+                email = email,
+                fio = fio,
+                id = id,
+                post = post
+            )
+        }
 
         composable(
             route = Screen.Schedule.route + "/{groupName}",
