@@ -13,6 +13,7 @@ import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.SearchOff
 import androidx.compose.material3.*
 import androidx.compose.material3.MaterialShapes.Companion.Cookie9Sided
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
@@ -51,9 +52,12 @@ fun EmployeesScreen(
     val searchQuery by viewModel.searchQuery.collectAsStateWithLifecycle()
     val selectedTab by viewModel.selectedTab.collectAsStateWithLifecycle()
     val teachersUiState by viewModel.teachersUiState.collectAsStateWithLifecycle()
-
+    LaunchedEffect(Unit) {
+        viewModel.searchEmployees()
+    }
     var selectedEmployee by remember { mutableStateOf<ItemX?>(null) }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
 
     Scaffold(
         topBar = {
@@ -494,26 +498,83 @@ private fun ErrorState(message: String, onRetry: () -> Unit) {
     }
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun EmptyState(query: String) {
     Box(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
-        Text(stringResource(R.string.empty_state_message, query))
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(120.dp)
+                    .background(
+                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                        shape = MaterialShapes.Cookie6Sided.toShape()
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.SearchOff,
+                    contentDescription = null,
+                    modifier = Modifier.size(64.dp),
+                    tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
+                )
+            }
+            Spacer(modifier = Modifier.height(24.dp))
+            Text(
+                text = stringResource(R.string.empty_state_message, query),
+                style = MaterialTheme.typography.headlineSmall,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+
+        }
     }
+
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun InitialState() {
     Box(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
-        Text(
-            text = "Введите ФИО или подразделение\nдля поиска сотрудников",
-            textAlign = TextAlign.Center,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(120.dp)
+                    .background(
+                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                        shape = MaterialShapes.Cookie6Sided.toShape()
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.SearchOff,
+                    contentDescription = null,
+                    modifier = Modifier.size(64.dp),
+                    tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
+                )
+            }
+            Spacer(modifier = Modifier.height(24.dp))
+            Text(
+                text = "Введите ФИО или подразделение\nдля поиска сотрудников",
+                style = MaterialTheme.typography.headlineSmall,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+
+        }
     }
 }

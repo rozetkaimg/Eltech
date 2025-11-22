@@ -80,13 +80,12 @@ class EmployeesViewModel(
     fun onSearchQueryChange(query: String) {
         _searchQuery.value = query
     }
+init {
 
+}
     fun searchEmployees() {
         val query = _searchQuery.value.trim()
-        if (query.isBlank()) {
-            _uiState.value = EmployeesUiState.Initial
-            return
-        }
+
         currentPage = 1
         currentItems.clear()
         _uiState.value = EmployeesUiState.Loading

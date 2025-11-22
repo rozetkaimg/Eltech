@@ -3,6 +3,7 @@ package com.rozetka.presentation.ui.teacherSchedule
 
 
 import android.app.Application
+import androidx.compose.runtime.Composable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.rozetka.domain.repository.ScheduleRepository
@@ -14,6 +15,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import java.util.Locale
 
 sealed interface TeacherScheduleUiState {
     data class Success(val data: ScheduleByDay) : TeacherScheduleUiState
@@ -58,5 +60,53 @@ class TeacherScheduleViewModel(
                 )
             }
         }
+    }
+}
+object ScheduleUtils {
+    private val monthIndices = mapOf(
+        "сен" to 0, "сент" to 0,
+        "окт" to 1,
+        "ноя" to 2, "ноябрь" to 2,
+        "дек" to 3,
+        "янв" to 4,
+        "фев" to 5,
+        "мар" to 6,
+        "апр" to 7,
+        "май" to 8,
+        "июн" to 9,
+        "июл" to 10,
+        "авг" to 11
+    )
+
+    // Полные названия для отображения в табах
+    private val fullMonthNames = mapOf(
+        "сен" to "Сентябрь", "сент" to "Сентябрь",
+        "окт" to "Октябрь",
+        "ноя" to "Ноябрь", "ноябрь" to "Ноябрь",
+        "дек" to "Декабрь",
+        "янв" to "Январь",
+        "фев" to "Февраль",
+        "мар" to "Март",
+        "апр" to "Апрель",
+        "май" to "Май",
+        "июн" to "Июнь"
+    )
+
+    fun getMonthSortIndex(rawMonth: String): Int {
+        val key = rawMonth.lowercase(Locale.getDefault()).take(3)
+        return monthIndices[key] ?: 99
+    }
+
+    fun getFullMonthName(rawMonth: String): String {
+        val key = rawMonth.lowercase(Locale.getDefault()).take(3)
+        return fullMonthNames[key] ?: rawMonth
+    }
+
+    fun extractMonth(dateInterval: String?): String {
+        if (dateInterval.isNullOrBlank()) return "Без даты"
+        val regex = Regex("\\d+\\s+([А-Яа-я]+)")
+        val match = regex.find(dateInterval)
+
+        return match?.groupValues?.get(1) ?: "Прочее"
     }
 }

@@ -65,7 +65,13 @@ fun HomeScreen(
             TopAppBar(
                 title = {
                     when (uiState) {
-                        is HomeUiState.Success -> Text(stringResource(R.string.greeting_user, UserDataHolder().getUserName()))
+                        is HomeUiState.Success -> Text(
+                            stringResource(R.string.greeting_user, UserDataHolder().getUserName()),
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(16.dp),
+                            fontSize = 24.sp
+                        )
+
                         else -> Text(stringResource(R.string.home_title))
                     }
                 },

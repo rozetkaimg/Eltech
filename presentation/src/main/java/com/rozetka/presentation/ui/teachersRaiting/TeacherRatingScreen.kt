@@ -2,6 +2,9 @@ package com.rozetka.presentation.ui.teachersRaiting
 
 
 import android.annotation.SuppressLint
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -13,6 +16,10 @@ import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.outlined.ThumbDown
+import androidx.compose.material.icons.outlined.ThumbUp
 import androidx.compose.material.icons.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material3.*
@@ -24,6 +31,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -33,8 +41,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import coil.compose.SubcomposeAsyncImage
+import com.rozetka.model.campus.Criterion
+import com.rozetka.model.campus.Rating
 import com.rozetka.model.campus.TeacherResponse
+import com.rozetka.model.campus.TeacherTag
 import com.rozetka.presentation.R
+import com.rozetka.presentation.ui.pay.LoadingState
 import com.rozetka.presentation.util.CollapsingToolbarScaffold
 import com.rozetka.presentation.util.ScrollStrategy
 import com.rozetka.presentation.util.getNavigationBarHeightDp
@@ -75,16 +87,7 @@ fun TeacherRatingScreen(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun LoadingState() {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        CircularProgressIndicator(Modifier.size(48.dp))
-    }
-}
+
 
 @Composable
 private fun ErrorState(message: String, onUpdate: () -> Unit) {
@@ -156,13 +159,13 @@ private fun TeacherRatingSuccessState(
                 .background(dynamicContainerColor)
                 .padding(top = it.calculateTopPadding()),
             state = states,
-            scrollStrategy = ScrollStrategy.EnterAlwaysCollapsed,
+            scrollStrategy = ScrollStrategy.ExitUntilCollapsed,
             toolbar = {
 
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(100.dp)
+                        .height(0.dp)
                         .pin()
                         .background(dynamicContainerColor)
                 )
@@ -207,7 +210,7 @@ private fun TeacherRatingSuccessState(
                                         Icon(
                                             painterResource(R.drawable.ic_profile),
                                             contentDescription = stringResource(R.string.cd_profile_photo_placeholder),
-                                            modifier = Modifier.size(96.dp).padding(16.dp)
+                                            modifier = Modifier.size(150.dp).padding(16.dp)
                                         )
                                     }
                                 }
@@ -337,25 +340,33 @@ fun TeacherDataLayout(data: TeacherResponse, onScheduleClick: () -> Unit, divisi
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
 
-                    data.teacher.rating.criteria.forEach {
-                        InfoRowSmall(it.title, String.format("%.2f", it.value))
+                    data.teacher.rating.criteria.forEach { criterion ->
+                        CriterionItem(criterion)
+                        Spacer(modifier = Modifier.height(4.dp))
                     }
-                    Spacer(Modifier.height(8.dp))
+
                 }
             }
 
         }
         item {
-            Text(
-                text = "Отзывы ${ if(data.teacher.rating.count > 0 ){
-                    data.teacher.rating.count.toString()
-                } else {
-                    
-                }
-                }" ,
-                style = MaterialTheme.typography.titleLarge,
-                modifier = Modifier.padding(vertical = 8.dp)
-            )
+
+            QualitiesSection(tags = data.teacher.rating.tags)
+        }
+        item {
+            if (data.reviews.isNotEmpty()) {
+                Text(
+                    text = "Отзывы ${
+                        if (data.teacher.rating.count > 0) {
+                            data.teacher.rating.count.toString()
+                        } else {
+
+                        }
+                    }",
+                    style = MaterialTheme.typography.titleLarge,
+                    modifier = Modifier.padding(vertical = 8.dp)
+                )
+            }
         }
         item {
             Button(
@@ -391,44 +402,220 @@ fun TeacherDataLayout(data: TeacherResponse, onScheduleClick: () -> Unit, divisi
 
 }
 
+
+private const val MAX_RATING_VALUE = 5.0
+@Composable
+fun CriterionItem(criterion: Criterion) {
+        Row(
+            modifier = Modifier
+                .padding(horizontal = 12.dp)
+                .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+
+            Text(
+                text = criterion.title,
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.weight(0.5f),
+                color = MaterialTheme.colorScheme.onSurface
+            )
+
+
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(start = 16.dp)
+            ) {
+
+                LinearProgressIndicator(
+                    progress = { (criterion.value / MAX_RATING_VALUE).toFloat().coerceIn(0f, 1f) },
+                    modifier = Modifier
+                        .width(80.dp)
+                        .height(8.dp)
+                        .clip(RoundedCornerShape(4.dp)),
+                    color = if (criterion.value >= 4.0) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary,
+                    trackColor = MaterialTheme.colorScheme.surfaceVariant,
+                )
+
+                Spacer(modifier = Modifier.width(12.dp))
+
+
+                Text(
+                    text = String.format("%.1f", criterion.value),
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+
+}
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun ReviewItem(review: com.rozetka.model.campus.Review) {
+    var tagsExpanded by remember { mutableStateOf(false) }
+        Card(
+            modifier = Modifier
+                .fillMaxWidth(),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
+            shape = RoundedCornerShape(
+                topStart = 24.dp,
+                topEnd = 24.dp,
+                bottomStart = 8.dp,
+                bottomEnd = 8.dp
+            )
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp).height(48.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = review.author ?: "Аноним",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+
+                Badge(
+                    containerColor = if (review.value >= 4.0) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
+                ) {
+                    Text(
+                        text = String.format("%.1f", review.value),
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+        }
+    Spacer(modifier = Modifier.height(2.dp))
     Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape( 24.dp),
+        modifier = Modifier
+            .fillMaxWidth(),
+        shape = RoundedCornerShape(8.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(
-                    text = review.author ?: "Аноним",
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Bold
-                )
-
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Badge(containerColor = if (review.value >= 4.0) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary) {
-                        Text("Оценка: ${review.value}", modifier = Modifier.padding(4.dp))
-                    }
-                }
-
-            }
-            Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = review.content,
-                style = MaterialTheme.typography.bodyMedium
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurface
             )
-            Spacer(modifier = Modifier.height(8.dp))
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+
+            if (review.tags.isNotEmpty()) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.Top
+                ) {
+
+                    FlowRow(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier
+                            .weight(1f)
+                            .animateContentSize(),
+                        maxLines = if (tagsExpanded) Int.MAX_VALUE else 1,
+                        overflow = FlowRowOverflow.Clip
+                    ) {
+                        review.tags.forEach { tag ->
+                            SuggestionChip(
+                                onClick = { },
+                                label = { Text(tag) },
+                                colors = SuggestionChipDefaults.suggestionChipColors(
+                                    containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+                                ),
+                                border = null,
+                                modifier = Modifier.height(32.dp)
+                            )
+                        }
+                    }
+
+
+                    IconButton(
+                        onClick = { tagsExpanded = !tagsExpanded },
+                        modifier = Modifier
+                            .padding(start = 4.dp)
+                            .size(32.dp)
+                    ) {
+                        Icon(
+                            imageVector = if (tagsExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                            contentDescription = "Toggle tags",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
+
+
+        }
+    }
+    Spacer(modifier = Modifier.height(2.dp))
+    Card(
+        modifier = Modifier
+            .fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
+        shape = RoundedCornerShape(
+            topStart = 8.dp,
+            topEnd = 8.dp,
+            bottomStart = 24.dp,
+            bottomEnd = 24.dp
+        )
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp).height(48.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                ReactionCounter(
+                    icon = Icons.Outlined.ThumbUp,
+                    count = review.reactions.likes,
+                    color = MaterialTheme.colorScheme.primary
+                )
+                Spacer(modifier = Modifier.width(16.dp))
+                ReactionCounter(
+                    icon = Icons.Outlined.ThumbDown,
+                    count = review.reactions.dislikes,
+                    color = MaterialTheme.colorScheme.error
+                )
+            }
+
             Text(
                 text = review.createdAt.take(10),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.align(Alignment.End)
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
+    }
+}
+
+
+@Composable
+fun ReactionCounter(
+    icon: ImageVector,
+    count: Int,
+    color: Color
+) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = color,
+            modifier = Modifier.size(18.dp)
+        )
+        Spacer(modifier = Modifier.width(4.dp))
+        Text(
+            text = count.toString(),
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.onSurface
+        )
     }
 }
 @Composable
@@ -471,5 +658,95 @@ private fun InfoRowSmall(label: String, value: String) {
             modifier = Modifier.weight(0.2f),
             color = MaterialTheme.colorScheme.onSurface
         )
+    }
+}
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+fun QualitiesSection(tags: List<TeacherTag>) {
+    if (tags.isEmpty()) return
+
+    var isExpanded by remember { mutableStateOf(false) }
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .animateContentSize()
+    ) {
+        Text(
+            text = "Качества и особенности",
+            style = MaterialTheme.typography.titleSmall,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(bottom = 12.dp)
+        )
+
+        FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.fillMaxWidth(),
+            maxLines = if (isExpanded) Int.MAX_VALUE else 2,
+            overflow = FlowRowOverflow.Clip
+        ) {
+            tags.forEach { tag ->
+                QualityChip(tag = tag)
+            }
+        }
+        if (tags.size > 6) {
+            Spacer(modifier = Modifier.height(8.dp))
+            TextButton(
+                onClick = { isExpanded = !isExpanded },
+                modifier = Modifier.fillMaxWidth(),
+                contentPadding = PaddingValues(vertical = 4.dp)
+            ) {
+                Text(text = if (isExpanded) "Свернуть" else "Показать все качества")
+                Spacer(modifier = Modifier.width(8.dp))
+                Icon(
+                    imageVector = if (isExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun QualityChip(tag: TeacherTag) {
+    val containerColor = if (tag.percentage > 50) {
+        MaterialTheme.colorScheme.primaryContainer
+    } else {
+        MaterialTheme.colorScheme.surfaceContainerHigh
+    }
+
+    val contentColor = if (tag.percentage > 50) {
+        MaterialTheme.colorScheme.onPrimaryContainer
+    } else {
+        MaterialTheme.colorScheme.onSurfaceVariant
+    }
+
+    Surface(
+        shape = RoundedCornerShape(8.dp),
+        color = containerColor,
+        contentColor = contentColor,
+        modifier = Modifier.height(32.dp)
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(horizontal = 12.dp)
+        ) {
+            Text(
+                text = tag.title,
+                style = MaterialTheme.typography.labelLarge
+            )
+
+            Spacer(modifier = Modifier.width(6.dp))
+
+
+            Text(
+                text = "${tag.percentage}%",
+                style = MaterialTheme.typography.labelSmall,
+                fontWeight = FontWeight.Bold,
+                color = contentColor.copy(alpha = 0.8f)
+            )
+        }
     }
 }

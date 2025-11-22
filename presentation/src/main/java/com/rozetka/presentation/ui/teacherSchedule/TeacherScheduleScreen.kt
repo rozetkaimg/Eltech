@@ -1,45 +1,19 @@
 package com.rozetka.presentation.ui.teacherSchedule
 
-
 import android.widget.Toast
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialShapes
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.toShape
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -65,11 +39,46 @@ import com.rozetka.presentation.ui.pay.LoadingState
 import com.rozetka.presentation.util.getNavigationBarHeightDp
 import com.rozetka.presentation.util.getRandomRoundedCornerShape
 import com.rozetka.presentation.util.removeEmojis
+import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 import java.time.Duration
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
+import java.util.Locale
 
+// --- ВСПОМОГАТЕЛЬНЫЕ ОБЪЕКТЫ ---
+
+// Обертка, чтобы не потерять день недели при сортировке по месяцам
+private data class LessonWithDay(
+    val dayKey: String, // "Monday", "Tuesday"...
+    val lesson: LessonS
+)
+
+private object MonthSorter {
+    private val monthIndices = mapOf(
+        "сен" to 0, "сент" to 0, "окт" to 1, "ноя" to 2, "ноябрь" to 2, "дек" to 3,
+        "янв" to 4, "фев" to 5, "мар" to 6, "апр" to 7, "май" to 8, "июн" to 9, "июл" to 10, "авг" to 11
+    )
+    // Порядок дней недели для сортировки внутри месяца
+    val dayOrder = listOf("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
+
+    private val fullMonthNames = mapOf(
+        "сен" to "Сентябрь", "сент" to "Сентябрь", "окт" to "Октябрь", "ноя" to "Ноябрь", "ноябрь" to "Ноябрь",
+        "дек" to "Декабрь", "янв" to "Январь", "фев" to "Февраль", "мар" to "Март", "апр" to "Апрель",
+        "май" to "Май", "июн" to "Июнь"
+    )
+
+    fun getMonthNameByKey(key: String): String {
+        return fullMonthNames[key] ?: key.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
+    }
+
+    fun extractMonthKey(dateInterval: String?): String {
+        if (dateInterval.isNullOrBlank()) return "прочее"
+        val regex = Regex("\\d+\\s+([А-Яа-я]+)")
+        val match = regex.find(dateInterval)
+        return match?.groupValues?.get(1)?.lowercase(Locale.getDefault())?.take(3) ?: "прочее"
+    }
+}
 
 private sealed class TeacherDayViewItem {
     data class LessonData(val lesson: LessonS) : TeacherDayViewItem()
@@ -96,6 +105,7 @@ private object TeacherLessonTimeUtil {
     }
 }
 
+// --- ЭКРАН ---
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -157,37 +167,122 @@ fun TeacherScheduleScreen(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun TeacherScheduleContent(schedule: ScheduleByDay) {
-    val dayOrder = listOf("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
-    val sortedDays = schedule.entries.sortedBy { dayOrder.indexOf(it.key) }
+    // 1. Подготовка данных: Map -> List<LessonWithDay> -> GroupBy Month
+    val processedData = remember(schedule) {
+        // Превращаем Map<"Monday", List<Lesson>> в плоский список пар (День, Урок)
+        val allLessonsWithDays = schedule.flatMap { entry ->
+            entry.value.map { lesson -> LessonWithDay(entry.key, lesson) }
+        }
+
+        // Группируем по месяцу
+        val groupedByMonth = allLessonsWithDays.groupBy {
+            MonthSorter.extractMonthKey(it.lesson.dateInterval)
+        }
+
+        // Сортируем месяцы (Сен -> Авг)
+        val sortedMonthKeys = groupedByMonth.keys.sortedBy { key ->
+            val indicesMap = mapOf(
+                "сен" to 0, "сент" to 0, "окт" to 1, "ноя" to 2, "ноябрь" to 2, "дек" to 3,
+                "янв" to 4, "фев" to 5, "мар" to 6, "апр" to 7, "май" to 8, "июн" to 9, "июл" to 10, "авг" to 11
+            )
+            indicesMap[key] ?: 99
+        }
+        sortedMonthKeys to groupedByMonth
+    }
+
+    val (months, lessonsByMonthMap) = processedData
     var selectedLesson by remember { mutableStateOf<LessonS?>(null) }
 
-    LazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        sortedDays.forEach { (dayKey, lessons) ->
-            item {
-                TeacherDaySchedule(
-                    dayKey = dayKey,
-                    lessons = lessons,
-                    onLessonClick = { lesson ->
-                        selectedLesson = lesson
+    if (months.isEmpty()) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Text("Расписание отсутствует")
+        }
+        return
+    }
+
+    val pagerState = rememberPagerState(pageCount = { months.size })
+    val coroutineScope = rememberCoroutineScope()
+
+    Column(modifier = Modifier.fillMaxSize()) {
+        // --- Tabs ---
+        ScrollableTabRow(
+            selectedTabIndex = pagerState.currentPage,
+            edgePadding = 16.dp,
+            containerColor = MaterialTheme.colorScheme.surface,
+            contentColor = MaterialTheme.colorScheme.primary,
+            indicator = { tabPositions ->
+                if (pagerState.currentPage < tabPositions.size) {
+                    TabRowDefaults.SecondaryIndicator(
+                        Modifier.tabIndicatorOffset(tabPositions[pagerState.currentPage]),
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
+        ) {
+            months.forEachIndexed { index, monthKey ->
+                Tab(
+                    selected = pagerState.currentPage == index,
+                    onClick = {
+                        coroutineScope.launch { pagerState.animateScrollToPage(index) }
+                    },
+                    text = {
+                        Text(
+                            text = MonthSorter.getMonthNameByKey(monthKey),
+                            fontWeight = if (pagerState.currentPage == index) FontWeight.Bold else FontWeight.Normal
+                        )
                     }
                 )
             }
         }
-        item { Spacer(Modifier.height(80.dp)) }
+
+        // --- Pager ---
+        HorizontalPager(
+            state = pagerState,
+            modifier = Modifier.fillMaxSize()
+        ) { pageIndex ->
+            val monthKey = months[pageIndex]
+            val lessonsInMonth = lessonsByMonthMap[monthKey] ?: emptyList()
+
+            // 2. Внутри месяца группируем обратно по дням недели и сортируем дни
+            val daysInMonth = remember(lessonsInMonth) {
+                lessonsInMonth
+                    .groupBy { it.dayKey } // Group by "Monday", "Tuesday"
+                    .entries
+                    .sortedBy { MonthSorter.dayOrder.indexOf(it.key) } // Sort Monday -> Sunday
+            }
+
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                // Проходимся по отсортированным дням внутри месяца
+                daysInMonth.forEach { (dayKey, lessonsWithDayList) ->
+                    item {
+                        // Извлекаем чистые LessonS из обертки
+                        val lessons = lessonsWithDayList.map { it.lesson }
+
+                        // Используем ваш существующий компонент для отображения дня
+                        TeacherDaySchedule(
+                            dayKey = dayKey,
+                            lessons = lessons,
+                            onLessonClick = { selectedLesson = it }
+                        )
+                    }
+                }
+
+                item { Spacer(Modifier.height(80.dp)) }
+            }
+        }
     }
 
     if (selectedLesson != null) {
         TeacherLessonDetailsDialog(
             lesson = selectedLesson!!,
-            onDismissRequest = {
-                selectedLesson = null
-            }
+            onDismissRequest = { selectedLesson = null }
         )
     }
 }
@@ -259,6 +354,7 @@ fun TeacherDaySchedule(
                 }
             }
         } else {
+            // Блок "Выходной" - можно оставить или убрать, если пустые дни не нужны в Pager
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -278,8 +374,8 @@ fun TeacherDaySchedule(
                             .background(MaterialTheme.colorScheme.surface)
                     ) {
                         Icon(
-                            painter = painterResource(R.drawable.home_outline),
-                            contentDescription = stringResource(R.string.academic_year_content_description),
+                            painter = painterResource(R.drawable.home_outline), // Убедитесь, что ресурс существует
+                            contentDescription = null,
                             tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier
                                 .size(32.dp)
@@ -431,6 +527,15 @@ fun TeacherLessonItem(
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.primary
+                    )
+                }
+
+                Spacer(Modifier.weight(1f))
+                lesson.dateInterval?.let { date ->
+                    Text(
+                        text = date,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
                     )
                 }
             }

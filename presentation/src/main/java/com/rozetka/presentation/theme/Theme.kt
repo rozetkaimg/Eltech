@@ -10,6 +10,10 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue        // Добавлен импорт
+import androidx.compose.runtime.mutableStateOf  // Добавлен импорт
+import androidx.compose.runtime.remember        // Добавлен импорт
+import androidx.compose.runtime.setValue        // Добавлен импорт
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import com.rozetka.localdata.SettingsData
@@ -31,23 +35,32 @@ fun EPolitechTheme(
     content: @Composable () -> Unit
 ) {
     val context = LocalContext.current
+    var isSettingsLoaded by remember { mutableStateOf(false) }
+
     LaunchedEffect(Unit) {
-        withContext(Dispatchers.IO) {
+        withContext(Dispatchers.Default) {
             val settings = SettingsData(context)
             DynamicColorState.value = settings.getMonetState(context)
             DarkThemeState.value = settings.getThemeState(context)
             ColorThemeState.value = settings.getMonetStaticColor(context)
         }
+        isSettingsLoaded = true
     }
 
-    val isDark = when (DarkThemeState.value) {
-        0 -> darkTheme
-        1 -> false
-        else -> true
+
+    val isDark = if (!isSettingsLoaded) {
+        darkTheme
+    } else {
+        when (DarkThemeState.value) {
+            0 -> darkTheme // Системная настройка в приложении
+            1 -> false     // Принудительно светлая
+            else -> true   // Принудительно темная
+        }
     }
 
-    val useDynamicColor = dynamicColor &&
-            DynamicColorState.value &&
+    val shouldUseDynamicColorState = if (!isSettingsLoaded) dynamicColor else DynamicColorState.value
+
+    val useDynamicColor = shouldUseDynamicColorState &&
             Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
 
     StatusBarIconColor.value = !isDark
@@ -84,7 +97,8 @@ private fun getStaticColorScheme(isDark: Boolean): ColorScheme {
 fun animateColor(targetValue: Color) =
     animateColorAsState(
         targetValue = targetValue,
-        animationSpec = tween(durationMillis = 700)
+        animationSpec = tween(durationMillis = 700),
+        label = "ColorAnimation"
     ).value
 
 @Composable

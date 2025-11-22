@@ -24,6 +24,7 @@ import androidx.glance.layout.Spacer
 import androidx.glance.layout.fillMaxWidth
 import androidx.glance.layout.height
 import androidx.glance.layout.padding
+import androidx.glance.layout.width
 import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
@@ -151,9 +152,11 @@ fun NewLessonCardGlanceSmall(
             Row(modifier = GlanceModifier.fillMaxWidth()) {
                 Text(
                     text = lesson.auditories.joinToString { it.title.replace(Regex("<.*?>"), "") },
-                    style = TextStyle(fontSize = 12.sp, color = GlanceTheme.colors.onSurfaceVariant)
+                    style = TextStyle(fontSize = 12.sp, color = GlanceTheme.colors.onSurfaceVariant),
+                    modifier = GlanceModifier.defaultWeight(),
+                    maxLines = 1,
                 )
-                Spacer(GlanceModifier.defaultWeight())
+
                 Text(
                     text = text,
                     modifier = GlanceModifier
