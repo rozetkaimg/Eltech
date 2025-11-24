@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -52,6 +53,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.rozetka.model.FKStudentData
 import com.rozetka.presentation.R
+import com.rozetka.presentation.navigation.Screen
+import com.rozetka.presentation.ui.groupJournal.GroupJournalScreen
 import com.rozetka.presentation.ui.pay.LoadingState
 import com.rozetka.presentation.util.ThemeObject.BottomNavBarPaddingValue
 import com.rozetka.presentation.util.getNavigationBarHeightDp
@@ -88,7 +91,8 @@ fun PhysEdJournalScreen(
                     if (state.studentData.success)
                         PhysEdJournalTopAppBar(
                             scrollBehavior = scrollBehavior,
-                            onBackClicked = { navController.navigateUp() }
+                            onBackClicked = { navController.navigateUp() },
+
                         ) else {
                         PhysEdJournalSmallTopAppBar(
                             scrollBehavior = scrollBehavior,
@@ -98,8 +102,9 @@ fun PhysEdJournalScreen(
                 }
             }
 
-        }
-    ) { paddingValues ->
+        },
+
+        ) { paddingValues ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -113,7 +118,7 @@ fun PhysEdJournalScreen(
                 is PhysEdJournalUiState.Loading -> LoadingState()
                 is PhysEdJournalUiState.Success ->
                     if (state.studentData.success) {
-                        state.studentData.data?.let { PhysEdJournalSuccessState(data = it) }
+                        state.studentData.data?.let { PhysEdJournalSuccessState(data = it, toGroup = {navController.navigate(Screen.PhysGroupJournalScreen.route)}) }
                     } else {
                         stateTop.heightOffset = -stateTop.heightOffset
                         Card(
@@ -174,8 +179,9 @@ fun PhysEdJournalScreen(
     }
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-private fun PhysEdJournalSuccessState(data: FKStudentData) {
+private fun PhysEdJournalSuccessState(data: FKStudentData, toGroup: () -> Unit) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(16.dp),
@@ -193,7 +199,50 @@ private fun PhysEdJournalSuccessState(data: FKStudentData) {
                 specialization = data.specialization,
             )
         }
+        item {
 
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(24.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
+                onClick = toGroup
+            ) {
+                Row(
+                    modifier = Modifier.padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Box(
+                        Modifier
+                            .size(64.dp)
+                            .clip(Cookie9Sided.toShape())
+                            .background(MaterialTheme.colorScheme.surface)
+                    ) {
+
+                        Icon(
+                            painter = painterResource(R.drawable.users_outline),
+                            contentDescription = "Student Icon",
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier
+                                .size(40.dp)
+                                .align(Alignment.Center)
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Column {
+                        Text(
+                            text = "Журнал группы",
+                            style = MaterialTheme.typography.titleLarge,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Text(
+                            text = "Рейтинг твоей группы",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
+        }
         if (data.pointsHistory.isNotEmpty()) {
             item {
                 Text(
@@ -255,6 +304,7 @@ private fun ErrorState(message: String, onUpdate: () -> Unit) {
 fun PhysEdJournalTopAppBar(
     scrollBehavior: TopAppBarScrollBehavior,
     onBackClicked: () -> Unit,
+
     modifier: Modifier = Modifier
 ) {
     LargeTopAppBar(
@@ -269,6 +319,7 @@ fun PhysEdJournalTopAppBar(
                 )
             }
         },
+
         colors = TopAppBarDefaults.topAppBarColors(
             containerColor = MaterialTheme.colorScheme.surface,
             titleContentColor = MaterialTheme.colorScheme.onSurface,

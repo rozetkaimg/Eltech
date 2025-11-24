@@ -1,15 +1,15 @@
 package com.rozetka.presentation.navigation
 
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DataArray
-import com.rozetka.presentation.new.HomeOutline28
+import androidx.compose.ui.graphics.vector.ImageVector
 import com.rozetka.presentation.R
+import com.rozetka.presentation.navigation.Screen.Login.route
+import com.rozetka.presentation.new.CalendarOutline28
+import com.rozetka.presentation.new.HomeOutline28
 import com.rozetka.presentation.new.MailOutline28
 import com.rozetka.presentation.new.Profile28
 import com.rozetka.presentation.new.ServicesOutline28
-import com.rozetka.presentation.new.CalendarOutline28
-import com.rozetka.presentation.navigation.Screen.Login.route
 
 sealed class Screen(
     val route: String,
@@ -25,8 +25,17 @@ sealed class Screen(
     data object Schedule : Screen(
         route = "Schedule",
         titleResId = R.string.schedule,
-        icon = CalendarOutline28
+        icon = CalendarOutline28,
+        parentRoute = ScheduleNoLink.route
     )
+
+    data object ScheduleNoLink : Screen(
+        route = "ScheduleNoLink",
+        titleResId = R.string.schedule,
+        icon = CalendarOutline28,
+
+    )
+
 
     data object Mail : Screen(
         route = "mail",
@@ -41,6 +50,7 @@ sealed class Screen(
         isFullScreen = false,
         parentRoute = Service.route
     )
+
     data object Maps : Screen(
         route = "mapsScreen",
         titleResId = R.string.digital_services,
@@ -48,6 +58,7 @@ sealed class Screen(
         isFullScreen = false,
         parentRoute = Service.route
     )
+
     data object ProjectActivity : Screen(
         route = "projectActivity",
         titleResId = R.string.digital_services,
@@ -72,6 +83,7 @@ sealed class Screen(
         parentRoute = Service.route
 
     )
+
     data object PhysEdJournalScreen : Screen(
         route = "PhysEdJournal",
         titleResId = R.string.physical_education,
@@ -80,15 +92,31 @@ sealed class Screen(
         parentRoute = Service.route
 
     )
+    data object PhysGroupJournalScreen : Screen(
+        route = "PhysGroupJournal",
+        titleResId = R.string.physical_education,
+        icon = MailOutline28,
+        isFullScreen = false,
+        parentRoute = Service.route
+
+    )
+
     data object SearchGroupScreen : Screen(
         route = "SearchGroup",
         titleResId = R.string.physical_education,
         icon = MailOutline28,
         isFullScreen = false,
-        parentRoute = Schedule.route
+        parentRoute = ScheduleNoLink.route
 
     )
+    data object SearchStudentsScreen : Screen(
+        route = "SearchStudents",
+        titleResId = R.string.physical_education,
+        icon = MailOutline28,
+        isFullScreen = false,
+        parentRoute = route
 
+    )
 
     data object AcademicPerScreen : Screen(
         route = "academic",
@@ -98,28 +126,31 @@ sealed class Screen(
         parentRoute = Service.route
 
     )
-    data object SubmitAnApplication: Screen(
+
+    data object SubmitAnApplication : Screen(
         route = "submitAnApplication",
         titleResId = R.string.session_results,
         icon = MailOutline28,
         isFullScreen = false,
-        parentRoute = Service.route
+        parentRoute = route
     )
 
-    data object TeacherRating: Screen(
+    data object TeacherRating : Screen(
         route = "teacherRating",
         titleResId = R.string.session_results,
         icon = MailOutline28,
         isFullScreen = false,
-        parentRoute = Schedule.route
+        parentRoute = route
     )
-    data object Employees: Screen(
+
+    data object Employees : Screen(
         route = "employees",
         titleResId = R.string.session_results,
         icon = MailOutline28,
         isFullScreen = false,
-        parentRoute = Schedule.route
+        parentRoute = ScheduleNoLink.route
     )
+
     data object Home : Screen(
         route = "home",
         titleResId = R.string.home,
@@ -131,8 +162,9 @@ sealed class Screen(
         titleResId = R.string.schedule,
         icon = CalendarOutline28,
         isFullScreen = false,
-        parentRoute = Schedule.route
+        parentRoute = ScheduleNoLink.route
     )
+
     data object Service : Screen(
         route = "Service",
         titleResId = R.string.services,
@@ -155,6 +187,7 @@ sealed class Screen(
         isFullScreen = true,
         parentRoute = route
     )
+
     data object AboutApplication : Screen(
         route = "aboutApplication",
         titleResId = R.string.settings,
@@ -167,7 +200,7 @@ sealed class Screen(
 
 val bottomNavItems = listOf(
     Screen.Home,
-    Screen.Schedule,
+    Screen.ScheduleNoLink,
     Screen.Mail,
     Screen.Service
 )

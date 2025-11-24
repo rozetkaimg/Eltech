@@ -61,7 +61,7 @@ fun StudentInfoCard(
 
         Card(
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp, bottomStart = 8.dp, bottomEnd = 8.dp),
+            shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp, bottomStart = 4.dp, bottomEnd = 4.dp),
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)
         ) {
             Row(
@@ -102,7 +102,7 @@ fun StudentInfoCard(
 
         Card(
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(bottomEnd = 28.dp, bottomStart = 28.dp, topStart = 8.dp, topEnd = 8.dp),
+            shape = RoundedCornerShape(bottomEnd = 24.dp, bottomStart = 24.dp, topStart = 4.dp, topEnd = 4.dp),
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)
         ) {
             Column(

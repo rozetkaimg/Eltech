@@ -147,7 +147,7 @@ private fun StudentDataLayout(
 
 
 
-                CategoryListContent({navController.navigate(Screen.Payment.route)}, {navController.navigate(Screen.AcademicPerScreen.route)}, {navController.navigate(Screen.Maps.route)}, {
+                CategoryListContent({navController.navigate(Screen.Payment.route)}, {navController.navigate(Screen.AcademicPerScreen.route)}, {navController.navigate(Screen.SearchStudentsScreen.route)}, {
                     navController.navigate(Screen.DigitalService.route)
                 }, {
                     navController.navigate(Screen.PhysEdJournalScreen.route)

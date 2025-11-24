@@ -1,11 +1,14 @@
 package com.rozetka.network
 
+import android.app.Dialog
 import com.rozetka.model.AcademicPerformance
 import com.rozetka.model.Credentials
 import com.rozetka.model.DigitalServiceModelItem
 import com.rozetka.model.EmployeesModel
+import com.rozetka.model.File
 import com.rozetka.model.MessageDialogItem
 import com.rozetka.model.MessageModelItem
+import com.rozetka.model.MessageResponse
 import com.rozetka.model.NewsModelItem
 import com.rozetka.model.PDModel
 import com.rozetka.model.PayModel
@@ -13,7 +16,9 @@ import com.rozetka.model.PhysEdJournalResponse
 import com.rozetka.model.ScheduleByDay
 import com.rozetka.model.ScheduleModel
 import com.rozetka.model.SearchGroupModel
+import com.rozetka.model.SearchStudentResponse
 import com.rozetka.model.StudentProfile
+import com.rozetka.model.StudentResponse
 
 import com.rozetka.model.UseModel
 import com.rozetka.model.UserStudentCard
@@ -35,5 +40,12 @@ interface MospolytechApi {
     suspend fun getPDInfo(token: String): PDModel
     suspend fun getStaff(token: String, division: String, page: Int, perpage: Int): EmployeesModel
     suspend fun getScheduleTeacher(fio: String, session: String, token: String?): ScheduleByDay
-
+    suspend fun getPhysedJournal(group: String, token: String): StudentResponse
+    suspend fun changeEmail(token: String, newEmail: String): String
+    suspend fun changeNumber(token: String, number: String): String
+    suspend fun sendMessageNoFiles(toDialog: String, token: String, newMessage: String): MessageResponse
+    suspend fun sendMessageWithFiles(toDialog: String, token: String, message: String, files: List<java.io.File>): MessageResponse
+    suspend fun getStudents(search: String = "", group: String, page: Int = 1, perPage: Int = 50, token: String): SearchStudentResponse
+    suspend fun sendMessageNoFilesByID(iD: String, token: String, newMessage: String): MessageResponse
+    suspend fun changeAvatar(token: String, avatarBytes: ByteArray): String
 }

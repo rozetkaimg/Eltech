@@ -46,11 +46,8 @@ import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
-// --- ВСПОМОГАТЕЛЬНЫЕ ОБЪЕКТЫ ---
-
-// Обертка, чтобы не потерять день недели при сортировке по месяцам
 private data class LessonWithDay(
-    val dayKey: String, // "Monday", "Tuesday"...
+    val dayKey: String,
     val lesson: LessonS
 )
 
@@ -59,7 +56,6 @@ private object MonthSorter {
         "сен" to 0, "сент" to 0, "окт" to 1, "ноя" to 2, "ноябрь" to 2, "дек" to 3,
         "янв" to 4, "фев" to 5, "мар" to 6, "апр" to 7, "май" to 8, "июн" to 9, "июл" to 10, "авг" to 11
     )
-    // Порядок дней недели для сортировки внутри месяца
     val dayOrder = listOf("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
 
     private val fullMonthNames = mapOf(
@@ -105,7 +101,7 @@ private object TeacherLessonTimeUtil {
     }
 }
 
-// --- ЭКРАН ---
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -170,19 +166,13 @@ fun TeacherScheduleScreen(
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun TeacherScheduleContent(schedule: ScheduleByDay) {
-    // 1. Подготовка данных: Map -> List<LessonWithDay> -> GroupBy Month
     val processedData = remember(schedule) {
-        // Превращаем Map<"Monday", List<Lesson>> в плоский список пар (День, Урок)
         val allLessonsWithDays = schedule.flatMap { entry ->
             entry.value.map { lesson -> LessonWithDay(entry.key, lesson) }
         }
-
-        // Группируем по месяцу
         val groupedByMonth = allLessonsWithDays.groupBy {
             MonthSorter.extractMonthKey(it.lesson.dateInterval)
         }
-
-        // Сортируем месяцы (Сен -> Авг)
         val sortedMonthKeys = groupedByMonth.keys.sortedBy { key ->
             val indicesMap = mapOf(
                 "сен" to 0, "сент" to 0, "окт" to 1, "ноя" to 2, "ноябрь" to 2, "дек" to 3,
@@ -207,7 +197,6 @@ fun TeacherScheduleContent(schedule: ScheduleByDay) {
     val coroutineScope = rememberCoroutineScope()
 
     Column(modifier = Modifier.fillMaxSize()) {
-        // --- Tabs ---
         ScrollableTabRow(
             selectedTabIndex = pagerState.currentPage,
             edgePadding = 16.dp,
@@ -238,7 +227,6 @@ fun TeacherScheduleContent(schedule: ScheduleByDay) {
             }
         }
 
-        // --- Pager ---
         HorizontalPager(
             state = pagerState,
             modifier = Modifier.fillMaxSize()
@@ -246,12 +234,11 @@ fun TeacherScheduleContent(schedule: ScheduleByDay) {
             val monthKey = months[pageIndex]
             val lessonsInMonth = lessonsByMonthMap[monthKey] ?: emptyList()
 
-            // 2. Внутри месяца группируем обратно по дням недели и сортируем дни
             val daysInMonth = remember(lessonsInMonth) {
                 lessonsInMonth
-                    .groupBy { it.dayKey } // Group by "Monday", "Tuesday"
+                    .groupBy { it.dayKey }
                     .entries
-                    .sortedBy { MonthSorter.dayOrder.indexOf(it.key) } // Sort Monday -> Sunday
+                    .sortedBy { MonthSorter.dayOrder.indexOf(it.key) }
             }
 
             LazyColumn(
@@ -259,13 +246,9 @@ fun TeacherScheduleContent(schedule: ScheduleByDay) {
                 contentPadding = PaddingValues(16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                // Проходимся по отсортированным дням внутри месяца
                 daysInMonth.forEach { (dayKey, lessonsWithDayList) ->
                     item {
-                        // Извлекаем чистые LessonS из обертки
                         val lessons = lessonsWithDayList.map { it.lesson }
-
-                        // Используем ваш существующий компонент для отображения дня
                         TeacherDaySchedule(
                             dayKey = dayKey,
                             lessons = lessons,
@@ -354,7 +337,6 @@ fun TeacherDaySchedule(
                 }
             }
         } else {
-            // Блок "Выходной" - можно оставить или убрать, если пустые дни не нужны в Pager
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -374,7 +356,7 @@ fun TeacherDaySchedule(
                             .background(MaterialTheme.colorScheme.surface)
                     ) {
                         Icon(
-                            painter = painterResource(R.drawable.home_outline), // Убедитесь, что ресурс существует
+                            painter = painterResource(R.drawable.home_outline),
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier

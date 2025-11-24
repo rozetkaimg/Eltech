@@ -27,6 +27,8 @@ import com.rozetka.presentation.ui.shedule.ScheduleScreen
 import com.rozetka.presentation.ui.studentCard.StudentCardScreen
 import com.rozetka.domain.util.StringObject
 import com.rozetka.presentation.ui.employees.EmployeesScreen
+import com.rozetka.presentation.ui.groupJournal.GroupJournalScreen
+import com.rozetka.presentation.ui.students.StudentsScreen
 import com.rozetka.presentation.ui.teacherSchedule.TeacherScheduleScreen
 import com.rozetka.presentation.ui.teachersRaiting.TeacherRatingScreen
 
@@ -137,6 +139,10 @@ fun AppNavHost(
             )
         }
 
+        composable(Screen.SearchStudentsScreen.route) {
+
+            StudentsScreen(navController)
+        }
         composable(
             route = Screen.Schedule.route + "/{groupName}",
             arguments = listOf(
@@ -150,6 +156,23 @@ fun AppNavHost(
                 backStackEntry.arguments?.getString("groupName") ?: StringObject.groupName
             ScheduleScreen(navController, groupName)
         }
+
+        composable(
+            route = Screen.PhysGroupJournalScreen.route
+
+        ) {
+            GroupJournalScreen(navController)
+        }
+
+        composable(
+            route = Screen.ScheduleNoLink.route,
+            deepLinks = listOf(navDeepLink {
+                uriPattern = "app://com.rozetka.epotitech"
+            })
+        ) {
+            ScheduleScreen(navController, StringObject.groupName)
+        }
+
         composable(
             route = Screen.TeacherSchedule.route,
             arguments = listOf(

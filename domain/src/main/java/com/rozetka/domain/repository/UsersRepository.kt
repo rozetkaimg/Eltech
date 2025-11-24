@@ -1,6 +1,5 @@
 package com.rozetka.domain.repository
 
-
 import android.Manifest
 import android.content.Context
 import android.util.Log
@@ -47,6 +46,18 @@ class UsersRepository(
             Log.e("UserRepository", "Не удалось принудительно загрузить данные из сети", e)
             emit(Result.failure(e))
         }
+    }
+
+    suspend fun changeEmail(token: String, newEmail: String): String {
+        return mospolytechMethods.changeEmail(token, newEmail)
+    }
+
+    suspend fun changeNumber(token: String, number: String): String {
+        return mospolytechMethods.changeNumber(token, number)
+    }
+
+    suspend fun changeAvatar(token: String, avatarBytes: ByteArray): String {
+        return mospolytechMethods.changeAvatar(token, avatarBytes)
     }
 
     private suspend fun fetchProfileFromNetwork(token: String): User {

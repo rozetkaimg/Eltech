@@ -36,7 +36,7 @@ fun VisitHistoryItem(item: VisitsHistory) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(
-             28.dp,
+             24.dp,
 
         ),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)

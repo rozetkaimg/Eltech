@@ -6,6 +6,7 @@ import com.rozetka.model.DigitalServiceModelItem
 import com.rozetka.model.EmployeesModel
 import com.rozetka.model.MessageDialogItem
 import com.rozetka.model.MessageModelItem
+import com.rozetka.model.MessageResponse
 import com.rozetka.model.NewsModelItem
 import com.rozetka.model.PDModel
 import com.rozetka.model.PayModel
@@ -13,14 +14,26 @@ import com.rozetka.model.PhysEdJournalResponse
 import com.rozetka.model.ScheduleByDay
 import com.rozetka.model.ScheduleModel
 import com.rozetka.model.SearchGroupModel
+import com.rozetka.model.SearchStudentResponse
 import com.rozetka.model.StudentProfile
+import com.rozetka.model.StudentResponse
 import com.rozetka.model.UseModel
 import com.rozetka.model.UserStudentCard
 import io.ktor.client.call.body
+import io.ktor.client.request.forms.FormDataContent
+import io.ktor.client.request.forms.MultiPartFormDataContent
+import io.ktor.client.request.forms.formData
 import io.ktor.client.request.forms.submitForm
+import io.ktor.client.request.forms.submitFormWithBinaryData
 import io.ktor.client.request.get
 import io.ktor.client.request.headers
+import io.ktor.client.request.post
+import io.ktor.client.request.setBody
+import io.ktor.client.statement.request
+import io.ktor.http.Headers
+import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
+import io.ktor.http.Parameters
 import io.ktor.http.parameters
 import org.jsoup.Jsoup
 import java.net.URLEncoder
@@ -60,6 +73,42 @@ class MospolytechMethods() : MospolytechApi {
         } finally {
             client.close()
         }
+    }
+    override suspend fun getStudents(
+        search: String,
+        group: String,
+        page: Int,
+        perPage: Int,
+        token: String
+    ): SearchStudentResponse {
+
+        val encodedSearch = URLEncoder.encode(search, StandardCharsets.UTF_8.toString())
+        val encodedGroup = URLEncoder.encode(group, StandardCharsets.UTF_8.toString())
+        val url = "/?getStudents&search=${encodedSearch}&group=${encodedGroup}&page=${page}&perpage=${perPage}&token=${token}"
+        return provideUnsecureHttpClient().get(url).body()
+    }
+
+    override suspend fun sendMessageNoFilesByID(
+        iD: String,
+        token: String,
+        newMessage: String
+    ): MessageResponse {
+        return provideUnsecureHttpClientClean().post("https://e.mospolytech.ru/old/lk_api.php") {
+            url {
+                parameters.append("newMessage", newMessage)
+                parameters.append("to_id", iD)
+                parameters.append("token", token)
+            }
+
+
+            setBody(
+                FormDataContent(
+                    Parameters.build {
+                        append("text", newMessage)
+                    }
+                )
+            )
+        }.body()
     }
 
     override suspend fun getPayInfo(toke: String): PayModel {
@@ -118,6 +167,111 @@ class MospolytechMethods() : MospolytechApi {
         return provideUnsecureHttpClient().get("/?getScheduleTeacher&fio=${encodedFio}&token=${token}").body()
     }
 
+    override suspend fun getPhysedJournal(
+        group: String,
+        token: String
+    ): StudentResponse {
+        return provideUnsecureHttpClientClean().get("https://api.mospolytech.ru/physedjournal/student?page=1&pageSize=40&groupNumber=${group}").body()
+    }
+
+    override suspend fun changeEmail(token: String, newEmail: String): String {
+        return  provideUnsecureHttpClientClean().post("https://e.mospolytech.ru/old/lk_api.php") {
+            url {
+                parameters.append("changePhone", "1")
+            }
+            setBody(
+                FormDataContent(
+                    Parameters.build {
+                        append("phone", newEmail)
+                        append("token", token)
+                    }
+                )
+            )
+        }.status.toString()
+    }
+
+    override suspend fun changeNumber(token: String, number: String): String {
+       return  provideUnsecureHttpClientClean().post("https://e.mospolytech.ru/old/lk_api.php") {
+            url {
+                parameters.append("changePhone", "1")
+            }
+            setBody(
+                FormDataContent(
+                    Parameters.build {
+                        append("phone", number)
+                        append("token", token)
+                    }
+                )
+            )
+        }.status.toString()
+    }
+
+    override suspend fun sendMessageNoFiles(
+        toDialog: String,
+        token: String,
+        newMessage: String
+    ): MessageResponse {
+
+            return provideUnsecureHttpClientClean().post("https://e.mospolytech.ru/old/lk_api.php") {
+                url {
+                    parameters.append("newMessage", newMessage)
+                    parameters.append("to_dialogue", toDialog)
+                    parameters.append("token", token)
+                }
+
+
+                setBody(
+                    FormDataContent(
+                        Parameters.build {
+                            append("text", newMessage)
+                        }
+                    )
+                )
+            }.body()
+        }
+
+    override suspend fun changeAvatar(token: String, avatarBytes: ByteArray): String {
+        return provideUnsecureHttpClientClean().submitFormWithBinaryData(
+            url = "https://e.mospolytech.ru/old/lk_api.php?changeAvatar=1",
+            formData = formData {
+                append("token", token)
+                append("avatar", avatarBytes, Headers.build {
+                    append(HttpHeaders.ContentDisposition, "filename=\"avatar.jpg\"")
+                })
+            }
+        ).status.toString()
+    }
+    override suspend fun sendMessageWithFiles(
+        toDialog: String,
+        token: String,
+        message: String,
+        files: List<java.io.File>
+    ): MessageResponse {
+
+        return provideUnsecureHttpClientClean().post("https://e.mospolytech.ru/old/lk_api.php") {
+
+            url {
+                parameters.append("newMessage", message)
+                parameters.append("to_dialogue", toDialog)
+                parameters.append("token", token)
+            }
+            setBody(
+                MultiPartFormDataContent(
+                    formData {
+                        append("text", "<p>$message</p>")
+                        files.forEachIndexed { index, file ->
+                            val keyName = "files[$index]"
+
+                            append(keyName, file.readBytes(), Headers.build {
+                                append(HttpHeaders.ContentDisposition, "filename=\"${file.name}\"")
+                                append(HttpHeaders.ContentType, "application/octet-stream")
+                            })
+                        }
+                    }
+                )
+            )
+        }.body()
+    }
     private fun parseProfile(html: String): StudentProfile {
         val doc = Jsoup.parse(html)
         val baseUrl = "https://e.mospolytech.ru/old/"

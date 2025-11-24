@@ -89,9 +89,9 @@ fun CategoryListContent(
     Spacer(Modifier.size(2.dp))
 
     CategoryItem(
-        iconResId = R.drawable.location_map_outline,
-        title = stringResource(R.string.campuse_map),
-        subtitle = stringResource(R.string.campuse_map_subtitel),
+        iconResId = R.drawable.users_outline,
+        title = "Студенты",
+        subtitle = "Поиск студентов",
         shape =
             RoundedCornerShape(
                 topStart = 8.dp,

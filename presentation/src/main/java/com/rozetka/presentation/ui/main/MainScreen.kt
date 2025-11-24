@@ -46,7 +46,10 @@ fun MainScreen(windowSizeClass: WindowSizeClass) {
         Screen.StudentCardScreen,
         Screen.Employees,
         Screen.TeacherSchedule,
-        Screen.TeacherRating
+        Screen.TeacherRating,
+        Screen.ScheduleNoLink,
+        Screen.SearchStudentsScreen,
+        Screen.PhysGroupJournalScreen
     )
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
