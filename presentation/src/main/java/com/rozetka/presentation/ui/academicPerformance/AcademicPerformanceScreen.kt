@@ -2,6 +2,7 @@ package com.rozetka.presentation.ui.academicPerformance
 
 import android.annotation.SuppressLint
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -15,6 +16,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -22,8 +24,7 @@ import androidx.navigation.NavController
 import com.rozetka.model.AcademicPerformanceItem
 import com.rozetka.presentation.R
 import com.rozetka.presentation.ui.pay.LoadingState
-import com.rozetka.presentation.util.ThemeObject.BottomNavBarPaddingValue
-import com.rozetka.presentation.util.getNavigationBarHeightDp
+import com.rozetka.presentation.util.UiSize
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 
@@ -133,23 +134,51 @@ fun AcademicPerformanceScreen(
                                 )
                             }
                         } else {
+                            val groupedData = remember(semesterData) {
+                                semesterData.groupBy { it.examType }
+                                    .toSortedMap { a, b ->
+                                        val priorityA = getControlPriority(a)
+                                        val priorityB = getControlPriority(b)
+                                        priorityA.compareTo(priorityB)
+                                    }
+                            }
+
                             LazyColumn(
                                 modifier = Modifier
                                     .fillMaxSize()
                                     .padding(horizontal = 16.dp)
                             ) {
                                 item { Spacer(Modifier.height(16.dp)) }
-                                items(
-                                    items = semesterData,
-                                    key = { item -> item.id }
-                                ) { item ->
-                                    AcademicPerformanceCard(
-                                        item = item,
-                                        onClick = { selectedItem = item }
-                                    )
-                                    Spacer(modifier = Modifier.height(12.dp))
+
+                                groupedData.forEach { (controlType, items) ->
+                                    stickyHeader {
+                                        Surface(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            color = MaterialTheme.colorScheme.surface
+                                        ) {
+                                            Text(
+                                                text = controlType,
+                                                style = MaterialTheme.typography.titleMedium,
+                                                fontWeight = FontWeight.Bold,
+                                                color = MaterialTheme.colorScheme.primary,
+                                                modifier = Modifier.padding(vertical = 8.dp)
+                                            )
+                                        }
+                                    }
+
+                                    items(
+                                        items = items,
+                                        key = { item -> item.id }
+                                    ) { item ->
+                                        AcademicPerformanceCard(
+                                            item = item,
+                                            onClick = { selectedItem = item }
+                                        )
+                                        Spacer(modifier = Modifier.height(12.dp))
+                                    }
                                 }
-                                item { Spacer(Modifier.height(getNavigationBarHeightDp() + BottomNavBarPaddingValue.dp)) }
+
+                                item { Spacer(Modifier.height(UiSize().getNavBarPaddingSize())) }
                             }
                         }
 
@@ -164,4 +193,12 @@ fun AcademicPerformanceScreen(
 }
 
 
-
+private fun getControlPriority(controlType: String?): Int {
+    if (controlType == null) return 99
+    return when {
+        controlType.contains("Экзамен", ignoreCase = true) -> 1
+        controlType.contains("Дифференцированный", ignoreCase = true) -> 2
+        controlType.contains("Зачет", ignoreCase = true) -> 3
+        else -> 4 
+    }
+}

@@ -71,6 +71,7 @@ import com.rozetka.model.DigitalServiceModelItem
 import com.rozetka.presentation.R
 import com.rozetka.presentation.navigation.Screen
 import com.rozetka.presentation.ui.pay.LoadingState
+import com.rozetka.presentation.util.UiSize
 import com.rozetka.presentation.util.getNavigationBarHeightDp
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
@@ -127,7 +128,6 @@ fun DigitalServiceScreen(
                 .fillMaxSize()
                 .padding(
                     top = paddingValues.calculateTopPadding(),
-                    bottom = getNavigationBarHeightDp() + 80.dp
                 ),
             contentAlignment = Alignment.Center
         ) {
@@ -153,7 +153,7 @@ fun DigitalServiceScreen(
                     .align(
                         Alignment.BottomEnd
                     )
-                    .padding(16.dp),
+                    .padding(end = 16.dp, bottom = UiSize().getNavBarPaddingSize()+16.dp),
                 icon = {
                     Icon(
                         Icons.Filled.Add,
@@ -208,6 +208,7 @@ private fun DigitalServiceSuccessState(
                     onClick = { onItemClick(request) }
                 )
             }
+            item { Spacer(Modifier.height(UiSize().getNavBarPaddingSize())) }
         }
     }
 }

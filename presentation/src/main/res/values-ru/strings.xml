@@ -317,4 +317,5 @@
     <string name="error_auth_fail">Ошибка аутентификации. Пожалуйста, войдите снова.</string>
     <string name="error_teacher_fio_not_found">ФИО преподавателя не найдено.</string>
     <string name="error_unknown">Произошла неизвестная ошибка.</string>
+    <string name="session_schedule_title">Расписание сессии</string>
 </resources>

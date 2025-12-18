@@ -78,7 +78,7 @@ object ScheduleUtils {
         "авг" to 11
     )
 
-    // Полные названия для отображения в табах
+
     private val fullMonthNames = mapOf(
         "сен" to "Сентябрь", "сент" to "Сентябрь",
         "окт" to "Октябрь",

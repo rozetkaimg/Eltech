@@ -49,7 +49,10 @@ fun MainScreen(windowSizeClass: WindowSizeClass) {
         Screen.TeacherRating,
         Screen.ScheduleNoLink,
         Screen.SearchStudentsScreen,
-        Screen.PhysGroupJournalScreen
+        Screen.PhysGroupJournalScreen,
+        Screen.TeacherReview,
+        Screen.SessionSchedule
+
     )
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
@@ -95,7 +98,7 @@ private fun PhoneLayout(
     Scaffold(
         bottomBar = {
             AnimatedVisibility(
-                visible = !(currentScreen?.isFullScreen == true),
+                visible = currentScreen?.isFullScreen != true,
                 enter = slideInVertically(
                     initialOffsetY = { it },
                     animationSpec = tween(durationMillis = 300)
@@ -131,7 +134,7 @@ private fun TabletLayout(
     windowSizeClass: WindowSizeClass
 ) {
     Row(Modifier.fillMaxSize()) {
-        AnimatedVisibility(visible = isNavigationVisible) {
+        AnimatedVisibility(visible = currentScreen?.isFullScreen != true) {
             AppNavigationRail(
                 bottomBarItems = bottomBarItems,
                 currentScreen = currentScreen,

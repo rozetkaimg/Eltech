@@ -1,6 +1,8 @@
 package com.rozetka.network.campus
 
+import com.rozetka.model.campus.ReviewOptions
 import com.rozetka.model.campus.TeacherResponse
+import com.rozetka.model.campus.TeacherReviewRequest
 import com.rozetka.model.campus.UniversityData
 import com.rozetka.model.campus.UserProfile
 import com.rozetka.network.ext.generateRandomString
@@ -74,4 +76,31 @@ class CampusApi(): CampusMethods {
             }.body<UniversityData>()
     }
 
+    override suspend fun setReaction(bearerToken: String, reaction: String, id: String) {
+        provideHttpClientCampus().post("v3/reviews/$id") {
+            bearerAuth(bearerToken)
+            contentType(ContentType.Application.Json)
+            setBody(mapOf("value" to reaction))
+        }
+    }
+
+    override suspend fun getTeacherRatingFields(bearerToken: String, teacherId: String): ReviewOptions {
+
+        return provideHttpClientCampus().get("v3/teachers/$teacherId/rating/fields") {
+            header(HttpHeaders.Authorization, "Bearer $bearerToken")
+            header(HttpHeaders.Accept, "application/json")
+        }.body()
+    }
+    override suspend fun sendTeacherReview(
+        bearerToken: String,
+        teacherId: String,
+        reviewBody: TeacherReviewRequest
+    ) {
+        provideHttpClientCampus().post("v3/teachers/$teacherId/reviews") {
+
+            header(HttpHeaders.Authorization, "Bearer $bearerToken")
+            contentType(ContentType.Application.Json)
+            setBody(reviewBody)
+        }
+    }
 }

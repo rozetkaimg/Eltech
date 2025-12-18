@@ -16,6 +16,7 @@ import androidx.compose.runtime.remember        // Добавлен импорт
 import androidx.compose.runtime.setValue        // Добавлен импорт
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import com.rozetka.data.SecureStorage
 import com.rozetka.localdata.SettingsData
 import com.rozetka.presentation.util.ThemeObject.ColorThemeState
 import com.rozetka.presentation.util.ThemeObject.DarkThemeState
@@ -25,6 +26,7 @@ import com.rozetka.presentation.colors.GreenColor
 import com.rozetka.presentation.colors.OrangeColor
 import com.rozetka.presentation.colors.PinkColor
 import com.rozetka.presentation.colors.PixelColor
+import com.rozetka.presentation.util.ThemeObject.NavBarType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -40,6 +42,8 @@ fun EPolitechTheme(
     LaunchedEffect(Unit) {
         withContext(Dispatchers.Default) {
             val settings = SettingsData(context)
+            val secureStorage = SecureStorage(context)
+            NavBarType.value = secureStorage.getNavBarState()
             DynamicColorState.value = settings.getMonetState(context)
             DarkThemeState.value = settings.getThemeState(context)
             ColorThemeState.value = settings.getMonetStaticColor(context)

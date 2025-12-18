@@ -44,6 +44,7 @@ import com.rozetka.domain.UserDataHolder
 import com.rozetka.model.NewsModelItem
 import com.rozetka.presentation.R
 import com.rozetka.presentation.ui.pay.LoadingState
+import com.rozetka.presentation.util.UiSize
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 import java.util.regex.Pattern
@@ -86,7 +87,7 @@ fun HomeScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues),
+                .padding(top = paddingValues.calculateTopPadding()),
             contentAlignment = Alignment.Center
         ) {
             when (val state = uiState) {
@@ -159,6 +160,7 @@ private fun HomeSuccessState(news: List<NewsModelItem>, onNewsClick: (NewsModelI
             )
             Spacer(Modifier.height(8.dp))
         }
+        item { Spacer(Modifier.height(UiSize().getNavBarPaddingSize())) }
     }
 }
 

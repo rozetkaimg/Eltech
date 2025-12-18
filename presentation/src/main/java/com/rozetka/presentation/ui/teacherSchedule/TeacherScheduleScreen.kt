@@ -36,7 +36,7 @@ import com.rozetka.model.LessonS
 import com.rozetka.model.ScheduleByDay
 import com.rozetka.presentation.R
 import com.rozetka.presentation.ui.pay.LoadingState
-import com.rozetka.presentation.util.getNavigationBarHeightDp
+import com.rozetka.presentation.util.UiSize
 import com.rozetka.presentation.util.getRandomRoundedCornerShape
 import com.rozetka.presentation.util.removeEmojis
 import kotlinx.coroutines.launch
@@ -52,27 +52,53 @@ private data class LessonWithDay(
 )
 
 private object MonthSorter {
-    private val monthIndices = mapOf(
-        "сен" to 0, "сент" to 0, "окт" to 1, "ноя" to 2, "ноябрь" to 2, "дек" to 3,
-        "янв" to 4, "фев" to 5, "мар" to 6, "апр" to 7, "май" to 8, "июн" to 9, "июл" to 10, "авг" to 11
+    val academicMonthOrder = listOf(
+        "сен", "окт", "ноя", "дек",
+        "янв", "фев", "мар", "апр", "май", "июн", "июл", "авг"
     )
+
     val dayOrder = listOf("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
 
     private val fullMonthNames = mapOf(
-        "сен" to "Сентябрь", "сент" to "Сентябрь", "окт" to "Октябрь", "ноя" to "Ноябрь", "ноябрь" to "Ноябрь",
-        "дек" to "Декабрь", "янв" to "Январь", "фев" to "Февраль", "мар" to "Март", "апр" to "Апрель",
-        "май" to "Май", "июн" to "Июнь"
+        "сен" to "Сентябрь", "сент" to "Сентябрь",
+        "окт" to "Октябрь",
+        "ноя" to "Ноябрь", "ноябрь" to "Ноябрь",
+        "дек" to "Декабрь",
+        "янв" to "Январь",
+        "фев" to "Февраль",
+        "мар" to "Март",
+        "апр" to "Апрель",
+        "май" to "Май",
+        "июн" to "Июнь",
+        "июл" to "Июль",
+        "авг" to "Август",
+        "прочее" to "Прочее"
     )
 
     fun getMonthNameByKey(key: String): String {
         return fullMonthNames[key] ?: key.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
     }
 
-    fun extractMonthKey(dateInterval: String?): String {
-        if (dateInterval.isNullOrBlank()) return "прочее"
-        val regex = Regex("\\d+\\s+([А-Яа-я]+)")
-        val match = regex.find(dateInterval)
-        return match?.groupValues?.get(1)?.lowercase(Locale.getDefault())?.take(3) ?: "прочее"
+    fun extractMonthsFromInterval(dateInterval: String?): List<String> {
+        if (dateInterval.isNullOrBlank()) return listOf("прочее")
+
+        val normalizedInterval = dateInterval.lowercase(Locale.getDefault())
+        val foundIndices = mutableListOf<Int>()
+        val words = normalizedInterval.split(Regex("[^а-яa-z]+"))
+
+        for (word in words) {
+            val index = academicMonthOrder.indexOfFirst { key -> word.startsWith(key) }
+            if (index != -1) {
+                foundIndices.add(index)
+            }
+        }
+
+        if (foundIndices.isEmpty()) return listOf("прочее")
+
+        val minIndex = foundIndices.minOrNull() ?: return listOf("прочее")
+        val maxIndex = foundIndices.maxOrNull() ?: return listOf("прочее")
+
+        return academicMonthOrder.slice(minIndex..maxIndex)
     }
 }
 
@@ -100,8 +126,6 @@ private object TeacherLessonTimeUtil {
         }
     }
 }
-
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -138,7 +162,7 @@ fun TeacherScheduleScreen(
         Surface(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues),
+                .padding(top = paddingValues.calculateTopPadding()),
             color = MaterialTheme.colorScheme.surface
         ) {
             when (val state = uiState) {
@@ -170,15 +194,26 @@ fun TeacherScheduleContent(schedule: ScheduleByDay) {
         val allLessonsWithDays = schedule.flatMap { entry ->
             entry.value.map { lesson -> LessonWithDay(entry.key, lesson) }
         }
-        val groupedByMonth = allLessonsWithDays.groupBy {
-            MonthSorter.extractMonthKey(it.lesson.dateInterval)
+
+        val lessonsExpandedByMonth = allLessonsWithDays.flatMap { item ->
+            val extractedMonths = MonthSorter.extractMonthsFromInterval(item.lesson.dateInterval)
+
+            val months = if (extractedMonths.size > 1 && extractedMonths.contains("янв")) {
+                extractedMonths.filter { it != "янв" }
+            } else {
+                extractedMonths
+            }
+
+            months.map { monthKey ->
+                monthKey to item
+            }
         }
+
+        val groupedByMonth = lessonsExpandedByMonth.groupBy({ it.first }, { it.second })
+
         val sortedMonthKeys = groupedByMonth.keys.sortedBy { key ->
-            val indicesMap = mapOf(
-                "сен" to 0, "сент" to 0, "окт" to 1, "ноя" to 2, "ноябрь" to 2, "дек" to 3,
-                "янв" to 4, "фев" to 5, "мар" to 6, "апр" to 7, "май" to 8, "июн" to 9, "июл" to 10, "авг" to 11
-            )
-            indicesMap[key] ?: 99
+            val index = MonthSorter.academicMonthOrder.indexOf(key)
+            if (index == -1) 99 else index
         }
         sortedMonthKeys to groupedByMonth
     }
@@ -257,7 +292,7 @@ fun TeacherScheduleContent(schedule: ScheduleByDay) {
                     }
                 }
 
-                item { Spacer(Modifier.height(80.dp)) }
+                item { Spacer(Modifier.size(UiSize().getNavBarPaddingSize())) }
             }
         }
     }
@@ -455,20 +490,20 @@ fun TeacherLessonItem(
     onLessonClick: (LessonS) -> Unit
 ) {
     val shape = when {
-        totalItemsInDay == 1 -> RoundedCornerShape(28.dp)
+        totalItemsInDay == 1 -> RoundedCornerShape(24.dp)
         index == 0 -> RoundedCornerShape(
-            topStart = 28.dp,
-            topEnd = 28.dp,
-            bottomEnd = 8.dp,
-            bottomStart = 8.dp
+            topStart = 24.dp,
+            topEnd = 24.dp,
+            bottomEnd = 4.dp,
+            bottomStart = 4.dp
         )
         index == totalItemsInDay - 1 -> RoundedCornerShape(
-            topStart = 8.dp,
-            topEnd = 8.dp,
-            bottomEnd = 28.dp,
-            bottomStart = 28.dp
+            topStart = 4.dp,
+            topEnd = 4.dp,
+            bottomEnd = 24.dp,
+            bottomStart = 24.dp
         )
-        else -> RoundedCornerShape(8.dp)
+        else -> RoundedCornerShape(4.dp)
     }
 
     Card(
@@ -551,7 +586,8 @@ fun TeacherLessonItem(
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.weight(1f, fill = false)
+                        modifier = Modifier.weight(1f, fill = false),
+
                     )
                 }
 
@@ -566,7 +602,8 @@ fun TeacherLessonItem(
                             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
-                            textAlign = TextAlign.End
+                            textAlign = TextAlign.End,
+                                    modifier = Modifier.fillMaxWidth(),
                         )
                     }
                 }

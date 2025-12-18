@@ -26,6 +26,7 @@ import com.rozetka.model.Student
 import com.rozetka.presentation.R
 import com.rozetka.presentation.ui.pay.LoadingState
 import com.rozetka.presentation.ui.settings.components.MonetItem
+import com.rozetka.presentation.util.UiSize
 import com.rozetka.presentation.util.getNavigationBarHeightDp
 import org.koin.androidx.compose.koinViewModel
 
@@ -70,8 +71,8 @@ fun GroupJournalScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
-                .padding(bottom = getNavigationBarHeightDp())
+                .padding(top = paddingValues.calculateTopPadding())
+
         ) {
             when (val state = uiState) {
                 is GroupJournalUiState.Loading -> LoadingState()
@@ -121,7 +122,7 @@ private fun StudentList(
         items(students, key = { it.studentGuid }) { student ->
             StudentCard(student = student)
         }
-        item { Spacer(Modifier.size(getNavigationBarHeightDp() +40.dp)) }
+        item { Spacer(Modifier.height(UiSize().getNavBarPaddingSize())) }
     }
 }
 

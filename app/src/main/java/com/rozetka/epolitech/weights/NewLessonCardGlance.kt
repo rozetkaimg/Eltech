@@ -37,10 +37,14 @@ fun NewLessonCardGlance(lessonInfo: Pair<String, Lesson>) {
     val lessonTimes = context.resources.getStringArray(R.array.lesson_times)
     val lessonTime = lessonTimes.getOrElse(lessonNumber.toIntOrNull()?.minus(1) ?: -1) { "" }
     val (color, localizedTypeText) = when (lesson.type) {
-        "Лаб. работа" -> Color(0xFFE57373) to context.getString(R.string.lesson_type_lab_full)
-        "Лекция" -> Color(0xFFFFB74D) to context.getString(R.string.lesson_type_lecture_full)
-        "Практика" -> Color(0xFF81C784) to context.getString(R.string.lesson_type_practice_full)
-        else -> Color(0xFF81C784) to lesson.type
+        "Лаб. работа" -> Color(0xFFE57373) to context.getString(R.string.lesson_type_lab_short)
+        "Лекция" -> Color(0xFFFFB74D) to context.getString(R.string.lesson_type_lecture_short)
+        "Экзамен" -> Color(0xFF8698FF) to "Экзамен"
+        "Зачет" -> Color(0xFFFFB74D) to "Зачет"
+        "Диф. зачет" -> Color(0xFFFA5D34) to "Диф. Зачет"
+        "Консультация" -> Color(0xFF81C784) to "Консультация"
+        "Практика" -> Color(0xFF81C784) to context.getString(R.string.lesson_type_practice_short)
+        else -> Color(0xFF81C784) to context.getString(R.string.lesson_type_unknown)
     }
 
     Box(

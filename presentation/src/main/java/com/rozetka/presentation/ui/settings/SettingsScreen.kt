@@ -10,6 +10,7 @@ import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -79,6 +80,8 @@ import com.rozetka.presentation.ui.settings.components.ThemeComponent
 import com.rozetka.presentation.util.ThemeObject.DynamicColorState
 import org.koin.androidx.compose.koinViewModel
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
+
 enum class ItemPosition {
     TOP, MIDDLE, BOTTOM, STANDALONE
 }
@@ -357,9 +360,8 @@ fun SettingsScreen(
                     iconBackgroundColor = MaterialTheme.colorScheme.primaryContainer,
                     title = stringResource(R.string.schedule_view_type),
                     subtitle = if (isEnabled) stringResource(R.string.week_view) else stringResource(R.string.day_view),
-                    position = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.BAKLAVA) {
-                        ItemPosition.TOP
-                    } else ItemPosition.STANDALONE,
+                    position = ItemPosition.TOP,
+
                     checked = isEnabled,
                     onCheckedChange = { newState ->
                         isEnabled = newState
@@ -367,6 +369,7 @@ fun SettingsScreen(
                     }
                 )
             }
+
             item {
                 val isEnabled by settingsViewModel.notificationState.collectAsState()
 
@@ -376,7 +379,7 @@ fun SettingsScreen(
                         iconBackgroundColor = MaterialTheme.colorScheme.primaryContainer,
                         title = stringResource(R.string.live_notification_title),
                         subtitle = stringResource(R.string.live_notification_subtitle),
-                        position = ItemPosition.BOTTOM,
+                        position = ItemPosition.MIDDLE,
                         checked = isEnabled,
                         onCheckedChange = { newState ->
                             if (newState) {
@@ -397,6 +400,21 @@ fun SettingsScreen(
                         }
                     )
                 }
+            }
+            item {
+                var isEnabled by remember { mutableStateOf(settingsViewModel.getNavBar()) }
+                ModernSettingsItemSwitch(
+                    icon = ImageVector.vectorResource(R.drawable.outline_bottom_navigation_24),
+                    iconBackgroundColor = MaterialTheme.colorScheme.primaryContainer,
+                    title = "Панель навигации",
+                    subtitle = if (isEnabled) "Экспериментальная" else "Традиционная",
+                    position = ItemPosition.BOTTOM,
+                    checked = isEnabled,
+                    onCheckedChange = { newState ->
+                        isEnabled = newState
+                        settingsViewModel.setNavBar(newState)
+                    }
+                )
                 Spacer(Modifier.size(26.dp))
             }
 

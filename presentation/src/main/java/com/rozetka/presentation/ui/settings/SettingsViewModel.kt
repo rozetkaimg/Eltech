@@ -11,6 +11,7 @@ import com.rozetka.data.SecureStorage
 import com.rozetka.localdata.SettingsData
 import com.rozetka.presentation.R
 import com.rozetka.presentation.util.ThemeObject.ColorThemeState
+import com.rozetka.presentation.util.ThemeObject.NavBarType
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -51,7 +52,15 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             }
         }
     }
-
+    fun setNavBar(navbar: Boolean) {
+        viewModelScope.launch {
+            SecureStorage(context).saveNavBarState(navbar)
+            NavBarType.value = navbar
+        }
+    }
+    fun getNavBar(): Boolean {
+        return SecureStorage(context).getNavBarState()
+    }
     fun getPhoto(): String {
         return SecureStorage(context).getProfilePhoto().toString()
     }

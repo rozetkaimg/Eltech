@@ -28,7 +28,9 @@ import com.rozetka.presentation.ui.studentCard.StudentCardScreen
 import com.rozetka.domain.util.StringObject
 import com.rozetka.presentation.ui.employees.EmployeesScreen
 import com.rozetka.presentation.ui.groupJournal.GroupJournalScreen
+import com.rozetka.presentation.ui.sessionSchedule.SessionScheduleScreen
 import com.rozetka.presentation.ui.students.StudentsScreen
+import com.rozetka.presentation.ui.teacherReview.TeacherReviewScreen
 import com.rozetka.presentation.ui.teacherSchedule.TeacherScheduleScreen
 import com.rozetka.presentation.ui.teachersRaiting.TeacherRatingScreen
 
@@ -62,6 +64,7 @@ fun AppNavHost(
                 userName = userName
             )
         }
+
         composable(Screen.AcademicPerScreen.route) {
             AcademicPerformanceScreen(navController)
 
@@ -156,7 +159,29 @@ fun AppNavHost(
                 backStackEntry.arguments?.getString("groupName") ?: StringObject.groupName
             ScheduleScreen(navController, groupName)
         }
-
+        composable(
+            route = Screen.TeacherReview.route,
+            arguments = listOf(
+                navArgument("id") { type = NavType.StringType },
+            )
+        ) { backStackEntry ->
+            val id =
+                backStackEntry.arguments?.getString("id") ?: ""
+            TeacherReviewScreen(navController, id)
+        }
+        composable(
+            route = Screen.SessionSchedule.route,
+            arguments = listOf(
+                navArgument("groupName") { type = NavType.StringType },
+            ),
+            deepLinks = listOf(navDeepLink {
+                uriPattern = "app://com.rozetka.epotitech/SessionSchedule/{groupName}"
+            })
+        ) { backStackEntry ->
+            val groupName =
+                backStackEntry.arguments?.getString("groupName") ?: StringObject.groupName
+            SessionScheduleScreen(navController, groupName)
+        }
         composable(
             route = Screen.PhysGroupJournalScreen.route
 

@@ -15,10 +15,13 @@ import com.rozetka.presentation.ui.physEdJournal.PhysEdJournalViewModel
 import com.rozetka.presentation.ui.profile.ProfileViewModel
 import com.rozetka.presentation.ui.projectActivity.ProjectActivityViewModel
 import com.rozetka.presentation.ui.searchGroup.SearchGroupViewModel
+import com.rozetka.presentation.ui.sessionSchedule.SessionScheduleViewModel
 import com.rozetka.presentation.ui.settings.SettingsViewModel
 import com.rozetka.presentation.ui.shedule.ScheduleViewModel
 import com.rozetka.presentation.ui.studentCard.StudentCardViewModel
 import com.rozetka.presentation.ui.students.StudentsViewModel
+import com.rozetka.presentation.ui.teacherReview.TeacherReviewScreen
+import com.rozetka.presentation.ui.teacherReview.TeacherReviewViewModel
 import com.rozetka.presentation.ui.teachersRaiting.TeacherRatingViewModel
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
@@ -44,6 +47,6 @@ val presentationModule = module {
     viewModelOf(::TeacherRatingViewModel)
     viewModelOf(::GroupJournalViewModel)
     viewModelOf(::StudentsViewModel)
-
-
+    viewModelOf(::TeacherReviewViewModel)
+    viewModelOf(::SessionScheduleViewModel)
 }

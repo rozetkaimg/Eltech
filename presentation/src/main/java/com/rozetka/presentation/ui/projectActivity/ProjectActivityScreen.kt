@@ -50,6 +50,7 @@ import com.rozetka.model.PDModel
 import com.rozetka.presentation.R
 import com.rozetka.presentation.ui.pay.LoadingState
 import com.rozetka.presentation.util.ThemeObject
+import com.rozetka.presentation.util.UiSize
 import com.rozetka.presentation.util.getNavigationBarHeightDp
 import org.koin.androidx.compose.koinViewModel
 
@@ -96,7 +97,6 @@ fun ProjectActivityScreen(
                 .fillMaxSize()
                 .padding(
                     top = paddingValues.calculateTopPadding(),
-                    bottom = getNavigationBarHeightDp() + ThemeObject.BottomNavBarPaddingValue.dp
                 ),
             contentAlignment = Alignment.Center
         ) {
@@ -123,6 +123,7 @@ private fun ProjectActivitySuccessState(data: PDModel) {
 
             ProjectInfoCard(data = data)
         }
+        item { Spacer(Modifier.height(UiSize().getNavBarPaddingSize())) }
     }
 }
 

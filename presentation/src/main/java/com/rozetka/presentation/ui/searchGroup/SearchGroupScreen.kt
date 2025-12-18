@@ -51,6 +51,7 @@ import androidx.navigation.NavController
 import com.rozetka.presentation.R
 import com.rozetka.presentation.navigation.Screen
 import com.rozetka.presentation.ui.pay.LoadingState
+import com.rozetka.presentation.util.UiSize
 
 import org.koin.androidx.compose.koinViewModel
 
@@ -113,7 +114,7 @@ fun SearchGroupScreen(
         ) }
     ) { contentPadding ->
         Column(
-            modifier = Modifier.padding(contentPadding)
+            modifier = Modifier.padding(top = contentPadding.calculateTopPadding())
                 .fillMaxSize()
                 .padding(horizontal = 16.dp, vertical = 8.dp)
         ) {
@@ -199,7 +200,6 @@ private fun GroupList(
         Text(
             text = stringResource(R.string.search_results_title, groups.size),
             style = MaterialTheme.typography.titleLarge,
-            modifier = Modifier.padding(bottom = 12.dp)
         )
         LazyVerticalGrid(
             columns = GridCells.Fixed(3),
@@ -215,6 +215,7 @@ private fun GroupList(
                     onToggleFavorite = { onToggleFavorite(groupName, isFavorite) }
                 )
             }
+            item { Spacer(Modifier.height(UiSize().getNavBarPaddingSize())) }
         }
     }
 }

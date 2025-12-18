@@ -24,7 +24,7 @@ import com.rozetka.presentation.R
 import com.rozetka.presentation.navigation.Screen
 import com.rozetka.presentation.ui.pay.LoadingState
 import com.rozetka.domain.util.StringObject
-import com.rozetka.presentation.util.ThemeObject.BottomNavBarPaddingValue
+import com.rozetka.presentation.util.UiSize
 import com.rozetka.presentation.util.getNavigationBarHeightDp
 import org.koin.androidx.compose.koinViewModel
 
@@ -41,29 +41,29 @@ fun ProfileScreen(
             state = state,
             navController = navController
         )
+
         is ProfileUiState.Error -> ErrorState(message = state.message) { profileViewModel.getProfile() }
     }
 }
 
 
-
 @Composable
 private fun ErrorState(message: String, onUpdate: () -> Unit) {
-  Column (
+    Column(
         modifier = Modifier.fillMaxSize(),
 
-    ) {
+        ) {
 
 
-      Button( onUpdate) {
-          Text(
-              text = message,
-              modifier = Modifier.padding(16.dp),
-              textAlign = TextAlign.Center,
-              style = MaterialTheme.typography.bodyLarge,
-              color = MaterialTheme.colorScheme.error
-          )
-      }
+        Button(onUpdate) {
+            Text(
+                text = message,
+                modifier = Modifier.padding(16.dp),
+                textAlign = TextAlign.Center,
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.error
+            )
+        }
     }
 }
 
@@ -77,7 +77,7 @@ private fun ProfileSuccessState(
         modifier = Modifier.fillMaxSize(),
         topBar = {
             ProfileTopAppBar(
-                onSettingsClick = {  navController.navigate("Settings")  }
+                onSettingsClick = { navController.navigate("Settings") }
             )
         },
         containerColor = MaterialTheme.colorScheme.surface
@@ -85,7 +85,7 @@ private fun ProfileSuccessState(
         StudentDataLayout(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(contentPadding),
+                .padding(top = contentPadding.calculateTopPadding()),
             navController = navController,
             data = state.data
         )
@@ -124,7 +124,7 @@ private fun StudentDataLayout(
                         "$data.name ${data.surname}",
                         data.group,
                         data.avatar,
-                        {navController.navigate(Screen.StudentCardScreen.route)}
+                        { navController.navigate(Screen.StudentCardScreen.route) }
                     )
                 }
             }
@@ -133,74 +133,38 @@ private fun StudentDataLayout(
                 modifier = Modifier
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState())
-                    .padding(horizontal = 16.dp, vertical = 24.dp),
+                    .padding(horizontal = 16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 data.name + ProfileCard(
                     data.name + " " + data.surname,
                     data.group,
                     data.avatar,
-                    {navController.navigate(Screen.StudentCardScreen.route)}
+                    { navController.navigate(Screen.StudentCardScreen.route) }
                 )
                 Spacer(Modifier.height(24.dp))
 
+                CategoryListContent(
+                    { navController.navigate(Screen.Payment.route) },
+                    { navController.navigate(Screen.AcademicPerScreen.route) },
+                    { navController.navigate(Screen.SearchStudentsScreen.route) },
+                    {
+                        navController.navigate(Screen.DigitalService.route)
+                    },
+                    {
+                        navController.navigate(Screen.PhysEdJournalScreen.route)
+                    },
+                    {
+                        navController.navigate(Screen.ProjectActivity.route)
+                    })
 
-
-
-                CategoryListContent({navController.navigate(Screen.Payment.route)}, {navController.navigate(Screen.AcademicPerScreen.route)}, {navController.navigate(Screen.SearchStudentsScreen.route)}, {
-                    navController.navigate(Screen.DigitalService.route)
-                }, {
-                    navController.navigate(Screen.PhysEdJournalScreen.route)
-                }, {
-                    navController.navigate(Screen.ProjectActivity.route)
-                })
-
-                Spacer(Modifier.height(getNavigationBarHeightDp() + BottomNavBarPaddingValue.dp -45.dp))
+                Spacer(Modifier.height(UiSize().getNavBarPaddingSize()))
 
             }
         }
     }
 }
 
-
-
-
-
-
-@Composable
-fun DetailsCard(roundedCornerShape: RoundedCornerShape, content: @Composable ColumnScope.() -> Unit ) {
-
-    Surface(
-        color = MaterialTheme.colorScheme.surfaceContainerLow,
-        shape = roundedCornerShape,
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Column(modifier = Modifier.padding(vertical = 4.dp, horizontal = 24.dp)) {
-            content()
-        }
-    }
-}
-
-
-
-
-@Composable
-fun ProfileInfoRow(label: String, value: String?) {
-    if (!value.isNullOrBlank()) {
-        Text(
-            text = buildAnnotatedString {
-                withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
-                    append("$label ")
-                }
-                append(value)
-            },
-            style = MaterialTheme.typography.bodyMedium,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 4.dp)
-        )
-    }
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

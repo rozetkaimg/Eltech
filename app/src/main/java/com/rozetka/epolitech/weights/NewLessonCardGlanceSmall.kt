@@ -89,6 +89,10 @@ fun NewLessonCardGlanceSmall(
     val (color, text) = when (lesson.type) {
         "Лаб. работа" -> Color(0xFFE57373) to context.getString(R.string.lesson_type_lab_short)
         "Лекция" -> Color(0xFFFFB74D) to context.getString(R.string.lesson_type_lecture_short)
+        "Экзамен" -> Color(0xFF8698FF) to "Экз."
+        "Зачет" -> Color(0xFFFFB74D) to "Зач."
+        "Диф. зачет" -> Color(0xFFFA5D34) to "Д.Зач"
+        "Консультация" -> Color(0xFF81C784) to "Конс."
         "Практика" -> Color(0xFF81C784) to context.getString(R.string.lesson_type_practice_short)
         else -> Color(0xFF81C784) to context.getString(R.string.lesson_type_unknown)
     }

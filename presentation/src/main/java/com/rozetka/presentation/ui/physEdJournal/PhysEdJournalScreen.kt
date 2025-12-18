@@ -56,7 +56,7 @@ import com.rozetka.presentation.R
 import com.rozetka.presentation.navigation.Screen
 import com.rozetka.presentation.ui.groupJournal.GroupJournalScreen
 import com.rozetka.presentation.ui.pay.LoadingState
-import com.rozetka.presentation.util.ThemeObject.BottomNavBarPaddingValue
+import com.rozetka.presentation.util.UiSize
 import com.rozetka.presentation.util.getNavigationBarHeightDp
 import org.koin.androidx.compose.koinViewModel
 
@@ -110,7 +110,6 @@ fun PhysEdJournalScreen(
                 .fillMaxSize()
                 .padding(
                     top = paddingValues.calculateTopPadding(),
-                    bottom = getNavigationBarHeightDp() + BottomNavBarPaddingValue.dp
                 ),
             contentAlignment = Alignment.Center
         ) {
@@ -275,6 +274,7 @@ private fun PhysEdJournalSuccessState(data: FKStudentData, toGroup: () -> Unit) 
                     Text(stringResource(R.string.no_data_to_display))
                 }
             }
+            item { Spacer(Modifier.height(UiSize().getNavBarPaddingSize())) }
         }
     }
 }

@@ -1,5 +1,6 @@
 package com.rozetka.presentation.ui.message
 
+import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,13 +12,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialShapes.Companion.Cookie9Sided
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -26,19 +24,18 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.CornerRadius
-import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.compose.SubcomposeAsyncImage
 import com.rozetka.model.MessageModelItem
-import com.rozetka.presentation.R
 import com.rozetka.presentation.util.formatSimpleDateTime
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+import java.time.format.TextStyle
+import java.util.Locale
 
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
@@ -53,17 +50,17 @@ fun MessageItem(
         shape = MaterialTheme.shapes.extraLarge,
         onClick = onClick,
         colors = CardDefaults.cardColors(
-            MaterialTheme.colorScheme.surfaceContainerLow
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
         )
     ) {
         val names = message.opponent.name.split(" ")
-        val initials = if ( names.size >= 2) {
-        val firstNameInitial = names.first().firstOrNull()?.toString() ?: ""
-        val lastNameInitial = names[1].firstOrNull()?.toString() ?: ""
-        firstNameInitial + lastNameInitial
-    } else {
-        names.firstOrNull()?.firstOrNull()?.toString() ?: ""
-    }
+        val initials = if (names.size >= 2) {
+            val firstNameInitial = names.first().firstOrNull()?.toString() ?: ""
+            val lastNameInitial = names[1].firstOrNull()?.toString() ?: ""
+            firstNameInitial + lastNameInitial
+        } else {
+            names.firstOrNull()?.firstOrNull()?.toString() ?: ""
+        }
         Row(
             modifier = Modifier.padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
@@ -85,10 +82,14 @@ fun MessageItem(
                         contentAlignment = Alignment.Center,
                         modifier = Modifier
                             .fillMaxSize()
-                            .background(MaterialTheme.colorScheme.onPrimary)
+                            .background(MaterialTheme.colorScheme.primaryContainer)
                     ) {
-                      Text(text = initials, modifier = Modifier.align(
-                          Alignment.Center))
+                        Text(
+                            text = initials,
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer,
+                            modifier = Modifier.align(Alignment.Center)
+                        )
                     }
                 }
             )
@@ -96,7 +97,11 @@ fun MessageItem(
             Spacer(modifier = Modifier.width(16.dp))
 
             Column(modifier = Modifier.weight(1f)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     Text(
                         text = message.opponent.name ?: "Неизвестный автор",
                         style = MaterialTheme.typography.titleMedium,
@@ -106,41 +111,57 @@ fun MessageItem(
                         modifier = Modifier.weight(1f, fill = false)
                     )
                     Spacer(Modifier.width(8.dp))
-
                 }
 
                 Spacer(modifier = Modifier.height(4.dp))
-Box(Modifier.fillMaxWidth()) {
-    Text(
-        text = message.lastmessage.text ?: "Без заголовка",
-        style = MaterialTheme.typography.bodyMedium,
-        fontWeight = if (!message.lastmessage.readed) FontWeight.Bold else FontWeight.Normal,
-        maxLines = 1,
-        overflow = TextOverflow.Ellipsis,
-        modifier = Modifier.padding(end = 24.dp)
-    )
-    if (!message.lastmessage.readed)
-        Card(
-            colors = CardDefaults.cardColors(
-                MaterialTheme.colorScheme.onPrimary
-            ),
-            shape = RoundedCornerShape(12.dp),
-            modifier = Modifier.align(Alignment.TopEnd).size(16.dp)
 
-        ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    val messageTextWeight = if (!message.lastmessage.readed) 0.6f else 1f
 
-        }
-}
+                    Text(
+                        text = message.lastmessage.text ?: "Без заголовка",
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = if (!message.lastmessage.readed) FontWeight.Bold else FontWeight.Normal,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(messageTextWeight)
+                    )
 
-                Spacer(modifier = Modifier.height(2.dp))
+                    if (!message.lastmessage.readed) {
+                        Box(
+                            modifier = Modifier
+                                .size(8.dp)
+                                .clip(MaterialTheme.shapes.extraSmall)
+                                .background(MaterialTheme.colorScheme.primary)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                    }
 
-                Text(
-
-                    text = formatSimpleDateTime(context, message.lastmessage.datetime ?: ""),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                    Text(
+                        text = formatFullDateAndTime(context, message.lastmessage.datetime ?: ""),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
         }
+    }
+}
+fun formatFullDateAndTime(context: Context, dateTimeString: String): String {
+    return try {
+        val inputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+        val dateTime = LocalDateTime.parse(dateTimeString, inputFormatter)
+
+        val day = dateTime.dayOfMonth
+        val month = dateTime.month.getDisplayName(TextStyle.FULL_STANDALONE, Locale("ru"))
+        val time = dateTime.format(DateTimeFormatter.ofPattern("HH:mm"))
+
+        "$day $month $time"
+
+    } catch (e: Exception) {
+        ""
     }
 }

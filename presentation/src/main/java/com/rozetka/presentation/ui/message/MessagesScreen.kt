@@ -9,6 +9,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -55,7 +56,7 @@ private fun MessagesSuccessState(messages: List<MessageModelItem>, navController
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(text = "Сообщения") }
+                title = { Text(text = "Сообщения", fontWeight = FontWeight.Bold) }
             )
         }
     ) { contentPadding ->
@@ -63,7 +64,7 @@ private fun MessagesSuccessState(messages: List<MessageModelItem>, navController
             modifier = Modifier
                 .fillMaxSize()
                 .padding(top = contentPadding.calculateTopPadding())
-                .padding(horizontal = 16.dp, vertical = 8.dp),
+                .padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             items(messages) { message ->

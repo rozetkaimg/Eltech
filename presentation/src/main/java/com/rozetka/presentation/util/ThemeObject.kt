@@ -8,10 +8,11 @@ import androidx.compose.runtime.mutableStateOf
 object ThemeObject {
 
 
-        val DynamicColorState: MutableState<Boolean> = mutableStateOf(true)
-        val StatusBarIconColor: MutableState<Boolean> = mutableStateOf(false)
-        val DarkThemeState: MutableState<Int> = mutableIntStateOf(0)
-        val ColorThemeState: MutableState<Int> = mutableIntStateOf(0)
-        const val BottomNavBarPaddingValue: Int = 80
+    val DynamicColorState: MutableState<Boolean> = mutableStateOf(true)
+    val StatusBarIconColor: MutableState<Boolean> = mutableStateOf(false)
+    val NavBarType: MutableState<Boolean> = mutableStateOf(false)
+    val DarkThemeState: MutableState<Int> = mutableIntStateOf(0)
+    val ColorThemeState: MutableState<Int> = mutableIntStateOf(0)
+    var bottomNavBarPaddingValue: Int = 80
 
 }

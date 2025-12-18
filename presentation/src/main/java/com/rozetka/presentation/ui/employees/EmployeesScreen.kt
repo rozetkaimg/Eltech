@@ -40,6 +40,7 @@ import com.rozetka.model.campus.TeacherSmall
 import com.rozetka.presentation.R
 import com.rozetka.presentation.navigation.Screen
 import com.rozetka.presentation.ui.pay.LoadingState
+import com.rozetka.presentation.util.UiSize
 import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -112,7 +113,7 @@ fun EmployeesScreen(
     ) { contentPadding ->
         Column(
             modifier = Modifier
-                .padding(contentPadding)
+                .padding(top = contentPadding.calculateTopPadding())
                 .fillMaxSize()
                 .padding(vertical = 8.dp)
         ) {
@@ -211,7 +212,6 @@ private fun EmployeesList(
     LazyColumn(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(12.dp),
-        contentPadding = PaddingValues(bottom = 16.dp)
     ) {
         itemsIndexed(items) { index, employee ->
             if (index >= items.size - 1 && !isLoadingMore) {
@@ -244,6 +244,7 @@ private fun EmployeesList(
                 }
             }
         }
+        item { Spacer(Modifier.height(UiSize().getNavBarPaddingSize())) }
     }
 }
 

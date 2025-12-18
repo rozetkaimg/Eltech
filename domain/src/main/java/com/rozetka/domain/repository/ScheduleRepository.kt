@@ -49,6 +49,23 @@ class ScheduleRepository(
             }
         }
     }
+    fun getSessionScheduleOnlyNetwork(groupTitle: String): Flow<Result<ScheduleModel>> = flow {
+        try {
+            val networkResponse = networkApi.getSessionSchedule(groupTitle)
+
+            emit(Result.success(networkResponse))
+        } catch (e: Exception) {
+            if (e is CancellationException) throw e
+
+            val errorMessage = if (e is IOException) {
+                "Ошибка сети. Не удалось обновить данные."
+            } else {
+                e.message ?: "Неизвестная ошибка"
+            }
+            Log.e("ScheduleRepository", "Network-only fetch failed", e)
+            emit(Result.failure(Exception(errorMessage, e)))
+        }
+    }
 
     fun getScheduleOnlyNetwork(groupTitle: String): Flow<Result<ScheduleModel>> = flow {
         try {

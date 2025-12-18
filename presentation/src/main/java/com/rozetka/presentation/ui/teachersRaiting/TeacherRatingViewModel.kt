@@ -30,6 +30,19 @@ class TeacherRatingViewModel(val campusApi: CampusApi) : ViewModel() {
             }
         }
     }
+    fun setReaction(reviewId: String, reaction: String, teacherId: String) {
+        viewModelScope.launch {
+            try {
+                val token = StringObject.campusToken
+                campusApi.setReaction(bearerToken = token, reaction = reaction, id = reviewId)
+                val updatedData = campusApi.getTeacher(bearerToken = token, id = teacherId)
+                _uiState.value = TeacherRatingUiState.Success(updatedData)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
 }
 
 sealed interface TeacherRatingUiState {

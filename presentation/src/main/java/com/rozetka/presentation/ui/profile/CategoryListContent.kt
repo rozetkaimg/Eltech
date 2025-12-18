@@ -21,8 +21,6 @@ fun CategoryListContent(
     toProjectActivity: () -> Unit
 
 ) {
-    val context = LocalContext.current
-
     CategoryItem(
         iconResId = R.drawable.education_outline_28,
         title = stringResource(R.string.session_results),
@@ -102,5 +100,4 @@ fun CategoryListContent(
         onClick = toMaps,
         Color(0xFFEADDFF)
     )
-    Spacer(Modifier.size(28.dp))
 }

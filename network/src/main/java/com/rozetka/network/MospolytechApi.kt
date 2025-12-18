@@ -48,4 +48,5 @@ interface MospolytechApi {
     suspend fun getStudents(search: String = "", group: String, page: Int = 1, perPage: Int = 50, token: String): SearchStudentResponse
     suspend fun sendMessageNoFilesByID(iD: String, token: String, newMessage: String): MessageResponse
     suspend fun changeAvatar(token: String, avatarBytes: ByteArray): String
+    suspend fun  getSessionSchedule(group: String): ScheduleModel
 }

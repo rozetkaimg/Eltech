@@ -1,15 +1,13 @@
 package com.rozetka.presentation.ui.teachersRaiting
 
-
 import android.annotation.SuppressLint
 import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
@@ -20,8 +18,6 @@ import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.outlined.ThumbDown
 import androidx.compose.material.icons.outlined.ThumbUp
-import androidx.compose.material.icons.rounded.ArrowBack
-import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material3.*
 import androidx.compose.material3.MaterialShapes.Companion.Cookie9Sided
 import androidx.compose.runtime.*
@@ -42,14 +38,15 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import coil.compose.SubcomposeAsyncImage
 import com.rozetka.model.campus.Criterion
-import com.rozetka.model.campus.Rating
+import com.rozetka.model.campus.Review
 import com.rozetka.model.campus.TeacherResponse
 import com.rozetka.model.campus.TeacherTag
 import com.rozetka.presentation.R
+import com.rozetka.presentation.new.CalendarOutline28
 import com.rozetka.presentation.ui.pay.LoadingState
 import com.rozetka.presentation.util.CollapsingToolbarScaffold
 import com.rozetka.presentation.util.ScrollStrategy
-import com.rozetka.presentation.util.getNavigationBarHeightDp
+import com.rozetka.presentation.util.UiSize
 import com.rozetka.presentation.util.rememberCollapsingToolbarScaffoldState
 import org.koin.androidx.compose.koinViewModel
 
@@ -77,7 +74,10 @@ fun TeacherRatingScreen(
             state = state,
             navController = navController,
             avatar = avatar,
-            division = division
+            division = division,
+            onReactionClick = { reviewId, reaction ->
+                viewModel.setReaction(reviewId, reaction, teacherId)
+            }
         )
 
         is TeacherRatingUiState.Error -> ErrorState(
@@ -86,8 +86,6 @@ fun TeacherRatingScreen(
         )
     }
 }
-
-
 
 @Composable
 private fun ErrorState(message: String, onUpdate: () -> Unit) {
@@ -109,6 +107,7 @@ private fun ErrorState(message: String, onUpdate: () -> Unit) {
         }
     }
 }
+
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter", "DefaultLocale")
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -117,6 +116,7 @@ private fun TeacherRatingSuccessState(
     state: TeacherRatingUiState.Success,
     avatar: String,
     division: String,
+    onReactionClick: (String, String) -> Unit
 ) {
     val states = rememberCollapsingToolbarScaffoldState()
     val currentRadius = 30.dp * states.toolbarState.progress
@@ -139,7 +139,6 @@ private fun TeacherRatingSuccessState(
                     )
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-
                     containerColor = dynamicContainerColor,
                     scrolledContainerColor = dynamicContainerColor
                 ),
@@ -161,7 +160,6 @@ private fun TeacherRatingSuccessState(
             state = states,
             scrollStrategy = ScrollStrategy.ExitUntilCollapsed,
             toolbar = {
-
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -169,7 +167,6 @@ private fun TeacherRatingSuccessState(
                         .pin()
                         .background(dynamicContainerColor)
                 )
-
 
                 Box(
                     modifier = Modifier
@@ -184,7 +181,6 @@ private fun TeacherRatingSuccessState(
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Box(contentAlignment = Alignment.BottomEnd) {
-
                             SubcomposeAsyncImage(
                                 model = avatar,
                                 contentDescription = null,
@@ -224,9 +220,7 @@ private fun TeacherRatingSuccessState(
                                         style = MaterialTheme.typography.labelLargeEmphasized
                                     )
                                 }
-
                             }
-
                         }
 
                         Spacer(modifier = Modifier.height(10.dp))
@@ -248,19 +242,34 @@ private fun TeacherRatingSuccessState(
                     containerColor = MaterialTheme.colorScheme.background
                 )
             ) {
-                TeacherDataLayout(data = state.data, {
-                    navController.navigate("teacherSchedule/${state.data.teacher.name}")
-                },division)
+                TeacherDataLayout(
+                    data = state.data,
+                    onScheduleClick = {
+                        navController.navigate("teacherSchedule/${state.data.teacher.name}")
+                    },
+                    onAddReviewClick = {
+
+                        navController.navigate("teacherReview/${state.data.teacher.id}")
+                    },
+                    division = division,
+                    onReactionClick = onReactionClick
+                )
             }
         }
     }
 }
+
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun TeacherDataLayout(data: TeacherResponse, onScheduleClick: () -> Unit, division: String) {
+fun TeacherDataLayout(
+    data: TeacherResponse,
+    onScheduleClick: () -> Unit,
+    onAddReviewClick: () -> Unit,
+    division: String,
+    onReactionClick: (String, String) -> Unit
+) {
     LazyColumn(
-        modifier = Modifier
-            .fillMaxSize(),
+        modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
@@ -270,23 +279,21 @@ fun TeacherDataLayout(data: TeacherResponse, onScheduleClick: () -> Unit, divisi
                 modifier = Modifier.fillMaxWidth(),
                 contentPadding = PaddingValues(vertical = 16.dp)
             ) {
-                Icon(Icons.Default.DateRange, contentDescription = null)
+                Icon(CalendarOutline28, contentDescription = null)
                 Spacer(modifier = Modifier.width(8.dp))
                 Text("Расписание сотрудника")
             }
         }
 
         item {
-
             Card(
-                modifier = Modifier
-                    .fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
                 shape = RoundedCornerShape(
-                    topStart = 28.dp,
-                    topEnd = 28.dp,
-                    bottomStart = 8.dp,
-                    bottomEnd = 8.dp
+                    topStart = 24.dp,
+                    topEnd = 24.dp,
+                    bottomStart = 4.dp,
+                    bottomEnd = 4.dp
                 )
             ) {
                 Row(
@@ -316,18 +323,16 @@ fun TeacherDataLayout(data: TeacherResponse, onScheduleClick: () -> Unit, divisi
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface
                     )
-
-
                 }
             }
             Spacer(Modifier.size(2.dp))
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(
-                    topStart = 8.dp,
-                    topEnd = 8.dp,
-                    bottomEnd = 28.dp,
-                    bottomStart = 28.dp
+                    topStart = 4.dp,
+                    topEnd = 4.dp,
+                    bottomEnd = 24.dp,
+                    bottomStart = 24.dp
                 ),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)
             ) {
@@ -344,13 +349,10 @@ fun TeacherDataLayout(data: TeacherResponse, onScheduleClick: () -> Unit, divisi
                         CriterionItem(criterion)
                         Spacer(modifier = Modifier.height(4.dp))
                     }
-
                 }
             }
-
         }
         item {
-
             QualitiesSection(tags = data.teacher.rating.tags)
         }
         item {
@@ -360,7 +362,7 @@ fun TeacherDataLayout(data: TeacherResponse, onScheduleClick: () -> Unit, divisi
                         if (data.teacher.rating.count > 0) {
                             data.teacher.rating.count.toString()
                         } else {
-
+                            ""
                         }
                     }",
                     style = MaterialTheme.typography.titleLarge,
@@ -370,7 +372,7 @@ fun TeacherDataLayout(data: TeacherResponse, onScheduleClick: () -> Unit, divisi
         }
         item {
             Button(
-                onClick = onScheduleClick,
+                onClick = onAddReviewClick,
                 modifier = Modifier.fillMaxWidth(),
                 contentPadding = PaddingValues(vertical = 16.dp)
             ) {
@@ -380,10 +382,11 @@ fun TeacherDataLayout(data: TeacherResponse, onScheduleClick: () -> Unit, divisi
             }
         }
         if (data.reviews.isNotEmpty()) {
-
-
             items(data.reviews) { review ->
-                ReviewItem(review)
+                ReviewItem(
+                    review = review,
+                    onReactionClick = onReactionClick
+                )
             }
         } else {
             item {
@@ -396,106 +399,104 @@ fun TeacherDataLayout(data: TeacherResponse, onScheduleClick: () -> Unit, divisi
             }
         }
 
-            item { Spacer(Modifier.size(getNavigationBarHeightDp() + 80.dp)) }
-
+        item { Spacer(Modifier.height(UiSize().getNavBarPaddingSize())) }
     }
-
 }
 
 
 private const val MAX_RATING_VALUE = 5.0
 @Composable
 fun CriterionItem(criterion: Criterion) {
+    Row(
+        modifier = Modifier
+            .padding(horizontal = 12.dp)
+            .fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(
+            text = criterion.title,
+            style = MaterialTheme.typography.bodyMedium,
+            modifier = Modifier.weight(0.5f),
+            color = MaterialTheme.colorScheme.onSurface
+        )
+
         Row(
-            modifier = Modifier
-                .padding(horizontal = 12.dp)
-                .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
+            modifier = Modifier.padding(start = 16.dp)
         ) {
+            LinearProgressIndicator(
+                progress = { (criterion.value / MAX_RATING_VALUE).toFloat().coerceIn(0f, 1f) },
+                modifier = Modifier
+                    .width(80.dp)
+                    .height(8.dp)
+                    .clip(RoundedCornerShape(4.dp)),
+                color = if (criterion.value >= 4.0) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary,
+                trackColor = MaterialTheme.colorScheme.surfaceVariant,
+            )
+
+            Spacer(modifier = Modifier.width(12.dp))
 
             Text(
-                text = criterion.title,
-                style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.weight(0.5f),
-                color = MaterialTheme.colorScheme.onSurface
+                text = String.format("%.1f", criterion.value),
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
-
-
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(start = 16.dp)
-            ) {
-
-                LinearProgressIndicator(
-                    progress = { (criterion.value / MAX_RATING_VALUE).toFloat().coerceIn(0f, 1f) },
-                    modifier = Modifier
-                        .width(80.dp)
-                        .height(8.dp)
-                        .clip(RoundedCornerShape(4.dp)),
-                    color = if (criterion.value >= 4.0) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary,
-                    trackColor = MaterialTheme.colorScheme.surfaceVariant,
-                )
-
-                Spacer(modifier = Modifier.width(12.dp))
-
-
-                Text(
-                    text = String.format("%.1f", criterion.value),
-                    style = MaterialTheme.typography.labelLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
         }
-
+    }
 }
+
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun ReviewItem(review: com.rozetka.model.campus.Review) {
+fun ReviewItem(
+    review: Review,
+    onReactionClick: (String, String) -> Unit
+) {
     var tagsExpanded by remember { mutableStateOf(false) }
-        Card(
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
+        shape = RoundedCornerShape(
+            topStart = 24.dp,
+            topEnd = 24.dp,
+            bottomStart = 8.dp,
+            bottomEnd = 8.dp
+        )
+    ) {
+        Row(
             modifier = Modifier
-                .fillMaxWidth(),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
-            shape = RoundedCornerShape(
-                topStart = 24.dp,
-                topEnd = 24.dp,
-                bottomStart = 8.dp,
-                bottomEnd = 8.dp
-            )
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp)
+                .height(48.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp).height(48.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = review.author ?: "Аноним",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                }
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = review.author ?: "Аноним",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            }
 
-                Badge(
-                    containerColor = if (review.value >= 4.0) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary,
-                    contentColor = MaterialTheme.colorScheme.onPrimary
-                ) {
-                    Text(
-                        text = String.format("%.1f", review.value),
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                        style = MaterialTheme.typography.labelLarge,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
+            Badge(
+                containerColor = if (review.value >= 4.0) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary,
+                contentColor = MaterialTheme.colorScheme.onPrimary
+            ) {
+                Text(
+                    text = String.format("%.1f", review.value),
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.Bold
+                )
             }
         }
+    }
     Spacer(modifier = Modifier.height(2.dp))
     Card(
-        modifier = Modifier
-            .fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(8.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)
     ) {
@@ -508,13 +509,11 @@ fun ReviewItem(review: com.rozetka.model.campus.Review) {
 
             Spacer(modifier = Modifier.height(12.dp))
 
-
             if (review.tags.isNotEmpty()) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.Top
                 ) {
-
                     FlowRow(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                         verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -537,7 +536,6 @@ fun ReviewItem(review: com.rozetka.model.campus.Review) {
                         }
                     }
 
-
                     IconButton(
                         onClick = { tagsExpanded = !tagsExpanded },
                         modifier = Modifier
@@ -552,14 +550,11 @@ fun ReviewItem(review: com.rozetka.model.campus.Review) {
                     }
                 }
             }
-
-
         }
     }
     Spacer(modifier = Modifier.height(2.dp))
     Card(
-        modifier = Modifier
-            .fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
         shape = RoundedCornerShape(
             topStart = 8.dp,
@@ -569,7 +564,10 @@ fun ReviewItem(review: com.rozetka.model.campus.Review) {
         )
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp).height(48.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp)
+                .height(48.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -577,13 +575,15 @@ fun ReviewItem(review: com.rozetka.model.campus.Review) {
                 ReactionCounter(
                     icon = Icons.Outlined.ThumbUp,
                     count = review.reactions.likes,
-                    color = MaterialTheme.colorScheme.primary
+                    color = MaterialTheme.colorScheme.primary,
+                    onClick = { onReactionClick(review.id, "like") }
                 )
                 Spacer(modifier = Modifier.width(16.dp))
                 ReactionCounter(
                     icon = Icons.Outlined.ThumbDown,
                     count = review.reactions.dislikes,
-                    color = MaterialTheme.colorScheme.error
+                    color = MaterialTheme.colorScheme.error,
+                    onClick = { onReactionClick(review.id, "dislike") }
                 )
             }
 
@@ -601,23 +601,36 @@ fun ReviewItem(review: com.rozetka.model.campus.Review) {
 fun ReactionCounter(
     icon: ImageVector,
     count: Int,
-    color: Color
+    color: Color,
+    onClick: () -> Unit
 ) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            tint = color,
-            modifier = Modifier.size(18.dp)
-        )
-        Spacer(modifier = Modifier.width(4.dp))
-        Text(
-            text = count.toString(),
-            style = MaterialTheme.typography.labelLarge,
-            color = MaterialTheme.colorScheme.onSurface
-        )
+
+    Surface(
+        onClick = onClick,
+        shape = RoundedCornerShape(8.dp),
+        color = Color.Transparent
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(4.dp)
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = color,
+                modifier = Modifier.size(18.dp)
+            )
+            Spacer(modifier = Modifier.width(4.dp))
+            Text(
+                text = count.toString(),
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+        }
     }
 }
+
+
 @Composable
 private fun InfoRow(label: String, value: String) {
     Row(

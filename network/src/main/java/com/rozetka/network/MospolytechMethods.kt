@@ -241,6 +241,16 @@ class MospolytechMethods() : MospolytechApi {
             }
         ).status.toString()
     }
+
+    override suspend fun getSessionSchedule(group: String): ScheduleModel {
+        return provideHttpClient().get("https://rasp.dmami.ru/site/group?group=${group}&session=1") {
+            headers {
+                append("Referer", "https://rasp.dmami.ru/")
+
+            }
+        }.body()
+    }
+
     override suspend fun sendMessageWithFiles(
         toDialog: String,
         token: String,

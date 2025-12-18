@@ -28,19 +28,23 @@ sealed class Screen(
         icon = CalendarOutline28,
         parentRoute = ScheduleNoLink.route
     )
+    data object SessionSchedule : Screen(
+        route = "SessionSchedule/{groupName}",
+        titleResId = R.string.schedule,
+        icon = CalendarOutline28,
+        parentRoute = ScheduleNoLink.route
+    )
 
     data object ScheduleNoLink : Screen(
         route = "ScheduleNoLink",
         titleResId = R.string.schedule,
         icon = CalendarOutline28,
 
-    )
+        )
 
 
     data object Mail : Screen(
-        route = "mail",
-        titleResId = R.string.mail,
-        icon = MailOutline28
+        route = "mail", titleResId = R.string.mail, icon = MailOutline28
     )
 
     data object DigitalService : Screen(
@@ -92,6 +96,7 @@ sealed class Screen(
         parentRoute = Service.route
 
     )
+
     data object PhysGroupJournalScreen : Screen(
         route = "PhysGroupJournal",
         titleResId = R.string.physical_education,
@@ -109,12 +114,13 @@ sealed class Screen(
         parentRoute = ScheduleNoLink.route
 
     )
+
     data object SearchStudentsScreen : Screen(
         route = "SearchStudents",
         titleResId = R.string.physical_education,
         icon = MailOutline28,
         isFullScreen = false,
-        parentRoute = route
+        parentRoute = Service.route
 
     )
 
@@ -136,11 +142,11 @@ sealed class Screen(
     )
 
     data object TeacherRating : Screen(
-        route = "teacherRating",
+        route = "teacherRating/{teacherID}fio={fio}&avatar={avatar}&division={division}&email={email}&id={id}&post={post}",
         titleResId = R.string.session_results,
         icon = MailOutline28,
         isFullScreen = false,
-        parentRoute = route
+        parentRoute = ScheduleNoLink.route
     )
 
     data object Employees : Screen(
@@ -152,13 +158,19 @@ sealed class Screen(
     )
 
     data object Home : Screen(
-        route = "home",
-        titleResId = R.string.home,
-        icon = HomeOutline28
+        route = "home", titleResId = R.string.home, icon = HomeOutline28
     )
 
     data object TeacherSchedule : Screen(
         route = "teacherSchedule/{fio}",
+        titleResId = R.string.schedule,
+        icon = CalendarOutline28,
+        isFullScreen = false,
+        parentRoute = ScheduleNoLink.route
+    )
+
+    data object TeacherReview : Screen(
+        route = "teacherReview/{id}",
         titleResId = R.string.schedule,
         icon = CalendarOutline28,
         isFullScreen = false,
@@ -199,8 +211,5 @@ sealed class Screen(
 }
 
 val bottomNavItems = listOf(
-    Screen.Home,
-    Screen.ScheduleNoLink,
-    Screen.Mail,
-    Screen.Service
+    Screen.Home, Screen.ScheduleNoLink, Screen.Mail, Screen.Service
 )
