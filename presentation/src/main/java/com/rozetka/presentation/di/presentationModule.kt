@@ -6,6 +6,7 @@ import com.rozetka.presentation.ui.dialog.DialogViewModel
 import com.rozetka.presentation.ui.digitalService.DigitalServiceViewModel
 import com.rozetka.presentation.ui.employees.EmployeesViewModel
 import com.rozetka.presentation.ui.groupJournal.GroupJournalViewModel
+import com.rozetka.presentation.ui.guestSearchGroup.GuestSearchGroupViewModel
 import com.rozetka.presentation.ui.home.HomeViewModel
 import com.rozetka.presentation.ui.login.LoginViewModel
 import com.rozetka.presentation.ui.message.MessagesViewModel
@@ -14,13 +15,13 @@ import com.rozetka.presentation.ui.pay.PayViewModel
 import com.rozetka.presentation.ui.physEdJournal.PhysEdJournalViewModel
 import com.rozetka.presentation.ui.profile.ProfileViewModel
 import com.rozetka.presentation.ui.projectActivity.ProjectActivityViewModel
+import com.rozetka.presentation.ui.scheduleLink.ScheduleLinkViewModel
 import com.rozetka.presentation.ui.searchGroup.SearchGroupViewModel
 import com.rozetka.presentation.ui.sessionSchedule.SessionScheduleViewModel
 import com.rozetka.presentation.ui.settings.SettingsViewModel
 import com.rozetka.presentation.ui.shedule.ScheduleViewModel
 import com.rozetka.presentation.ui.studentCard.StudentCardViewModel
 import com.rozetka.presentation.ui.students.StudentsViewModel
-import com.rozetka.presentation.ui.teacherReview.TeacherReviewScreen
 import com.rozetka.presentation.ui.teacherReview.TeacherReviewViewModel
 import com.rozetka.presentation.ui.teachersRaiting.TeacherRatingViewModel
 import org.koin.core.module.dsl.viewModelOf
@@ -49,4 +50,6 @@ val presentationModule = module {
     viewModelOf(::StudentsViewModel)
     viewModelOf(::TeacherReviewViewModel)
     viewModelOf(::SessionScheduleViewModel)
+    viewModelOf(::ScheduleLinkViewModel)
+    viewModelOf(::GuestSearchGroupViewModel)
 }

@@ -124,7 +124,7 @@ fun SearchGroupScreen(
                 FavoritesSection(
                     favorites = favorites,
                     onGroupClick = { groupName ->
-                        navController.navigate(Screen.Schedule.route + "/$groupName")
+                        navController.navigate(Screen.ScheduleLink.route + "/$groupName")
                     },
                     onRemoveFavorite = viewModel::removeFromFavorites
                 )
@@ -138,7 +138,7 @@ fun SearchGroupScreen(
                     groups = state.groups,
                     favorites = favorites,
                     onGroupClick = { groupName ->
-                        navController.navigate(Screen.Schedule.route + "/$groupName")
+                        navController.navigate(Screen.ScheduleLink.route + "/$groupName")
                     },
                     onToggleFavorite = { groupName, isFavorite ->
                         if (isFavorite) {

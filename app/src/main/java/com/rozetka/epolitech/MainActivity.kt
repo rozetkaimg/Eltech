@@ -1,5 +1,6 @@
 package com.rozetka.epolitech
 
+import android.graphics.Color
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -14,7 +15,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-
+        window.navigationBarColor = Color.TRANSPARENT
         setContent {
             EPolitechTheme {
                     val windowSizeClass = calculateWindowSizeClass(this)

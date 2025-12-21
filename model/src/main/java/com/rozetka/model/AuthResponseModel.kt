@@ -14,9 +14,9 @@ data class AuthResponseModel(
     @SerialName("guid")
     val guid: String,
     @SerialName("jwt")
-    val jwt: String,
+    val jwt: String?,
     @SerialName("jwt_refresh")
-    val jwtRefresh: String,
+    val jwtRefresh: String?,
     @SerialName("token")
     val token: String
 )

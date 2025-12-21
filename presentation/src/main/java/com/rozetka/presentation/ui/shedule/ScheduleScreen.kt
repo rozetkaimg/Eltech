@@ -78,39 +78,22 @@ import java.util.Locale
 @Composable
 fun ScheduleScreen(
     navController: NavHostController,
-    groupName: String,
     viewModel: ScheduleViewModel = koinViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var showMenu by remember { mutableStateOf(false) }
-    LaunchedEffect(Unit) {
-        viewModel.getSchedule(groupName)
-    }
+
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         topBar = {
             TopAppBar(
-                navigationIcon = {
-                    if(groupName != StringObject.groupName) {
-                        IconButton(onClick = { navController.navigateUp() }) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = stringResource(R.string.back)
-                            )
-                        }
-                    }
-                },
                 title = {
-
-                    Text(text = if(groupName != StringObject.groupName) {
-                    stringResource(R.string.schedule_for_group, groupName)
-
-                } else {
+                    Text(text =
                         stringResource(R.string.schedule)
-                    }, fontWeight = FontWeight.Bold) },
+                    , fontWeight = FontWeight.Bold) },
                 actions = {
-                    if(groupName == StringObject.groupName) {
+
                         IconButton(onClick = { showMenu = !showMenu }) {
                             Icon(
                                 imageVector = Icons.Default.MoreVert,
@@ -188,7 +171,7 @@ fun ScheduleScreen(
                                     },
                                     onClick = {
                                         showMenu = false
-                                        navController.navigate("SessionSchedule/${groupName}")
+                                        navController.navigate("SessionSchedule/${StringObject.groupName}")
                                     },
                                     leadingIcon = {
                                         Icon(
@@ -204,7 +187,7 @@ fun ScheduleScreen(
                                 )
                             }
                         }
-                    }
+
 
                 },
                 colors = TopAppBarDefaults.topAppBarColors(

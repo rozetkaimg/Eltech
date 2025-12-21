@@ -1,15 +1,17 @@
-package com.rozetka.presentation.ui.shedule
+package com.rozetka.presentation.ui.scheduleLink
 
 import android.app.Application
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.rozetka.data.SecureStorage
 import com.rozetka.domain.repository.ScheduleRepository
-import com.rozetka.domain.util.StringObject
 import com.rozetka.domain.util.StringObject.campusToken
 import com.rozetka.model.ScheduleModel
 import com.rozetka.network.campus.CampusApi
 import com.rozetka.presentation.R
+import com.rozetka.presentation.ui.shedule.ScheduleScreenData
+import com.rozetka.presentation.ui.shedule.ScheduleUiState
+import com.rozetka.presentation.ui.shedule.WeekInfo
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -23,21 +25,11 @@ import java.time.temporal.WeekFields
 import java.util.Locale
 
 
-data class WeekInfo(
-    val weekNumberInSemester: Int,
-    val startDate: LocalDate,
-    val endDate: LocalDate,
-    val label: String
-)
 
 
-data class ScheduleScreenData(
-    val fullSchedule: ScheduleModel,
-    val weeks: List<WeekInfo>,
-    val initialWeekIndex: Int
-)
 
-class ScheduleViewModel(
+
+class ScheduleLinkViewModel(
     private val scheduleRepository: ScheduleRepository,
     val application: Application,
     private val campusApi: CampusApi
@@ -55,7 +47,7 @@ init {
     } catch (e: Exception){
 
     }
-getSchedule(StringObject.groupName)
+
 
 }
 
@@ -130,9 +122,3 @@ getSchedule(StringObject.groupName)
     fun getScheduleState(): Boolean = secureStorage.getScheduleState()
 }
 
-sealed interface ScheduleUiState {
-    data class Success(val data: ScheduleScreenData) : ScheduleUiState
-    data class Error(val message: String) : ScheduleUiState
-    object Loading : ScheduleUiState
-    object Initial : ScheduleUiState
-}

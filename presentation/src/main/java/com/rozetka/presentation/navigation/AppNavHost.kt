@@ -1,14 +1,25 @@
 package com.rozetka.presentation.navigation
 
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.TransformOrigin
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
+import com.rozetka.presentation.ui.login.LoginScreen
 import com.rozetka.presentation.ui.submitanApplication.SubmitAnApplicationScreen
 import com.rozetka.presentation.ui.aboutApplication.AboutScreen
 import com.rozetka.presentation.ui.academicPerformance.AcademicPerformanceScreen
@@ -28,6 +39,8 @@ import com.rozetka.presentation.ui.studentCard.StudentCardScreen
 import com.rozetka.domain.util.StringObject
 import com.rozetka.presentation.ui.employees.EmployeesScreen
 import com.rozetka.presentation.ui.groupJournal.GroupJournalScreen
+import com.rozetka.presentation.ui.guestSearchGroup.GuestSearchGroupScreen
+import com.rozetka.presentation.ui.scheduleLink.ScheduleLinkScreen
 import com.rozetka.presentation.ui.sessionSchedule.SessionScheduleScreen
 import com.rozetka.presentation.ui.students.StudentsScreen
 import com.rozetka.presentation.ui.teacherReview.TeacherReviewScreen
@@ -40,12 +53,59 @@ fun AppNavHost(
     modifier: Modifier = Modifier,
     windowSizeClass: WindowSizeClass
 ) {
+    val startDestination = if (StringObject.isGuest) {
+        Screen.GuestGroupInput.route
+    } else {
+        if (StringObject.groupName == "") Screen.Home.route else Screen.Schedule.route
+    }
+
     NavHost(
         navController = navController,
-        startDestination = if (StringObject.groupName == "") Screen.Home.route else Screen.Schedule.route + "/${StringObject.groupName}",
-        modifier = modifier
+        startDestination = startDestination,
+        modifier = modifier,
+        popExitTransition = {
+            // Уходящий экран: уменьшается и растворяется
+            scaleOut(
+                targetScale = 0.9f,
+                animationSpec = tween(durationMillis = 300, easing = FastOutSlowInEasing),
+                transformOrigin = TransformOrigin(pivotFractionX = 0.5f, pivotFractionY = 0.5f)
+            ) + fadeOut(
+                animationSpec = tween(durationMillis = 300)
+            )
+        },
+        popEnterTransition = {
+            // Появляющийся (нижний) экран: немного увеличивается с 0.95 до 1.0, создавая эффект возврата
+            scaleIn(
+                initialScale = 0.95f,
+                animationSpec = tween(durationMillis = 300, easing = FastOutSlowInEasing),
+                transformOrigin = TransformOrigin(pivotFractionX = 0.5f, pivotFractionY = 0.5f)
+            ) + fadeIn(
+                animationSpec = tween(durationMillis = 300) // Плавное появление
+            )
+        }
     ) {
+        composable(Screen.Login.route) {
+            LoginScreen(
+                onLoginSuccess = {
+                    StringObject.isGuest = false
 
+                    val targetRoute = if (StringObject.groupName.isNotEmpty()) {
+                        Screen.Schedule.route
+                    } else {
+                        Screen.Home.route
+                    }
+
+                    navController.navigate(targetRoute) {
+                        popUpTo(Screen.GuestGroupInput.route) { inclusive = true }
+                        popUpTo(Screen.Login.route) { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        composable(Screen.GuestGroupInput.route) {
+            GuestSearchGroupScreen(navController = navController)
+        }
 
         composable(
             Screen.Dialo.route,
@@ -147,17 +207,25 @@ fun AppNavHost(
             StudentsScreen(navController)
         }
         composable(
-            route = Screen.Schedule.route + "/{groupName}",
+            route = Screen.ScheduleLink.route + "/{groupName}",
             arguments = listOf(
                 navArgument("groupName") { type = NavType.StringType },
             ),
             deepLinks = listOf(navDeepLink {
-                uriPattern = "app://com.rozetka.epotitech/schedule/{groupName}"
+                uriPattern = "app://com.rozetka.epotitech/schedulelink/{groupName}"
             })
         ) { backStackEntry ->
             val groupName =
                 backStackEntry.arguments?.getString("groupName") ?: StringObject.groupName
-            ScheduleScreen(navController, groupName)
+            ScheduleLinkScreen(navController, groupName)
+        }
+        composable(
+            route = Screen.Schedule.route,
+            deepLinks = listOf(navDeepLink {
+                uriPattern = "app://com.rozetka.epotitech/schedule"
+            })
+        ) {
+            ScheduleScreen(navController, )
         }
         composable(
             route = Screen.TeacherReview.route,
@@ -189,14 +257,7 @@ fun AppNavHost(
             GroupJournalScreen(navController)
         }
 
-        composable(
-            route = Screen.ScheduleNoLink.route,
-            deepLinks = listOf(navDeepLink {
-                uriPattern = "app://com.rozetka.epotitech"
-            })
-        ) {
-            ScheduleScreen(navController, StringObject.groupName)
-        }
+
 
         composable(
             route = Screen.TeacherSchedule.route,
@@ -233,8 +294,6 @@ fun AppNavHost(
         }
         composable(Screen.Service.route) {
             ProfileScreen(navController = navController)
-
         }
-
     }
 }

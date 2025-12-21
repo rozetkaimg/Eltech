@@ -44,7 +44,8 @@ class RootViewModel(
             val savedToken = secureStorage.getToken()
 
             if (savedLogin.isNullOrBlank() || savedPassword.isNullOrBlank()) {
-                _startDestination.value = LOGIN_ROUTE
+                StringObject.isGuest = true
+                _startDestination.value = MAIN_ROUTE
                 return@launch
             }
 
@@ -110,6 +111,7 @@ class RootViewModel(
                 joinAll(profileJob, studentDataJob)
 
                 if (profileLoaded) {
+                    StringObject.isGuest = false
                     _startDestination.value = MAIN_ROUTE
                 } else {
                     _startDestination.value = LOGIN_ROUTE
@@ -119,7 +121,8 @@ class RootViewModel(
                 if (authFailed) {
                     secureStorage.clearCredentials()
                 }
-                _startDestination.value = LOGIN_ROUTE
+                StringObject.isGuest = true
+                _startDestination.value = MAIN_ROUTE
             }
         }
     }

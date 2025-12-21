@@ -11,6 +11,7 @@ import com.rozetka.model.NewsModelItem
 import com.rozetka.model.PDModel
 import com.rozetka.model.PayModel
 import com.rozetka.model.PhysEdJournalResponse
+import com.rozetka.model.RaspData
 import com.rozetka.model.ScheduleByDay
 import com.rozetka.model.ScheduleModel
 import com.rozetka.model.SearchGroupModel
@@ -29,12 +30,14 @@ import io.ktor.client.request.get
 import io.ktor.client.request.headers
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
+import io.ktor.client.statement.bodyAsText
 import io.ktor.client.statement.request
 import io.ktor.http.Headers
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.Parameters
 import io.ktor.http.parameters
+import kotlinx.serialization.json.Json
 import org.jsoup.Jsoup
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
@@ -189,7 +192,39 @@ class MospolytechMethods() : MospolytechApi {
             )
         }.status.toString()
     }
+    override suspend fun getGroupsList(): List<String> {
+        val jsonParser = Json {
+            ignoreUnknownKeys = true
+            isLenient = true
+        }
+        try {
+            val htmlContent: String = provideUnsecureHttpClientClean().get("https://rasp.dmami.ru/").bodyAsText()
+            val startMarker = "var globalListGroups = "
+            val startIndex = htmlContent.indexOf(startMarker)
 
+            if (startIndex == -1) {
+                throw Exception("Не удалось найти переменную globalListGroups на странице")
+            }
+
+            val jsonStart = htmlContent.substring(startIndex + startMarker.length)
+
+            // Получаем "грязную" JSON строку (может содержать .groups на конце)
+            var jsonString = jsonStart.substringBefore(";")
+
+            // ИСПРАВЛЕНИЕ: Если строка заканчивается на .groups, отрезаем это,
+            // чтобы получить чистый JSON объект {...}
+            if (jsonString.trim().endsWith(".groups")) {
+                jsonString = jsonString.substringBeforeLast(".groups")
+            }
+
+            val raspData = jsonParser.decodeFromString<RaspData>(jsonString)
+            return raspData.groups.keys.toList().sorted()
+
+        } catch (e: Exception) {
+            e.printStackTrace()
+            return emptyList()
+        }
+    }
     override suspend fun changeNumber(token: String, number: String): String {
        return  provideUnsecureHttpClientClean().post("https://e.mospolytech.ru/old/lk_api.php") {
             url {

@@ -1,35 +1,22 @@
 package com.rozetka.presentation.ui.sessionSchedule
 
-
-
-import androidx.compose.animation.core.EaseInOut
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -40,6 +27,7 @@ import com.rozetka.presentation.util.removeEmojis
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
+import java.time.ZoneId
 
 @Composable
 fun SessionLessonItem(
@@ -48,7 +36,9 @@ fun SessionLessonItem(
     index: Int,
     totalLessonsInDay: Int,
     lessonDate: LocalDate,
-    onLessonClick: (Lesson) -> Unit
+    onLessonClick: (Lesson) -> Unit,
+
+    onExportToCalendar: (title: String, description: String, location: String, startMillis: Long, endMillis: Long) -> Unit
 ) {
     fun getLessonTime(position: String): String {
         return when (position) {
@@ -158,6 +148,38 @@ fun SessionLessonItem(
 
                 Spacer(Modifier.weight(1f))
 
+
+                IconButton(
+                    onClick = {
+                        val zoneId = ZoneId.systemDefault()
+                        val startMillis = lessonStartDateTime.atZone(zoneId).toInstant().toEpochMilli()
+                        val endMillis = lessonEndDateTime.atZone(zoneId).toInstant().toEpochMilli()
+
+                        val location = removeEmojis(lesson.auditories.joinToString {
+                            it.title.replace(Regex("<.*?>"), "")
+                        })
+
+                        onExportToCalendar(
+                            "${lesson.type}: ${lesson.sbj}",
+                            "Преподаватель: ${lesson.teacher}",
+                            location,
+                            startMillis,
+                            endMillis
+                        )
+                    },
+                    modifier = Modifier.size(32.dp)
+                ) {
+                    Icon(
+                        imageVector = ImageVector.vectorResource(id =com.rozetka.presentation.R.drawable.calendar_add_outline_24 ),
+                        contentDescription = "Export to Calendar",
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+
+                Spacer(Modifier.width(8.dp))
+
+
                 val colorType = if (isLessonPassed) {
                     Color.Gray.copy(alpha = 0.5f)
                 } else {
@@ -196,6 +218,7 @@ fun SessionLessonItem(
                 }
             }
 
+            // ... (Остальной код карточки без изменений) ...
             Spacer(Modifier.height(8.dp))
 
             Text(

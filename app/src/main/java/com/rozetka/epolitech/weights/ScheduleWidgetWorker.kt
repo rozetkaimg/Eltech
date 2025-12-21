@@ -70,20 +70,14 @@ class ScheduleWidgetWorker(
                         val today = LocalDate.now()
                         val weekInfo = findCurrentWeek(scheduleData)
                         val todayKey = today.dayOfWeek.value.toString()
-
-                        // 1. Пытаемся найти обычные пары на сегодня
                         var lessonsForToday = scheduleData.grid[todayKey]?.flatMap { (lessonNumber, lessons) ->
                             lessons
                                 .filter { lesson -> isLessonInWeek(lesson, weekInfo) }
                                 .map { lesson -> lessonNumber to lesson }
                         }?.sortedBy { (lessonNumber, _) -> lessonNumber.toIntOrNull() ?: 0 } ?: emptyList()
-
-                        // 2. Если обычных пар нет, проверяем расписание сессии
                         if (lessonsForToday.isEmpty()) {
                             try {
                                 val sessionSchedule = mospolytechMethods.getSessionSchedule(groupName)
-
-                                // Ищем занятия по дате, используя надежное сравнение (LocalDate)
                                 val sessionLessonsMap = sessionSchedule.grid.entries.find { (dateKey, _) ->
                                     try {
                                         LocalDate.parse(dateKey).isEqual(today)
@@ -147,8 +141,6 @@ class ScheduleWidgetWorker(
         val today = LocalDate.now()
 
         var currentStart = semesterStart.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
-
-        // Защита от бесконечного цикла
         val maxWeeks = 52
         var weekCount = 0
 

@@ -21,7 +21,7 @@
         android:shortcutLongLabel="@string/schedule">
         <intent
             android:action="android.intent.action.VIEW"
-            android:data="app://com.rozetka.epotitech/schedule/251-353" />
+            android:data="app://com.rozetka.epotitech/schedule" />
         <categories android:name="android.shortcut.conversation" />
     </shortcut>
 

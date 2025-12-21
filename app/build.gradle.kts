@@ -13,8 +13,8 @@ android {
         applicationId = "com.rozetka.eltech"
         minSdk = 26
         targetSdk = 36
-        versionCode = 3
-        versionName = "1.0.0−alpha_0.1.17"
+        versionCode = 5
+        versionName = "1.0.0−alpha_0.1.18"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

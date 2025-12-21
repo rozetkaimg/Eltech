@@ -1,7 +1,7 @@
 package com.rozetka.domain.util
 
 object StringObject {
-
+    var isGuest: Boolean = false
     lateinit var ApiToken: String
     var groupName: String = ""
     var Name: String = ""
