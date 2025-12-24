@@ -5,6 +5,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Scaffold
@@ -137,6 +138,7 @@ private fun PhoneLayout(
     }
 }
 
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 private fun TabletLayout(
     navController: NavHostController,
@@ -146,15 +148,18 @@ private fun TabletLayout(
     windowSizeClass: WindowSizeClass,
     isGuest: Boolean
 ) {
-    Row(Modifier.fillMaxSize()) {
-        AnimatedVisibility(visible = currentScreen?.isFullScreen != true) {
-            if (!isGuest) {
+    if (!isGuest) {
+        Row(Modifier.fillMaxSize()) {
+            AnimatedVisibility(visible = currentScreen?.isFullScreen != true) {
+
                 AppNavigationRail(
                     bottomBarItems = bottomBarItems,
                     currentScreen = currentScreen,
                     navController = navController
                 )
-            }
+
+
+
         }
         AppNavHost(
             navController = navController,
@@ -162,4 +167,41 @@ private fun TabletLayout(
             windowSizeClass = windowSizeClass
         )
     }
+
 }
+    else {
+        Scaffold(
+            bottomBar = {
+                AnimatedVisibility(
+                    visible = currentScreen?.isFullScreen != true,
+                    enter = slideInVertically(
+                        initialOffsetY = { it },
+                        animationSpec = tween(durationMillis = 300)
+                    ),
+                    exit = slideOutVertically(
+                        targetOffsetY = { it },
+                        animationSpec = tween(durationMillis = 300)
+                    )
+                ) {
+                    if (isGuest) {
+                        GuestBottomNavigationBar(
+                            currentScreen = currentScreen,
+                            navController = navController
+                        )
+                    } else {
+                        AppBottomNavigationBar(
+                            bottomBarItems = bottomBarItems,
+                            currentScreen = currentScreen,
+                            navController = navController
+                        )
+                    }
+                }
+            }
+        ) {
+            AppNavHost(
+                navController = navController,
+                modifier = Modifier,
+                windowSizeClass = windowSizeClass
+            )
+        }
+    }}

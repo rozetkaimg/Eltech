@@ -51,6 +51,7 @@ import com.rozetka.presentation.R
 import com.rozetka.presentation.ui.pay.LoadingState
 import com.rozetka.presentation.util.ThemeObject
 import com.rozetka.presentation.util.UiSize
+import com.rozetka.presentation.util.generateColorFromHash
 import com.rozetka.presentation.util.getNavigationBarHeightDp
 import org.koin.androidx.compose.koinViewModel
 
@@ -136,28 +137,28 @@ private fun ProjectInfoCard(data: PDModel) {
         Card(
             modifier = Modifier
                 .fillMaxWidth(),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
             shape = RoundedCornerShape(
-                topStart = 28.dp,
-                topEnd = 28.dp,
-                bottomStart = 8.dp,
-                bottomEnd = 8.dp
+                topStart = 24.dp,
+                topEnd = 24.dp,
+                bottomStart = 4.dp,
+                bottomEnd = 4.dp
             )
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier =      Modifier.padding(12.dp),
+                modifier = Modifier.padding(12.dp),
             ) {
                 Box(
                     Modifier
                         .size(48.dp)
                         .clip(Cookie9Sided.toShape())
-                        .background(MaterialTheme.colorScheme.surface)
+                        .background(generateColorFromHash(data.project).copy(0.15f))
                 ) {
                     Icon(
                         painter = painterResource(R.drawable.lightbulb_star_outline),
                         contentDescription = stringResource(R.string.academic_year_content_description),
-                        tint = MaterialTheme.colorScheme.primary,
+                        tint = generateColorFromHash(data.project),
                         modifier = Modifier
                             .size(32.dp)
                             .align(Alignment.Center)
@@ -173,20 +174,19 @@ private fun ProjectInfoCard(data: PDModel) {
                 )
 
 
-
             }
         }
 
         Spacer(modifier = Modifier.size(2.dp))
         Card(
             modifier = Modifier.fillMaxWidth(),
-            shape =      RoundedCornerShape(
-                topStart = 8.dp,
-                topEnd = 8.dp,
-                bottomEnd = 28.dp,
-                bottomStart = 28.dp
+            shape = RoundedCornerShape(
+                topStart = 4.dp,
+                topEnd = 4.dp,
+                bottomEnd = 24.dp,
+                bottomStart = 24.dp
             ),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
         ) {
             Column(modifier = Modifier.padding(12.dp)) {
                 InfoRow(stringResource(R.string.label_year_pa), data.year)
@@ -203,28 +203,32 @@ private fun ProjectInfoCard(data: PDModel) {
         Card(
             modifier = Modifier
                 .fillMaxWidth(),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
             shape = RoundedCornerShape(
-                topStart = 28.dp,
-                topEnd = 28.dp,
-                bottomStart = 8.dp,
-                bottomEnd = 8.dp
+                topStart = 24.dp,
+                topEnd = 24.dp,
+                bottomStart = 4.dp,
+                bottomEnd = 4.dp
             )
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier =      Modifier.padding(12.dp),
+                modifier = Modifier.padding(12.dp),
             ) {
                 Box(
                     Modifier
                         .size(48.dp)
                         .clip(Cookie12Sided.toShape())
-                        .background(MaterialTheme.colorScheme.surface)
+                        .background(
+                            generateColorFromHash(data.currentSemestrResult + data.currentSemestrBalls).copy(
+                                0.15f
+                            )
+                        )
                 ) {
                     Icon(
                         painter = painterResource(R.drawable.education_outline_28),
                         contentDescription = stringResource(R.string.academic_year_content_description),
-                        tint = MaterialTheme.colorScheme.primary,
+                        tint = generateColorFromHash(data.currentSemestrResult + data.currentSemestrBalls),
                         modifier = Modifier
                             .size(32.dp)
                             .align(Alignment.Center)
@@ -240,21 +244,20 @@ private fun ProjectInfoCard(data: PDModel) {
                 )
 
 
-
             }
         }
         Spacer(Modifier.size(2.dp))
         Card(
             modifier = Modifier.fillMaxWidth(),
-            shape =      RoundedCornerShape(
+            shape = RoundedCornerShape(
                 topStart = 8.dp,
                 topEnd = 8.dp,
                 bottomEnd = 28.dp,
                 bottomStart = 28.dp
             ),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
         ) {
-            Column(modifier = Modifier.padding(12.dp)) {
+            Column(modifier = Modifier.padding(16.dp)) {
 
                 InfoRow(stringResource(R.string.label_points_colon), data.currentSemestrBalls)
                 InfoRow(stringResource(R.string.label_result_colon), data.currentSemestrResult)
@@ -265,132 +268,133 @@ private fun ProjectInfoCard(data: PDModel) {
             }
         }
         Spacer(Modifier.height(24.dp))
-        Card(
-            modifier = Modifier
-                .fillMaxWidth(),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
-            shape = RoundedCornerShape(
-                topStart = 28.dp,
-                topEnd = 28.dp,
-                bottomStart = 8.dp,
-                bottomEnd = 8.dp
-            )
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier =      Modifier.padding(12.dp),
-            ) {
-                Box(
-                    Modifier
-                        .size(48.dp)
-                        .clip(Cookie12Sided.toShape())
-                        .background(MaterialTheme.colorScheme.surface)
-                ) {
-                    Icon(
-                        painter = painterResource(R.drawable.document_outline_28),
-                        contentDescription = stringResource(R.string.academic_year_content_description),
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier
-                            .size(32.dp)
-                            .align(Alignment.Center)
-                    )
-                }
-                Spacer(modifier = Modifier.width(12.dp))
-
-                Text(
-                    text = stringResource(R.string.last_semester),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface
+        if (data.lastSemestrBalls != "0") {
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+                shape = RoundedCornerShape(
+                    topStart = 24.dp,
+                    topEnd = 24.dp,
+                    bottomStart = 4.dp,
+                    bottomEnd = 4.dp
                 )
-
-
-
-            }
-        }
-        Spacer(Modifier.size(2.dp))
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape =      RoundedCornerShape(
-                topStart = 8.dp,
-                topEnd = 8.dp,
-                bottomEnd = 28.dp,
-                bottomStart = 28.dp
-            ),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)
-        ) {
-            Column(modifier = Modifier.padding(12.dp)) {
-                InfoRow(stringResource(R.string.label_points_colon), data.lastSemestrBalls)
-                InfoRow(stringResource(R.string.label_result_colon), data.lastSemestrResult)
-                Spacer(Modifier.height(8.dp))
-            }
-        }
-
-        Spacer(Modifier.height(24.dp))
-        Card(
-            modifier = Modifier
-                .fillMaxWidth(),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
-            shape = RoundedCornerShape(
-                topStart = 28.dp,
-                topEnd = 28.dp,
-                bottomStart = 8.dp,
-                bottomEnd = 8.dp
-            )
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier =      Modifier.padding(12.dp),
             ) {
-                Box(
-                    Modifier
-                        .size(48.dp)
-                        .clip(Cookie12Sided.toShape())
-                        .background(MaterialTheme.colorScheme.surface)
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(12.dp),
                 ) {
-                    Icon(
-                        painter = painterResource(R.drawable.warning_triangle_outline_28),
-                        contentDescription = stringResource(R.string.academic_year_content_description),
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier
-                            .size(32.dp)
-                            .align(Alignment.Center)
+                    Box(
+                        Modifier
+                            .size(48.dp)
+                            .clip(Cookie12Sided.toShape())
+                            .background(MaterialTheme.colorScheme.surface)
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.document_outline_28),
+                            contentDescription = stringResource(R.string.academic_year_content_description),
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier
+                                .size(32.dp)
+                                .align(Alignment.Center)
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(12.dp))
+
+                    Text(
+                        text = stringResource(R.string.last_semester),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
                     )
+
+
                 }
-                Spacer(modifier = Modifier.width(12.dp))
+            }
+            Spacer(Modifier.size(2.dp))
 
-                Text(
-                    text = stringResource(R.string.arrear_title),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(
+                    topStart = 4.dp,
+                    topEnd = 4.dp,
+                    bottomEnd = 24.dp,
+                    bottomStart = 24.dp
+                ),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
+            ) {
+                Column(modifier = Modifier.padding(12.dp)) {
+                    InfoRow(stringResource(R.string.label_points_colon), data.lastSemestrBalls)
+                    InfoRow(stringResource(R.string.label_result_colon), data.lastSemestrResult)
+                    Spacer(Modifier.height(8.dp))
+                }
+            }
+        }
+        if (data.arrearBalls >="0" && data.arrear!= "0") {
+            Spacer(Modifier.height(24.dp))
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+                shape = RoundedCornerShape(
+                    topStart = 28.dp,
+                    topEnd = 28.dp,
+                    bottomStart = 8.dp,
+                    bottomEnd = 8.dp
                 )
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(12.dp),
+                ) {
+                    Box(
+                        Modifier
+                            .size(48.dp)
+                            .clip(Cookie12Sided.toShape())
+                            .background(MaterialTheme.colorScheme.surface)
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.warning_triangle_outline_28),
+                            contentDescription = stringResource(R.string.academic_year_content_description),
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier
+                                .size(32.dp)
+                                .align(Alignment.Center)
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(12.dp))
+
+                    Text(
+                        text = stringResource(R.string.arrear_title),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
 
 
-
+                }
+            }
+            Spacer(Modifier.size(2.dp))
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(
+                    topStart = 4.dp,
+                    topEnd = 4.dp,
+                    bottomEnd = 24.dp,
+                    bottomStart = 24.dp
+                ),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
+            ) {
+                Column(modifier = Modifier.padding(12.dp)) {
+                    InfoRow(stringResource(R.string.label_description_pa), data.arrear)
+                    InfoRow(stringResource(R.string.label_points_colon), data.arrearBalls)
+                    InfoRow(stringResource(R.string.label_result_colon), data.arrearResult)
+                }
             }
         }
-        Spacer(Modifier.size(2.dp))
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape =      RoundedCornerShape(
-                topStart = 8.dp,
-                topEnd = 8.dp,
-                bottomEnd = 28.dp,
-                bottomStart = 28.dp
-            ),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)
-        ) {
-            Column(modifier = Modifier.padding(12.dp)) {
-                InfoRow(stringResource(R.string.label_description_pa), data.arrear)
-                InfoRow(stringResource(R.string.label_points_colon), data.arrearBalls)
-                InfoRow(stringResource(R.string.label_result_colon), data.arrearResult)
-            }
-        }
+
     }
-
 }
-
 
 @Composable
 private fun InfoRow(label: String, value: String) {

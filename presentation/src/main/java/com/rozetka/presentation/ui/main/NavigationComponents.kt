@@ -27,7 +27,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -108,7 +110,7 @@ fun AppBottomNavigationBarNew(
                                     exit = fadeOut() + shrinkHorizontally()
                                 ) {
                                     Icon(
-                                        imageVector = screen.icon,
+                                        imageVector = ImageVector.vectorResource(screen.icon),
                                         contentDescription = stringResource(screen.titleResId)
                                     )
                                 }
@@ -161,7 +163,7 @@ fun AppBottomNavigationBarNew(
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
-                            imageVector = screen.icon,
+                            imageVector = ImageVector.vectorResource(screen.icon),
                             contentDescription = stringResource(screen.titleResId),
                             tint = if (isSelected) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurface
                         )
@@ -205,7 +207,7 @@ fun GuestBottomNavigationBar(
                                 (screen == Screen.ScheduleLink && currentScreen?.route?.startsWith(Screen.Schedule.route) == true)
 
                         val titleRes = if (screen == Screen.Login) com.rozetka.presentation. R.string.login_hint else screen.titleResId
-                        val iconVec = if (screen == Screen.Login) Icons.Default.Login else screen.icon
+
 
                         ShortNavigationBarItem(
                             iconPosition = NavigationItemIconPosition.Start,
@@ -243,7 +245,7 @@ fun GuestBottomNavigationBar(
                                     exit = fadeOut() + shrinkHorizontally()
                                 ) {
                                     Icon(
-                                        imageVector = iconVec,
+                                        imageVector = ImageVector.vectorResource(screen.icon),
                                         contentDescription = stringResource(titleRes)
                                     )
                                 }
@@ -291,7 +293,7 @@ fun AppBottomNavigationBarOld(
             NavigationBarItem(
                 icon = {
                     Icon(
-                        screen.icon,
+                        ImageVector.vectorResource(screen.icon),
                         contentDescription = stringResource(screen.titleResId)
                     )
                 },
@@ -343,7 +345,7 @@ fun AppNavigationRail(
             NavigationRailItem(
                 icon = {
                     Icon(
-                        screen.icon,
+                        ImageVector.vectorResource(screen.icon),
                         contentDescription = stringResource(screen.titleResId)
                     )
                 },

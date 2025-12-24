@@ -2,6 +2,7 @@ package com.rozetka.presentation.di
 
 import com.rozetka.presentation.ui.RootViewModel
 import com.rozetka.presentation.ui.academicPerformance.AcademicPerformanceViewModel
+import com.rozetka.presentation.ui.createApplication.CreateApplicationViewModel
 import com.rozetka.presentation.ui.dialog.DialogViewModel
 import com.rozetka.presentation.ui.digitalService.DigitalServiceViewModel
 import com.rozetka.presentation.ui.employees.EmployeesViewModel
@@ -52,4 +53,5 @@ val presentationModule = module {
     viewModelOf(::SessionScheduleViewModel)
     viewModelOf(::ScheduleLinkViewModel)
     viewModelOf(::GuestSearchGroupViewModel)
+    viewModelOf(::CreateApplicationViewModel)
 }

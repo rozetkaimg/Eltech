@@ -51,6 +51,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.rozetka.presentation.util.generateColorFromHash
 
 data class ServiceLink(
     val title: String,
@@ -202,7 +203,7 @@ fun SubmitAnApplicationScreen(navController: NavController) {
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues),
+                .padding(top =  paddingValues.calculateTopPadding()),
             contentPadding = PaddingValues(bottom = 16.dp)
         ) {
             item {
@@ -232,12 +233,15 @@ fun SubmitAnApplicationScreen(navController: NavController) {
                                 Log.e("SubmitAnApplicationScreen", "Could not open URL: ${link.route}", e)
                             }
                         } else {
-                            val navRoute = "bid/${link.route}"
+                            val navRoute = link.route
                             Log.i("SubmitAnApplicationScreen", "Navigating to: $navRoute")
                             navController.navigate(navRoute)
                         }
                     }
                 )
+            }
+            item {
+                Spacer(modifier = Modifier.size(80.dp))
             }
         }
     }
@@ -271,7 +275,8 @@ fun ServiceSectionItem(
             section.links.forEach { link ->
                 ServiceLinkItem(
                     link = link,
-                    onClick = { onLinkClicked(link) }
+                    onClick = { onLinkClicked(link) },
+                    selectionName = section.title
                 )
             }
         }
@@ -281,6 +286,7 @@ fun ServiceSectionItem(
 @Composable
 fun ServiceLinkItem(
     link: ServiceLink,
+    selectionName: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -288,7 +294,7 @@ fun ServiceLinkItem(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+            containerColor = MaterialTheme.colorScheme.surfaceContainer
         ),
         onClick = onClick
     ) {
@@ -302,13 +308,13 @@ fun ServiceLinkItem(
                 modifier = Modifier
                     .size(48.dp)
                     .clip(RoundedCornerShape(16.dp))
-                    .background(MaterialTheme.colorScheme.primaryContainer),
+                    .background(generateColorFromHash(selectionName).copy(0.15f)),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = if (link.isExternal) Icons.Default.Link else Icons.Default.Assignment,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onPrimaryContainer
+                    tint = generateColorFromHash(selectionName)
                 )
             }
 

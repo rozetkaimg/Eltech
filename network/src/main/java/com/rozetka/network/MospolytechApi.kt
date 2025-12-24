@@ -5,6 +5,7 @@ import com.rozetka.model.AcademicPerformance
 import com.rozetka.model.Credentials
 import com.rozetka.model.DigitalServiceModelItem
 import com.rozetka.model.EmployeesModel
+import com.rozetka.model.ExternalNewsItem
 import com.rozetka.model.File
 import com.rozetka.model.MessageDialogItem
 import com.rozetka.model.MessageModelItem
@@ -13,6 +14,7 @@ import com.rozetka.model.NewsModelItem
 import com.rozetka.model.PDModel
 import com.rozetka.model.PayModel
 import com.rozetka.model.PhysEdJournalResponse
+import com.rozetka.model.PolytechEvent
 import com.rozetka.model.ScheduleByDay
 import com.rozetka.model.ScheduleModel
 import com.rozetka.model.SearchGroupModel
@@ -50,4 +52,7 @@ interface MospolytechApi {
     suspend fun changeAvatar(token: String, avatarBytes: ByteArray): String
     suspend fun  getSessionSchedule(group: String): ScheduleModel
     suspend fun getGroupsList(): List<String>
+    suspend fun getExternalNewsList(page: Int): List<ExternalNewsItem>
+    suspend fun getEventsList(page: Int): List<PolytechEvent>
+    suspend fun sendApplicationData(applicationId: String, token: String, params: Map<String, String>): MessageResponse
 }

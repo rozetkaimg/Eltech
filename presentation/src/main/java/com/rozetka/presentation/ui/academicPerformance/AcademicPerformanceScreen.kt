@@ -45,7 +45,7 @@ fun AcademicPerformanceScreen(
         modifier = Modifier.fillMaxSize(),
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.session_results)) },
+                title = { Text(stringResource(R.string.session_results), fontWeight = FontWeight.Bold,) },
                 navigationIcon = {
                     IconButton(onClick = { navController.navigateUp() }) {
                         Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.common_back))
@@ -183,7 +183,7 @@ fun AcademicPerformanceScreen(
                         }
 
                         selectedItem?.let { item ->
-                            DetailsDialogAcademicPerformance(item = item, onDismiss = { selectedItem = null })
+                            DetailsBottomSheetAcademicPerformance(item = item, onDismiss = { selectedItem = null })
                         }
                     }
                 }

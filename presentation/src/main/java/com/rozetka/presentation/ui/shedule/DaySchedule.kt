@@ -222,7 +222,7 @@ fun DaySchedule(dayKey: String, lessonsByTime: Map<String, List<Lesson>>, week: 
         }
 
         if (selectedLesson != null) {
-            LessonDetailsDialog(
+            LessonDetailsBottomSheet(
                 lesson = selectedLesson!!,
                 onDismissRequest = {
                     selectedLesson = null

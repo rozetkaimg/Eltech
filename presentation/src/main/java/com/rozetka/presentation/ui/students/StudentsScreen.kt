@@ -43,6 +43,7 @@ import com.rozetka.model.StudentR
 import com.rozetka.presentation.R
 import com.rozetka.presentation.navigation.Screen
 import com.rozetka.presentation.ui.pay.LoadingState
+import com.rozetka.presentation.util.generateColorFromHash
 import com.rozetka.presentation.util.getNavigationBarHeightDp
 import org.koin.androidx.compose.koinViewModel
 
@@ -212,9 +213,9 @@ private fun StudentItem(
     onClick: () -> Unit
 ) {
     Card(
-        shape = RoundedCornerShape(28.dp),
+        shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+            containerColor = MaterialTheme.colorScheme.surfaceContainer
         ),
         onClick = onClick
     ) {
@@ -241,12 +242,12 @@ private fun StudentItem(
                         contentAlignment = Alignment.Center,
                         modifier = Modifier
                             .fillMaxSize()
-                            .background(MaterialTheme.colorScheme.secondaryContainer)
+                            .background(generateColorFromHash(student.fio).copy(0.15f))
                     ) {
                         Icon(
                             imageVector = Icons.Default.Person,
                             contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSecondaryContainer
+                            tint = generateColorFromHash(student.fio)
                         )
                     }
                 }
@@ -318,13 +319,14 @@ private fun StudentDetailsBottomSheet(
                     contentAlignment = Alignment.Center,
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(MaterialTheme.colorScheme.secondaryContainer)
+
+                        .background(generateColorFromHash(student.fio).copy(0.15f))
                 ) {
                     Icon(
                         imageVector = Icons.Default.Person,
                         contentDescription = null,
                         modifier = Modifier.size(64.dp),
-                        tint = MaterialTheme.colorScheme.onSecondaryContainer
+                        tint = generateColorFromHash(student.fio)
                     )
                 }
             }

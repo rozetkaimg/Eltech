@@ -47,6 +47,7 @@ import com.rozetka.presentation.ui.pay.LoadingState
 import com.rozetka.presentation.util.CollapsingToolbarScaffold
 import com.rozetka.presentation.util.ScrollStrategy
 import com.rozetka.presentation.util.UiSize
+import com.rozetka.presentation.util.generateColorFromHash
 import com.rozetka.presentation.util.rememberCollapsingToolbarScaffoldState
 import org.koin.androidx.compose.koinViewModel
 
@@ -201,10 +202,11 @@ private fun TeacherRatingSuccessState(
                                         contentAlignment = Alignment.Center,
                                         modifier = Modifier
                                             .fillMaxSize()
-                                            .background(MaterialTheme.colorScheme.onPrimary)
+                                            .background(generateColorFromHash(state.data.teacher.name).copy(0.15f))
                                     ) {
                                         Icon(
                                             painterResource(R.drawable.ic_profile),
+                                            tint = generateColorFromHash(state.data.teacher.name),
                                             contentDescription = stringResource(R.string.cd_profile_photo_placeholder),
                                             modifier = Modifier.size(150.dp).padding(16.dp)
                                         )

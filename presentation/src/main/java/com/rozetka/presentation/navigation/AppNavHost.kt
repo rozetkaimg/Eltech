@@ -1,14 +1,11 @@
 package com.rozetka.presentation.navigation
 
-import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -37,12 +34,14 @@ import com.rozetka.presentation.ui.settings.SettingsScreen
 import com.rozetka.presentation.ui.shedule.ScheduleScreen
 import com.rozetka.presentation.ui.studentCard.StudentCardScreen
 import com.rozetka.domain.util.StringObject
+
 import com.rozetka.presentation.ui.employees.EmployeesScreen
 import com.rozetka.presentation.ui.groupJournal.GroupJournalScreen
 import com.rozetka.presentation.ui.guestSearchGroup.GuestSearchGroupScreen
 import com.rozetka.presentation.ui.scheduleLink.ScheduleLinkScreen
 import com.rozetka.presentation.ui.sessionSchedule.SessionScheduleScreen
 import com.rozetka.presentation.ui.students.StudentsScreen
+import com.rozetka.presentation.ui.createApplication.CreateApplicationScreen
 import com.rozetka.presentation.ui.teacherReview.TeacherReviewScreen
 import com.rozetka.presentation.ui.teacherSchedule.TeacherScheduleScreen
 import com.rozetka.presentation.ui.teachersRaiting.TeacherRatingScreen
@@ -74,13 +73,13 @@ fun AppNavHost(
             )
         },
         popEnterTransition = {
-            // Появляющийся (нижний) экран: немного увеличивается с 0.95 до 1.0, создавая эффект возврата
+
             scaleIn(
                 initialScale = 0.95f,
                 animationSpec = tween(durationMillis = 300, easing = FastOutSlowInEasing),
                 transformOrigin = TransformOrigin(pivotFractionX = 0.5f, pivotFractionY = 0.5f)
             ) + fadeIn(
-                animationSpec = tween(durationMillis = 300) // Плавное появление
+                animationSpec = tween(durationMillis = 300)
             )
         }
     ) {
@@ -257,7 +256,18 @@ fun AppNavHost(
             GroupJournalScreen(navController)
         }
 
-
+        composable(
+            route = Screen.CreateApplicationScreen.route,
+            arguments = listOf(
+                navArgument("applicationId") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val applicationId = backStackEntry.arguments?.getString("applicationId") ?: ""
+            CreateApplicationScreen(
+                applicationId = applicationId,
+                navController = navController
+            )
+        }
 
         composable(
             route = Screen.TeacherSchedule.route,
@@ -269,7 +279,7 @@ fun AppNavHost(
             TeacherScheduleScreen(navController = navController, fio = fio)
         }
         composable(Screen.Mail.route) {
-            MessagesScreen(navController = navController)
+            MessagesScreen(navController = navController, windowSizeClass = windowSizeClass.widthSizeClass)
         }
 
         composable(

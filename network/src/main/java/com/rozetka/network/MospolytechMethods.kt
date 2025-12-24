@@ -4,13 +4,17 @@ import com.rozetka.model.AcademicPerformance
 import com.rozetka.model.Credentials
 import com.rozetka.model.DigitalServiceModelItem
 import com.rozetka.model.EmployeesModel
+import com.rozetka.model.ExternalNewsItem
 import com.rozetka.model.MessageDialogItem
 import com.rozetka.model.MessageModelItem
 import com.rozetka.model.MessageResponse
+import com.rozetka.model.MospolytechEventsResponse
+import com.rozetka.model.MospolytechNewsResponse
 import com.rozetka.model.NewsModelItem
 import com.rozetka.model.PDModel
 import com.rozetka.model.PayModel
 import com.rozetka.model.PhysEdJournalResponse
+import com.rozetka.model.PolytechEvent
 import com.rozetka.model.RaspData
 import com.rozetka.model.ScheduleByDay
 import com.rozetka.model.ScheduleModel
@@ -27,6 +31,7 @@ import io.ktor.client.request.forms.formData
 import io.ktor.client.request.forms.submitForm
 import io.ktor.client.request.forms.submitFormWithBinaryData
 import io.ktor.client.request.get
+import io.ktor.client.request.header
 import io.ktor.client.request.headers
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
@@ -108,6 +113,28 @@ class MospolytechMethods() : MospolytechApi {
                 FormDataContent(
                     Parameters.build {
                         append("text", newMessage)
+                    }
+                )
+            )
+        }.body()
+    }
+    override suspend fun sendApplicationData(
+        applicationId: String,
+        token: String,
+        params: Map<String, String>
+    ): MessageResponse {
+        return provideUnsecureHttpClient().post("https://e.mospolytech.ru/old/lk_api.php") {
+            url {
+                parameters.append("saveAppData", applicationId)
+            }
+            setBody(
+                FormDataContent(
+                    Parameters.build {
+                        append("token", token)
+                        append("saveAppData", applicationId)
+                        params.forEach { (key, value) ->
+                            append(key, value)
+                        }
                     }
                 )
             )
@@ -201,18 +228,12 @@ class MospolytechMethods() : MospolytechApi {
             val htmlContent: String = provideUnsecureHttpClientClean().get("https://rasp.dmami.ru/").bodyAsText()
             val startMarker = "var globalListGroups = "
             val startIndex = htmlContent.indexOf(startMarker)
-
             if (startIndex == -1) {
                 throw Exception("Не удалось найти переменную globalListGroups на странице")
             }
 
             val jsonStart = htmlContent.substring(startIndex + startMarker.length)
-
-            // Получаем "грязную" JSON строку (может содержать .groups на конце)
             var jsonString = jsonStart.substringBefore(";")
-
-            // ИСПРАВЛЕНИЕ: Если строка заканчивается на .groups, отрезаем это,
-            // чтобы получить чистый JSON объект {...}
             if (jsonString.trim().endsWith(".groups")) {
                 jsonString = jsonString.substringBeforeLast(".groups")
             }
@@ -367,5 +388,99 @@ class MospolytechMethods() : MospolytechApi {
     }
     fun encodePlusToUrl(text: String): String {
         return text.replace("+", "%2B")
+    }
+    override suspend fun getEventsList(page: Int): List<PolytechEvent> {
+        val jsonParser = Json {
+            ignoreUnknownKeys = true
+            isLenient = true
+        }
+
+        try {
+            val responseText: String = provideUnsecureHttpClientClean().get("https://mospolytech.ru/events/?PAGEN_1=$page") {
+                header("x-requested-with", "XMLHttpRequest")
+            }.bodyAsText()
+
+            val apiResponse = jsonParser.decodeFromString<MospolytechEventsResponse>(responseText)
+            val doc = Jsoup.parse(apiResponse.html)
+            val items = doc.select(".card-news-wide-list__item")
+
+            return items.map { element ->
+                val title = element.select(".card-news-wide__title").text()
+                val dateSpans = element.select(".card-news-wide__date span")
+                val fullDate = dateSpans.joinToString(" ") { it.text() }.replace("\n", " ").trim()
+
+                val link = element.select("a.card-news-wide__link").attr("href")
+                val fullLink = if (link.startsWith("http")) link else "https://mospolytech.ru$link"
+
+                val imgSrc = element.select("img").attr("data-src")
+                val fullImageUrl = if (imgSrc.startsWith("http")) imgSrc else "https://mospolytech.ru$imgSrc"
+
+                PolytechEvent(
+                    title = title,
+                    date = fullDate,
+                    link = fullLink,
+                    imageUrl = fullImageUrl
+                )
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            return emptyList()
+        }
+    }
+    override suspend fun getExternalNewsList(page: Int): List<ExternalNewsItem> {
+        val jsonParser = Json {
+            ignoreUnknownKeys = true
+            isLenient = true
+        }
+
+        try {
+            // Отправляем запрос с заголовком XMLHttpRequest, чтобы получить JSON
+            val responseText: String = provideUnsecureHttpClientClean().get("https://mospolytech.ru/news/?PAGEN_1=$page") {
+                header("x-requested-with", "XMLHttpRequest")
+            }.bodyAsText()
+
+            // Декодируем обертку JSON
+            val apiResponse = jsonParser.decodeFromString<MospolytechNewsResponse>(responseText)
+
+            // Парсим полученное поле html
+            val doc = Jsoup.parse(apiResponse.html)
+            val items = doc.select(".card-news-wide-list__item")
+
+            return items.map { element ->
+
+                val title = element.select(".card-news-wide__title").text().trim()
+                val description = element.select(".card-news-wide__text").text().trim()
+                val dateSpans = element.select(".card-news-wide__date span")
+                val fullDate = dateSpans.joinToString(" ") { it.text() }
+                    .replace("\n", " ")
+                    .replace(Regex("\\s+"), " ")
+                    .trim()
+
+                val link = element.select("a.card-news-wide__link").attr("href")
+                val fullLink = if (link.startsWith("http")) link else "https://mospolytech.ru$link"
+
+                var imgSrc = element.select("img").attr("data-src")
+                if (imgSrc.isEmpty()) imgSrc = element.select("img").attr("src")
+
+                val fullImageUrl = if (imgSrc.startsWith("http")) {
+                    imgSrc
+                } else if (imgSrc.startsWith("data:image")) {
+                    "" // Пропускаем заглушки base64
+                } else {
+                    "https://mospolytech.ru$imgSrc"
+                }
+
+                ExternalNewsItem(
+                    title = title,
+                    description = description,
+                    date = fullDate,
+                    link = fullLink,
+                    imageUrl = fullImageUrl
+                )
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            return emptyList()
+        }
     }
 }

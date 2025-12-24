@@ -35,6 +35,7 @@ android {
 }
 
 dependencies {
+    implementation(libs.okhttp)
     implementation(project(":model"))
     implementation(libs.jsoup)
     implementation(libs.androidx.core.ktx)

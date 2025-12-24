@@ -92,6 +92,8 @@ data class FKStudentData(
     @SerialName("curator")
     val curator: Curator? = null,
 
+    @SerialName("healthGroupTeacher")
+    val healthGroupTeacher: Curator? = null,
 
     @SerialName("healthGroup")
     val healthGroup: String,
@@ -105,5 +107,6 @@ data class FKStudentData(
     @SerialName("visitsHistory")
     val visitsHistory: List<VisitsHistory>,
 
+    @SerialName("standardsHistory")
+    val standardsHistory: List<PointsHistory> = emptyList()
 )
-

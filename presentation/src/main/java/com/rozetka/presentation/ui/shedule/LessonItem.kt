@@ -121,7 +121,7 @@ fun LessonItem(
             .padding(vertical = 1.dp),
         shape = shape,
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+            containerColor = MaterialTheme.colorScheme.surfaceContainer
         ),
         onClick = { onLessonClick(lesson) }
     ) {

@@ -12,6 +12,8 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.outlined.AccountCircle
@@ -34,9 +36,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -46,6 +50,7 @@ import com.rozetka.presentation.ui.settings.ModernSettingsItem
 import com.rozetka.presentation.util.AppVersionText
 import com.rozetka.presentation.util.openUrlInBrowser
 import androidx.core.net.toUri
+import com.rozetka.presentation.util.generateColorFromHash
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
@@ -73,10 +78,11 @@ fun AboutScreen(navController: NavController) {
         },
         containerColor = MaterialTheme.colorScheme.surface
     ) { padding ->
+        val scrollState = rememberScrollState()
         Column(
             Modifier
                 .fillMaxSize()
-                .padding(top = padding.calculateTopPadding(), start = 16.dp, end = 16.dp)
+                .padding(top = padding.calculateTopPadding(), start = 16.dp, end = 16.dp).verticalScroll(scrollState)
         ) {
             Box(
                 modifier = Modifier.align(Alignment.CenterHorizontally)
@@ -96,7 +102,7 @@ fun AboutScreen(navController: NavController) {
             Spacer(Modifier.padding(28.dp))
             ModernSettingsItem(
                 icon = Icons.Outlined.Info,
-                iconBackgroundColor = MaterialTheme.colorScheme.primaryContainer,
+                iconBackgroundColor = generateColorFromHash(stringResource(R.string.app_info_title_label)),
                 title = stringResource(R.string.app_info_title_label),
                 subtitle = stringResource(R.string.about_app_info_subtitle),
                 position = ItemPosition.TOP,
@@ -107,7 +113,7 @@ fun AboutScreen(navController: NavController) {
             Spacer(Modifier.size(2.dp))
             ModernSettingsItem(
                 icon = Icons.Outlined.Android,
-                iconBackgroundColor = MaterialTheme.colorScheme.primaryContainer,
+                iconBackgroundColor = generateColorFromHash(stringResource(R.string.app_info_version_label)),
                 title = stringResource(R.string.app_info_version_label),
                 subtitle = AppVersionText(LocalContext.current),
                 position = ItemPosition.MIDDLE,
@@ -118,7 +124,7 @@ fun AboutScreen(navController: NavController) {
             Spacer(Modifier.size(2.dp))
             ModernSettingsItem(
                 icon = Icons.Outlined.AccountCircle,
-                iconBackgroundColor = MaterialTheme.colorScheme.primaryContainer,
+                iconBackgroundColor = generateColorFromHash(stringResource(R.string.app_info_author_label)),
                 title = stringResource(R.string.app_info_author_label),
                 subtitle = stringResource(R.string.about_author_subtitle),
                 position = ItemPosition.MIDDLE,
@@ -128,8 +134,30 @@ fun AboutScreen(navController: NavController) {
             )
             Spacer(Modifier.size(2.dp))
             ModernSettingsItem(
+                icon = ImageVector.vectorResource(R.drawable.document_outline_28),
+                iconBackgroundColor = generateColorFromHash("Лицензия"),
+                title = "Лицензия",
+                subtitle = "Приложение распространяется по GPL-3.0",
+                position = ItemPosition.MIDDLE,
+                onClick = {
+                    openUrlInBrowser(context, "https://github.com/rozetkaimg/Eltech/blob/main/LICENSE")
+                }
+            )
+            Spacer(Modifier.size(2.dp))
+            ModernSettingsItem(
+                icon = ImageVector.vectorResource(R.drawable.code_24),
+                iconBackgroundColor = generateColorFromHash("Исходный код"),
+                title = "Исходный код",
+                subtitle = "Github.com",
+                position = ItemPosition.MIDDLE,
+                onClick = {
+                    openUrlInBrowser(context, "https://github.com/rozetkaimg/Eltech")
+                }
+            )
+            Spacer(Modifier.size(2.dp))
+            ModernSettingsItem(
                 icon = Icons.Outlined.Web,
-                iconBackgroundColor = MaterialTheme.colorScheme.primaryContainer,
+                iconBackgroundColor = generateColorFromHash(stringResource(R.string.app_info_website_label)),
                 title = stringResource(R.string.app_info_website_label),
                 subtitle = stringResource(R.string.app_info_website_value),
                 position = ItemPosition.BOTTOM,

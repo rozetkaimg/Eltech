@@ -41,6 +41,7 @@ import com.rozetka.presentation.R
 import com.rozetka.presentation.navigation.Screen
 import com.rozetka.presentation.ui.pay.LoadingState
 import com.rozetka.presentation.util.UiSize
+import com.rozetka.presentation.util.generateColorFromHash
 import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -289,11 +290,12 @@ private fun EmployeeItem(
                             contentAlignment = Alignment.Center,
                             modifier = Modifier
                                 .fillMaxSize()
-                                .background(MaterialTheme.colorScheme.onPrimary)
+                                .background(generateColorFromHash(employee.fio).copy(0.15f))
                         ) {
                             Icon(
                                 painterResource(R.drawable.ic_profile),
                                 contentDescription = stringResource(R.string.cd_profile_photo_placeholder),
+                                tint = generateColorFromHash(employee.fio),
                                 modifier = Modifier.size(96.dp).padding(16.dp)
                             )
                         }
@@ -385,13 +387,13 @@ private fun EmployeeDetailsBottomSheet(
                     contentAlignment = Alignment.Center,
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(MaterialTheme.colorScheme.surfaceVariant)
+                        .background(generateColorFromHash(employee.fio).copy(0.15f))
                 ) {
                     Icon(
                         painterResource(R.drawable.ic_profile),
                         contentDescription = null,
                         modifier = Modifier.size(64.dp),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        tint = generateColorFromHash(employee.fio)
                     )
                 }
             }

@@ -81,7 +81,7 @@ import com.rozetka.presentation.util.ThemeObject.DynamicColorState
 import org.koin.androidx.compose.koinViewModel
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
-
+import com.rozetka.presentation.util.generateColorFromHash
 enum class ItemPosition {
     TOP, MIDDLE, BOTTOM, STANDALONE
 }
@@ -166,7 +166,14 @@ fun SettingsScreen(
 
 
                         Button(
-                            {}, modifier = Modifier
+                            {
+                                settingsViewModel.logout {
+
+                                    navController.navigate(Screen.Home.route) {
+                                        popUpTo(0) { inclusive = true }
+                                    }
+                                }
+                            }, modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(horizontal = 16.dp)
                         ) {
@@ -357,7 +364,7 @@ fun SettingsScreen(
                 Spacer(Modifier.size(26.dp))
                 ModernSettingsItemSwitch(
                     icon = CalendarOutline28,
-                    iconBackgroundColor = MaterialTheme.colorScheme.primaryContainer,
+                    iconBackgroundColor = generateColorFromHash(stringResource(R.string.schedule_view_type)),
                     title = stringResource(R.string.schedule_view_type),
                     subtitle = if (isEnabled) stringResource(R.string.week_view) else stringResource(R.string.day_view),
                     position = ItemPosition.TOP,
@@ -376,7 +383,7 @@ fun SettingsScreen(
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.BAKLAVA) {
                     ModernSettingsItemSwitch(
                         icon = ImageVector.vectorResource(R.drawable.notifications_28),
-                        iconBackgroundColor = MaterialTheme.colorScheme.primaryContainer,
+                        iconBackgroundColor = generateColorFromHash(stringResource(R.string.live_notification_title)),
                         title = stringResource(R.string.live_notification_title),
                         subtitle = stringResource(R.string.live_notification_subtitle),
                         position = ItemPosition.MIDDLE,
@@ -405,7 +412,7 @@ fun SettingsScreen(
                 var isEnabled by remember { mutableStateOf(settingsViewModel.getNavBar()) }
                 ModernSettingsItemSwitch(
                     icon = ImageVector.vectorResource(R.drawable.outline_bottom_navigation_24),
-                    iconBackgroundColor = MaterialTheme.colorScheme.primaryContainer,
+                    iconBackgroundColor = generateColorFromHash("Панель навигации"),
                     title = "Панель навигации",
                     subtitle = if (isEnabled) "Экспериментальная" else "Традиционная",
                     position = ItemPosition.BOTTOM,
@@ -422,7 +429,7 @@ fun SettingsScreen(
                 Spacer(Modifier.size(2.dp))
                 ModernSettingsItem(
                     icon = Icons.Outlined.Info,
-                    iconBackgroundColor = MaterialTheme.colorScheme.primaryContainer,
+                    iconBackgroundColor = generateColorFromHash(stringResource(R.string.about_app)),
                     title = stringResource(R.string.about_app),
                     subtitle = stringResource(R.string.about_app_subtitle),
                     position = ItemPosition.TOP,
@@ -435,7 +442,7 @@ fun SettingsScreen(
             item {
                 ModernSettingsItem(
                     icon = Icons.Outlined.SystemUpdate,
-                    iconBackgroundColor = MaterialTheme.colorScheme.secondaryContainer,
+                    iconBackgroundColor = (generateColorFromHash(stringResource(R.string.check_updates))),
                     title = stringResource(R.string.check_updates),
                     subtitle = stringResource(R.string.check_updates_subtitle),
                     position = ItemPosition.BOTTOM,

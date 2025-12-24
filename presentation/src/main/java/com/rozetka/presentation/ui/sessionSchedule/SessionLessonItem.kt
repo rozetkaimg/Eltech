@@ -23,6 +23,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.rozetka.model.Lesson
+import com.rozetka.presentation.util.generateColorFromHash
 import com.rozetka.presentation.util.removeEmojis
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -183,13 +184,7 @@ fun SessionLessonItem(
                 val colorType = if (isLessonPassed) {
                     Color.Gray.copy(alpha = 0.5f)
                 } else {
-                    when (lesson.type) {
-                        "Экзамен" -> Color(0xFF8698FF)
-                        "Зачет" -> Color(0xFFFFB74D)
-                        "Диф. зачет" -> Color(0xFFFA5D34)
-                        "Консультация" -> Color(0xFF81C784)
-                        else -> Color(0xFF81C784)
-                    }
+                    generateColorFromHash(lesson.type)
                 }
                 val infiniteTransition = rememberInfiniteTransition(label = "size_transition")
 
