@@ -29,6 +29,19 @@ fun provideHttpClient(): HttpClient = HttpClient(Android) {
         }
     }
 }
+fun provideHttpClientCampus(): HttpClient = HttpClient(Android) {
+    install(ContentNegotiation) {
+        json(Json {
+            prettyPrint = true
+            isLenient = true
+            ignoreUnknownKeys = true
+        })
+    }
+    defaultRequest {
+        url("https://api.campus.dev.dewish.ru")
+    }
+
+}
 
 fun provideUnsecureHttpClient(): HttpClient = HttpClient(Android) {
     engine {

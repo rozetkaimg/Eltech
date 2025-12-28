@@ -10,10 +10,17 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.view.Window
 import android.widget.Toast
+import androidx.appcompat.R
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.automirrored.filled.Chat
+import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.material.icons.filled.Code
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialShapes.Companion.Arch
 import androidx.compose.material3.MaterialShapes.Companion.Arrow
@@ -42,6 +49,8 @@ import androidx.core.net.toUri
 import androidx.core.view.WindowCompat
 import com.rozetka.presentation.util.ThemeObject.DarkThemeState
 
+import androidx.compose.material.icons.filled.*
+
 import java.text.SimpleDateFormat
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -49,7 +58,14 @@ import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
 import java.time.format.FormatStyle
 import java.util.Locale
-
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.StrokeJoin
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.vector.path
+import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.unit.dp
 
 fun openUrlInBrowser(context: Context, url: String) {
     val completeUrl = if (!url.startsWith("http://") && !url.startsWith("https://")) {
@@ -178,7 +194,7 @@ fun getRandomRoundedCornerShape(): Shape {
     return when ((0..5).random()) {
         0 -> Sunny.toShape()
         1 -> Cookie4Sided.toShape()
-        2 -> Gem.toShape()
+        2 -> RoundedCornerShape(100)
         3 -> Arch.toShape()
         4 -> Oval.toShape()
         else -> Square.toShape()
@@ -218,5 +234,77 @@ fun AutoSizingText(
                 }
             }
         )
+    }
+}
+@Composable
+fun getSubjectIcon(subjectName: String): ImageVector {
+    val normalized = subjectName.lowercase()
+        .replace("\\s".toRegex(), "")
+        .replace("$", "s")
+        .replace("-", "")
+
+    return when {
+        normalized.containsAny("безопасн", "защит") -> Icons.Default.Security
+        normalized.containsAny("основыинформацион", "программир", "сайт") ->  ImageVector.vectorResource(com.rozetka.presentation.R.drawable.code_24)
+        normalized.containsAny(  "коммуникац", "коммуникации") -> ImageVector.vectorResource(com.rozetka.presentation.R.drawable.chats_outline_28)
+        normalized.containsAny("информацион", "программир", "сайт") ->  ImageVector.vectorResource(com.rozetka.presentation.R.drawable.code_24)
+        normalized.containsAny("web", "веб") -> ImageVector.vectorResource(com.rozetka.presentation.R.drawable.computer_outline_24)
+        normalized.containsAny("компьют", "алгоритм", "электрон", "вычислит") -> ImageVector.vectorResource(com.rozetka.presentation.R.drawable.computer_outline_24)
+        normalized.contains("данны") -> ImageVector.vectorResource(com.rozetka.presentation.R.drawable.outline_database_24)
+        normalized.containsAny("сети", "сетей") -> Icons.Default.Hub
+        normalized.contains("мобильн") -> ImageVector.vectorResource(com.rozetka.presentation.R.drawable.smartphone_outline_28)
+        normalized.contains("сервер") -> Icons.Default.Dns
+        normalized.contains("интеллект") -> Icons.Default.Psychology
+        normalized.containsAny("матем", "линейн", "вероятн") -> ImageVector.vectorResource(com.rozetka.presentation.R.drawable.function_24dp_e3e3e3_fill0_wght400_grad0_opsz24)
+        normalized.contains("физик") -> Icons.Default.Science
+        normalized.contains("химич") -> Icons.Default.Biotech
+        normalized.contains("анализ") -> Icons.Default.Analytics
+        normalized.contains("эколог") -> Icons.Default.Eco
+        normalized.contains("научн") -> Icons.Default.HistoryEdu
+        normalized.contains("язык") -> Icons.Default.Translate
+        normalized.contains("философ") -> Icons.Default.AutoStories
+        normalized.contains("истор") -> Icons.Default.History
+        normalized.contains("эконом") -> Icons.Default.MonetizationOn
+        normalized.contains("управлени") -> Icons.Default.AccountTree
+        normalized.contains("российской") -> ImageVector.vectorResource(com.rozetka.presentation.R.drawable.flag_outline_28)
+        normalized.containsAny("спорт", "физичес") -> ImageVector.vectorResource(com.rozetka.presentation.R.drawable.physical)
+        normalized.containsAny("вкр", "итоговая", "аттестация") -> ImageVector.vectorResource(com.rozetka.presentation.R.drawable.school_outline_28)
+        normalized.contains("практика") -> Icons.Default.Work
+        normalized.contains("проектн") -> ImageVector.vectorResource(com.rozetka.presentation.R.drawable.lightbulb_star_outline)
+        normalized.contains("тайм") -> ImageVector.vectorResource(com.rozetka.presentation.R.drawable.calendar_outline)
+        normalized.contains("презентац") -> Icons.Default.CoPresent
+        normalized.containsAny("машин", "инжен") -> Icons.Default.Engineering
+        normalized.containsAny("проектир", "расчет") -> Icons.Default.Architecture
+        normalized.containsAny("обработ", "переработ") -> Icons.Default.SettingsInputComponent
+        normalized.contains("автоматиз") -> Icons.Default.PrecisionManufacturing
+        normalized.contains("производ") -> Icons.Default.Factory
+        normalized.contains("материал") -> Icons.Default.Layers
+        normalized.contains("патент") -> Icons.Default.Verified
+        normalized.contains("распознаван") -> Icons.Default.Face
+        normalized.contains("принт") -> Icons.Default.Print
+        normalized.contains("игр") -> ImageVector.vectorResource(com.rozetka.presentation.R.drawable.game_outline_28)
+        normalized.contains("жизнед") -> Icons.Default.HealthAndSafety
+        normalized.contains("операционн") -> Icons.Default.Terminal
+        else -> ImageVector.vectorResource(com.rozetka.presentation.R.drawable.book_spread_outline_24)
+    }
+}
+
+private fun String.containsAny(vararg keywords: String): Boolean {
+    return keywords.any { this.contains(it) }
+}
+fun generateColorFromHash(str: String): Color {
+    val hash = str.hashCode()
+    val r = (hash shr 16 and 0xFF)
+    val g = (hash shr 8 and 0xFF)
+    val b = (hash and 0xFF)
+    return Color(r, g, b)
+}
+fun getAcademicEventColor(eventType: String): Color {
+    return when (eventType.lowercase().trim()) {
+        "консультация" -> Color(0xFF2196F3)
+        "зачет"        -> Color(0xFF4CAF50)
+        "диф. зачет" -> Color(0xFFFF9800)
+        "экзамен"      -> Color(0xFFF44336)
+        else           -> Color(0xFF9E9E9E)
     }
 }

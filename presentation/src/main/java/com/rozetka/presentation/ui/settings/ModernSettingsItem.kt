@@ -38,28 +38,28 @@ fun ModernSettingsItem(
     position: ItemPosition,
     onClick: () -> Unit
 ) {
-    val cornerRadius = 28.dp
+    val cornerRadius = 24.dp
     val shape = when (position) {
         ItemPosition.TOP -> RoundedCornerShape(
             topStart = cornerRadius,
             topEnd = cornerRadius,
-            bottomStart = 8.dp,
-            bottomEnd = 8.dp
+            bottomStart = 4.dp,
+            bottomEnd = 4.dp
         )
 
-        ItemPosition.MIDDLE -> RoundedCornerShape(8.dp)
+        ItemPosition.MIDDLE -> RoundedCornerShape(4.dp)
         ItemPosition.BOTTOM -> RoundedCornerShape(
             bottomStart = cornerRadius,
             bottomEnd = cornerRadius,
-            topStart = 8.dp,
-            topEnd = 8.dp
+            topStart = 4.dp,
+            topEnd = 4.dp
         )
 
         ItemPosition.STANDALONE -> RoundedCornerShape(cornerRadius)
     }
 
     Surface(
-        color = MaterialTheme.colorScheme.surfaceContainerLow,
+        color = MaterialTheme.colorScheme.surfaceContainer,
         shape = shape,
         modifier = Modifier
             .fillMaxWidth()
@@ -73,14 +73,14 @@ fun ModernSettingsItem(
             Box(
                 modifier = Modifier
                     .size(40.dp)
-                    .background(color = iconBackgroundColor, shape = CircleShape),
+                    .background(color = iconBackgroundColor.copy(0.15f), shape = CircleShape),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = icon,
                     contentDescription = null,
                     modifier = Modifier.size(24.dp),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    tint = iconBackgroundColor
                 )
             }
             Spacer(modifier = Modifier.width(16.dp))
@@ -110,26 +110,26 @@ fun ModernSettingsItemSwitch(
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit
 ) {
-    val cornerRadius = 28.dp
+    val cornerRadius = 24.dp
     val shape = when (position) {
         ItemPosition.TOP -> RoundedCornerShape(
             topStart = cornerRadius,
             topEnd = cornerRadius,
-            bottomStart = 8.dp,
-            bottomEnd = 8.dp
+            bottomStart = 4.dp,
+            bottomEnd = 4.dp
         )
-        ItemPosition.MIDDLE -> RoundedCornerShape(8.dp)
+        ItemPosition.MIDDLE -> RoundedCornerShape(4.dp)
         ItemPosition.BOTTOM -> RoundedCornerShape(
             bottomStart = cornerRadius,
             bottomEnd = cornerRadius,
-            topStart = 8.dp,
-            topEnd = 8.dp
+            topStart = 4.dp,
+            topEnd = 4.dp
         )
         ItemPosition.STANDALONE -> RoundedCornerShape(cornerRadius)
     }
 
     Surface(
-        color = MaterialTheme.colorScheme.surfaceContainerLow,
+        color = MaterialTheme.colorScheme.surfaceContainer,
         shape = shape,
         modifier = Modifier
             .fillMaxWidth()
@@ -147,14 +147,14 @@ fun ModernSettingsItemSwitch(
             Box(
                 modifier = Modifier
                     .size(40.dp)
-                    .background(color = iconBackgroundColor, shape = CircleShape),
+                    .background(color = iconBackgroundColor.copy(0.15f), shape = CircleShape),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = icon,
                     contentDescription = null,
                     modifier = Modifier.size(24.dp),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    tint = iconBackgroundColor
                 )
             }
 

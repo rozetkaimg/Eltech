@@ -15,7 +15,7 @@ class StartScheduleAction: ActionCallback {
         parameters: ActionParameters
     ) {
 
-        val deepLinkUri = "app://com.rozetka.epotitech/schedule/${StringObject.groupName}".toUri()
+        val deepLinkUri = "app://com.rozetka.epotitech/schedule".toUri()
 
         val scheduleIntent = Intent(Intent.ACTION_VIEW, deepLinkUri).apply {
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)

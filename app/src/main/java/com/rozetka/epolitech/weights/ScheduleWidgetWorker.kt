@@ -12,6 +12,7 @@ import com.rozetka.data.SecureStorage
 import com.rozetka.domain.repository.ScheduleRepository
 import com.rozetka.model.Lesson
 import com.rozetka.model.ScheduleModel
+import com.rozetka.network.MospolytechMethods
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.catch
@@ -38,6 +39,7 @@ class ScheduleWidgetWorker(
 
     private val scheduleRepository: ScheduleRepository by inject()
     private val secureStorage: SecureStorage by inject()
+    private val mospolytechMethods: MospolytechMethods by inject()
 
     override suspend fun doWork(): Result {
         Log.d(TAG, context.getString(R.string.worker_log_started))
@@ -68,11 +70,31 @@ class ScheduleWidgetWorker(
                         val today = LocalDate.now()
                         val weekInfo = findCurrentWeek(scheduleData)
                         val todayKey = today.dayOfWeek.value.toString()
-                        val lessonsForToday = scheduleData.grid[todayKey]?.flatMap { (lessonNumber, lessons) ->
+                        var lessonsForToday = scheduleData.grid[todayKey]?.flatMap { (lessonNumber, lessons) ->
                             lessons
                                 .filter { lesson -> isLessonInWeek(lesson, weekInfo) }
                                 .map { lesson -> lessonNumber to lesson }
-                        }?.sortedBy { (lessonNumber, _) -> lessonNumber.toInt() } ?: emptyList()
+                        }?.sortedBy { (lessonNumber, _) -> lessonNumber.toIntOrNull() ?: 0 } ?: emptyList()
+                        if (lessonsForToday.isEmpty()) {
+                            try {
+                                val sessionSchedule = mospolytechMethods.getSessionSchedule(groupName)
+                                val sessionLessonsMap = sessionSchedule.grid.entries.find { (dateKey, _) ->
+                                    try {
+                                        LocalDate.parse(dateKey).isEqual(today)
+                                    } catch (e: Exception) {
+                                        dateKey == today.toString()
+                                    }
+                                }?.value
+
+                                if (!sessionLessonsMap.isNullOrEmpty()) {
+                                    lessonsForToday = sessionLessonsMap.flatMap { (timeKey, lessons) ->
+                                        lessons.map { lesson -> timeKey to lesson }
+                                    }.sortedBy { (timeKey, _) -> timeKey }
+                                }
+                            } catch (e: Exception) {
+                                Log.e(TAG, "Failed to load session schedule for widget", e)
+                            }
+                        }
 
                         val successState = ScheduleWidgetState.Success(lessonsForToday, today.toString())
 
@@ -119,18 +141,26 @@ class ScheduleWidgetWorker(
         val today = LocalDate.now()
 
         var currentStart = semesterStart.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
-        while (!currentStart.isAfter(semesterEnd)) {
+        val maxWeeks = 52
+        var weekCount = 0
+
+        while (!currentStart.isAfter(semesterEnd) && weekCount < maxWeeks) {
             val currentEnd = currentStart.plusDays(6)
             if (!today.isBefore(currentStart) && !today.isAfter(currentEnd)) {
                 return WeekInfo(currentStart, currentEnd)
             }
             currentStart = currentStart.plusWeeks(1)
+            weekCount++
         }
+
+
+        val fallbackStart = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
         return WeekInfo(
-            semesterStart.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY)),
-            semesterStart.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY)).plusDays(6)
+            fallbackStart,
+            fallbackStart.plusDays(6)
         )
     }
+
     private fun isLessonInWeek(lesson: Lesson, week: WeekInfo): Boolean {
         return try {
             val lessonStart = LocalDate.parse(lesson.df)

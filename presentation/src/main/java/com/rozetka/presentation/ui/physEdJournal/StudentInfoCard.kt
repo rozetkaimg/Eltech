@@ -1,46 +1,21 @@
 package com.rozetka.presentation.ui.physEdJournal
 
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Card
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.*
+import androidx.compose.material3.MaterialShapes.Companion.Cookie9Sided
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.rozetka.model.Curator
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialShapes.Companion.Cookie9Sided
-import androidx.compose.material3.Text
-import androidx.compose.material3.toShape
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.rozetka.presentation.R
+import com.rozetka.presentation.util.generateColorFromHash
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -54,109 +29,175 @@ fun StudentInfoCard(
     healthGroup: String,
     specialization: String
 ) {
-    Column(
-        modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(4.dp)
-    ) {
 
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp, bottomStart = 8.dp, bottomEnd = 8.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)
-        ) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth(),
+        shape = RoundedCornerShape(22.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainer
+        )
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+
             Row(
-                modifier = Modifier.padding(16.dp),
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
             ) {
                 Box(
-                    Modifier
-                        .size(64.dp)
+                    modifier = Modifier
+                        .size(72.dp)
                         .clip(Cookie9Sided.toShape())
-                        .background(MaterialTheme.colorScheme.surface)
+                        .background(generateColorFromHash(fullName).copy(0.15f)),
+                    contentAlignment = Alignment.Center
                 ) {
-
                     Icon(
                         painter = painterResource(R.drawable.user_outline),
-                        contentDescription = "Student Icon",
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier
-                            .size(40.dp)
-                            .align(Alignment.Center)
+                        contentDescription = null,
+                        tint = generateColorFromHash(fullName),
+                        modifier = Modifier.size(36.dp)
                     )
                 }
-                Spacer(modifier = Modifier.width(16.dp))
-                Column {
+
+                Spacer(modifier = Modifier.width(20.dp))
+
+                Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = fullName,
-                        style = MaterialTheme.typography.titleLarge,
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Bold,
+                        lineHeight = 28.sp,
                         color = MaterialTheme.colorScheme.onSurface
                     )
-                    Text(
-                        text = "Группа: $group",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    Surface(
+                        color = MaterialTheme.colorScheme.secondaryContainer,
+                        shape = RoundedCornerShape(8.dp),
+                        modifier = Modifier.padding(top = 4.dp)
+                    ) {
+                        Text(
+                            text = group,
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSecondaryContainer
+                        )
+                    }
                 }
             }
-        }
 
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(bottomEnd = 28.dp, bottomStart = 28.dp, topStart = 8.dp, topEnd = 8.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)
-        ) {
-            Column(
-                modifier = Modifier.padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+            Spacer(modifier = Modifier.height(24.dp))
+            InfoGrid(
+                course = course,
+                specialization = specialization,
+                curator = curator,
+                healthGroup = healthGroup
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                InfoRow("Курс:", "$course")
-                if(specialization != "None") {
-                    InfoRow("Специализация:", specialization)
-                }
-                InfoRow("Куратор:", curator)
-                val healthGroupText = when (healthGroup) {
-                    "Basic" -> "Основная"
-                    "SpecialA" -> "Специальная А"
-                    "SpecialB" -> "Специальная Б"
-                    "Preparatory" -> "Подготовительная"
-                    "HealthLimitations" -> "ОВЗ"
-                    "Disabled" -> "Инвалид"
-                    else -> null
-                }
-
-                if (healthGroupText != null) {
-                    InfoRow("Группа здоровья:", healthGroupText)
-                }
-                InfoRow("Баллы в ЛМС:", "$lms")
-                Spacer(Modifier.height(4.dp))
-                Text(
-                    "Всего баллов: $totalPoints",
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.Bold
+                PointBadge(
+                    label = "ЛМС",
+                    points = lms.toString(),
+                    modifier = Modifier.weight(1f),
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerHighest
+                )
+                PointBadge(
+                    label = "ВСЕГО",
+                    points = totalPoints.toString(),
+                    modifier = Modifier.weight(1f),
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary,
+                    isHighlight = true
                 )
             }
         }
-
     }
 }
 
 @Composable
-private fun InfoRow(label: String, value: String) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically
-    ) {
+private fun InfoGrid(
+    course: Int,
+    specialization: String,
+    curator: String,
+    healthGroup: String
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Row(Modifier.fillMaxWidth()) {
+            InfoItem(label = "Курс", value = "$course", modifier = Modifier.weight(1f))
+            if (specialization != "None") {
+                InfoItem(label = "Спец.", value = specialization, modifier = Modifier.weight(1.5f))
+            }
+        }
+
+        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, thickness = 0.5.dp)
+
+        InfoItem(label = "Куратор", value = curator)
+
+        val healthGroupText = when (healthGroup) {
+            "Basic" -> "Основная"
+            "SpecialA" -> "Специальная А"
+            "SpecialB" -> "Специальная Б"
+            "Preparatory" -> "Подготовительная"
+            "HealthLimitations" -> "ОВЗ"
+            "Disabled" -> "Инвалид"
+            else -> null
+        }
+
+        healthGroupText?.let {
+            InfoItem(label = "Группа здоровья", value = it)
+        }
+    }
+}
+
+@Composable
+private fun InfoItem(label: String, value: String, modifier: Modifier = Modifier) {
+    Column(modifier = modifier) {
         Text(
-            text = label,
-            style = MaterialTheme.typography.bodyMedium,
-            fontWeight = FontWeight.SemiBold,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.weight(0.4f) // Fixed width for alignment
+            text = label.uppercase(),
+            style = MaterialTheme.typography.labelSmall,
+            letterSpacing = 1.sp,
+            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
         )
         Text(
             text = value,
-            style = MaterialTheme.typography.bodyMedium,
-            modifier = Modifier.weight(1f),
+            style = MaterialTheme.typography.bodyLarge,
+            fontWeight = FontWeight.Medium,
             color = MaterialTheme.colorScheme.onSurface
         )
+    }
+}
+
+@Composable
+private fun PointBadge(
+    label: String,
+    points: String,
+    modifier: Modifier = Modifier,
+    containerColor: androidx.compose.ui.graphics.Color,
+    contentColor: androidx.compose.ui.graphics.Color = MaterialTheme.colorScheme.onSurface,
+    isHighlight: Boolean = false
+) {
+    Surface(
+        modifier = modifier,
+        shape = MaterialTheme.shapes.large,
+        color = containerColor
+    ) {
+        Column(
+            modifier = Modifier.padding(vertical = 12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelMedium,
+                color = contentColor.copy(alpha = 0.8f)
+            )
+            Text(
+                text = points,
+                style = if (isHighlight) MaterialTheme.typography.headlineMedium else MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.ExtraBold,
+                color = contentColor
+            )
+        }
     }
 }

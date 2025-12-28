@@ -21,8 +21,6 @@ fun CategoryListContent(
     toProjectActivity: () -> Unit
 
 ) {
-    val context = LocalContext.current
-
     CategoryItem(
         iconResId = R.drawable.education_outline_28,
         title = stringResource(R.string.session_results),
@@ -89,9 +87,9 @@ fun CategoryListContent(
     Spacer(Modifier.size(2.dp))
 
     CategoryItem(
-        iconResId = R.drawable.location_map_outline,
-        title = stringResource(R.string.campuse_map),
-        subtitle = stringResource(R.string.campuse_map_subtitel),
+        iconResId = R.drawable.users_outline,
+        title = "Студенты",
+        subtitle = "Поиск студентов",
         shape =
             RoundedCornerShape(
                 topStart = 8.dp,
@@ -102,5 +100,4 @@ fun CategoryListContent(
         onClick = toMaps,
         Color(0xFFEADDFF)
     )
-    Spacer(Modifier.size(28.dp))
 }

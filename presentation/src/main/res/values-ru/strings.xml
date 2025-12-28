@@ -1,17 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="mail">Почта</string>
+    <string name="mail">Чаты</string>
     <string name="news">Новости</string>
     <string name="profile">Профиль</string>
     <string name="schedule">Расписание</string>
     <string name="services">Сервисы</string>
     <string name="university_life">Жизнь университета</string>
-    <string name="logo_description">Логотип НГТУ</string>
     <string name="login_hint">Логин</string>
     <string name="password_hint">Введите пароль</string>
     <string name="forgot_password">Забыли пароль?</string>
     <string name="sign_in">Войти</string>
-    <string name="login_screen_title">Доступ к личному кабинету осуществляется по единой учетной записи (ЕАЗ)</string>
+    <string name="login_screen_title">Доступ к личному кабинету осуществляется по единой учетной записи (ЕУЗ)</string>
     <string name="login_label">Логин</string>
     <string name="password_label">Пароль</string>
     <string name="show_password_description">Показать пароль</string>
@@ -27,18 +26,16 @@
     <string name="wifi_title">Wi-Fi НГТУ</string>
     <string name="wifi_action_get_password">Получить пароль</string>
     <string name="store_title">Магазин</string>
-    <string name="store_description">Мерч НГТУ</string>
     <string name="group_leader_title">Портал старосты</string>
     <string name="group_leader_action_mark_attendance">Отметить посещаемость</string>
-    <string name="library_title">Библиотека НГТУ</string>
     <string name="library_barcode_label">Штрих-код</string>
     <string name="services_title">Сервисы</string>
     <string name="services_action_pay">Оплатить</string>
     <string name="my_issues_title">Мои заявки</string>
     <string name="important_title">Важное</string>
-    <string name="home">Главная</string>
+    <string name="home">Новости</string>
     <string name="info_studing">Подробнее</string>
-    <string name="physical_education">Физкультура</string>
+    <string name="physical_education">Физическая культура</string>
     <string name="score">Оценка</string>
     <string name="and">и</string>
     <string name="check_progress">Проверить успеваемость</string>
@@ -314,4 +311,8 @@
     <string name="latest_news">Последние новости</string>
     <string name="try_again_button">Попробовать снова</string>
     <string name="cd_news_image">News Image</string>
+    <string name="error_auth_fail">Ошибка аутентификации. Пожалуйста, войдите снова.</string>
+    <string name="error_teacher_fio_not_found">ФИО преподавателя не найдено.</string>
+    <string name="error_unknown">Произошла неизвестная ошибка.</string>
+    <string name="session_schedule_title">Расписание сессии</string>
 </resources>

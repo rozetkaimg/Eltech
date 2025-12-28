@@ -15,7 +15,7 @@ class SecureStorage(context: Context) {
 
     private companion object {
         const val FILE_NAME = "secure_prefs_file"
-
+        const val NAVIGATION_STATE = "navbar_state"
         const val KEY_LOGIN = "login_key"
         const val KEY_PASSWORD = "user_password_key"
         const val KEY_TOKEN = "token_key"
@@ -107,11 +107,13 @@ class SecureStorage(context: Context) {
 
     fun saveStudentID(studentId: String) = saveString(KEY_STUDENT_ID, studentId)
     fun getStudentID(): String? = getString(KEY_STUDENT_ID)
-
+    fun saveNavBarState(state: Boolean) = saveBoolean(NAVIGATION_STATE, state)
+    fun getNavBarState(): Boolean = getBoolean(NAVIGATION_STATE, false)
     fun saveScheduleState(state: Boolean) = saveBoolean(KEY_SCHEDULE_STATE, state)
     fun getScheduleState(): Boolean = getBoolean(KEY_SCHEDULE_STATE, false)
 
-    fun saveScheduleNotificationState(state: Boolean) = saveBoolean(KEY_SCHEDULE_NOTIFICATION_STATE, state)
+    fun saveScheduleNotificationState(state: Boolean) =
+        saveBoolean(KEY_SCHEDULE_NOTIFICATION_STATE, state)
 
     fun getScheduleNotificationState(): Boolean = getBoolean(KEY_SCHEDULE_NOTIFICATION_STATE, false)
 

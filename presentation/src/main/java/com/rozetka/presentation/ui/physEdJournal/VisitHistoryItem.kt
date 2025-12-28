@@ -36,10 +36,10 @@ fun VisitHistoryItem(item: VisitsHistory) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(
-             28.dp,
+             22.dp,
 
         ),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
     ) {
 
         Row(Modifier.padding(16.dp)) {

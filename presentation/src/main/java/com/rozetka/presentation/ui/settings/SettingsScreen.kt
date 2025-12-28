@@ -10,6 +10,7 @@ import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -22,6 +23,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -76,7 +79,9 @@ import com.rozetka.presentation.ui.settings.components.StaticColorItem
 import com.rozetka.presentation.ui.settings.components.ThemeComponent
 import com.rozetka.presentation.util.ThemeObject.DynamicColorState
 import org.koin.androidx.compose.koinViewModel
-
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
+import com.rozetka.presentation.util.generateColorFromHash
 enum class ItemPosition {
     TOP, MIDDLE, BOTTOM, STANDALONE
 }
@@ -98,6 +103,12 @@ fun SettingsScreen(
             settingsViewModel.onNotificationPermissionResult(isGranted)
         }
     )
+    data class ThemeColorConfig(
+        val colorOne: Color,
+        val colorTwo: Color,
+        val colorThree: Color
+    )
+
 
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
@@ -135,9 +146,9 @@ fun SettingsScreen(
                 Card(
                     modifier = Modifier
                         .fillMaxWidth(),
-                    shape = RoundedCornerShape(28.dp),
+                    shape = RoundedCornerShape(24.dp),
                     colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+                        containerColor = MaterialTheme.colorScheme.surfaceContainer
                     ),
 
                     ) {
@@ -155,7 +166,14 @@ fun SettingsScreen(
 
 
                         Button(
-                            {}, modifier = Modifier
+                            {
+                                settingsViewModel.logout {
+
+                                    navController.navigate(Screen.Login.route) {
+                                        popUpTo(0) { inclusive = true }
+                                    }
+                                }
+                            }, modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(horizontal = 16.dp)
                         ) {
@@ -294,40 +312,47 @@ fun SettingsScreen(
                     Box(
                         Modifier
                             .fillMaxWidth()
-                            .padding(16.dp)
+                            .padding(vertical = 16.dp)
                     ) {
-                        Row(Modifier.align(Alignment.TopCenter)) {
-                            StaticColorItem(
-                                { settingsViewModel.setThemeState(0) },
-                                0,
-                                PixelColor().oneColor,
-                                PixelColor().twoColor,
-                                PixelColor().threeColor
+                        val themeConfigs = remember {
+                            listOf(
+                                ThemeColorConfig(
+                                    colorOne = PixelColor().oneColor,
+                                    colorTwo = PixelColor().twoColor,
+                                    colorThree = PixelColor().threeColor
+                                ),
+                                ThemeColorConfig(
+                                    colorOne = GreenColor().oneColor,
+                                    colorTwo = GreenColor().twoColor,
+                                    colorThree = GreenColor().threeColor
+                                ),
+                                ThemeColorConfig(
+                                    colorOne = OrangeColor().oneColor,
+                                    colorTwo = OrangeColor().twoColor,
+                                    colorThree = OrangeColor().threeColor
+                                ),
+                                ThemeColorConfig(
+                                    colorOne = PinkColor().oneColor,
+                                    colorTwo = PinkColor().twoColor,
+                                    colorThree = PinkColor().threeColor
+                                )
                             )
-                            Spacer(Modifier.size(4.dp))
-                            StaticColorItem(
-                                { settingsViewModel.setThemeState(1) },
-                                1,
-                                GreenColor().oneColor,
-                                GreenColor().twoColor,
-                                GreenColor().threeColor
-                            )
-                            Spacer(Modifier.size(4.dp))
-                            StaticColorItem(
-                                { settingsViewModel.setThemeState(2) },
-                                2,
-                                OrangeColor().oneColor,
-                                OrangeColor().twoColor,
-                                OrangeColor().threeColor
-                            )
-                            Spacer(Modifier.size(4.dp))
-                            StaticColorItem(
-                                { settingsViewModel.setThemeState(3) },
-                                3,
-                                PinkColor().oneColor,
-                                PinkColor().twoColor,
-                                PinkColor().threeColor
-                            )
+                            }
+                        LazyRow(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            itemsIndexed(themeConfigs) { index, theme ->
+
+                                StaticColorItem(
+                                    modifier = Modifier.size(82.dp),
+                                    onClick = { settingsViewModel.setThemeState(index) },
+                                    position = index,
+                                    colorOne = theme.colorOne,
+                                    colorTwo = theme.colorTwo,
+                                    colorThree = theme.colorThree
+                                )
+                            }
                         }
                     }
                 }
@@ -339,12 +364,11 @@ fun SettingsScreen(
                 Spacer(Modifier.size(26.dp))
                 ModernSettingsItemSwitch(
                     icon = CalendarOutline28,
-                    iconBackgroundColor = MaterialTheme.colorScheme.primaryContainer,
+                    iconBackgroundColor = generateColorFromHash(stringResource(R.string.schedule_view_type)),
                     title = stringResource(R.string.schedule_view_type),
                     subtitle = if (isEnabled) stringResource(R.string.week_view) else stringResource(R.string.day_view),
-                    position = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.BAKLAVA) {
-                        ItemPosition.TOP
-                    } else ItemPosition.STANDALONE,
+                    position = ItemPosition.TOP,
+
                     checked = isEnabled,
                     onCheckedChange = { newState ->
                         isEnabled = newState
@@ -352,16 +376,17 @@ fun SettingsScreen(
                     }
                 )
             }
+
             item {
                 val isEnabled by settingsViewModel.notificationState.collectAsState()
 
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.BAKLAVA) {
                     ModernSettingsItemSwitch(
                         icon = ImageVector.vectorResource(R.drawable.notifications_28),
-                        iconBackgroundColor = MaterialTheme.colorScheme.primaryContainer,
+                        iconBackgroundColor = generateColorFromHash(stringResource(R.string.live_notification_title)),
                         title = stringResource(R.string.live_notification_title),
                         subtitle = stringResource(R.string.live_notification_subtitle),
-                        position = ItemPosition.BOTTOM,
+                        position = ItemPosition.MIDDLE,
                         checked = isEnabled,
                         onCheckedChange = { newState ->
                             if (newState) {
@@ -382,6 +407,21 @@ fun SettingsScreen(
                         }
                     )
                 }
+            }
+            item {
+                var isEnabled by remember { mutableStateOf(settingsViewModel.getNavBar()) }
+                ModernSettingsItemSwitch(
+                    icon = ImageVector.vectorResource(R.drawable.outline_bottom_navigation_24),
+                    iconBackgroundColor = generateColorFromHash("Панель навигации"),
+                    title = "Панель навигации",
+                    subtitle = if (isEnabled) "Экспериментальная" else "Традиционная",
+                    position = ItemPosition.BOTTOM,
+                    checked = isEnabled,
+                    onCheckedChange = { newState ->
+                        isEnabled = newState
+                        settingsViewModel.setNavBar(newState)
+                    }
+                )
                 Spacer(Modifier.size(26.dp))
             }
 
@@ -389,7 +429,7 @@ fun SettingsScreen(
                 Spacer(Modifier.size(2.dp))
                 ModernSettingsItem(
                     icon = Icons.Outlined.Info,
-                    iconBackgroundColor = MaterialTheme.colorScheme.primaryContainer,
+                    iconBackgroundColor = generateColorFromHash(stringResource(R.string.about_app)),
                     title = stringResource(R.string.about_app),
                     subtitle = stringResource(R.string.about_app_subtitle),
                     position = ItemPosition.TOP,
@@ -402,7 +442,7 @@ fun SettingsScreen(
             item {
                 ModernSettingsItem(
                     icon = Icons.Outlined.SystemUpdate,
-                    iconBackgroundColor = MaterialTheme.colorScheme.secondaryContainer,
+                    iconBackgroundColor = (generateColorFromHash(stringResource(R.string.check_updates))),
                     title = stringResource(R.string.check_updates),
                     subtitle = stringResource(R.string.check_updates_subtitle),
                     position = ItemPosition.BOTTOM,

@@ -45,7 +45,7 @@ fun RequestItem(request: DigitalServiceModelItem, onClick: () -> Unit) {
 
         ),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+            containerColor = MaterialTheme.colorScheme.surfaceContainer
         ),
         onClick = onClick
     ) {

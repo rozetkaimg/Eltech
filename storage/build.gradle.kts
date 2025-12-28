@@ -1,8 +1,7 @@
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
-    id("kotlin-kapt")
-    id("com.google.devtools.ksp") version "2.2.0-RC-2.0.1"
+    id("com.google.devtools.ksp") version "2.2.20-2.0.4"
     alias(libs.plugins.kotlin.serialization)
 }
 

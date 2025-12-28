@@ -12,9 +12,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Lock
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialShapes.Companion.Clover8Leaf
 import androidx.compose.material3.MaterialShapes.Companion.Cookie7Sided
 import androidx.compose.material3.MaterialShapes.Companion.Cookie9Sided
@@ -28,6 +31,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -49,20 +53,28 @@ private object GradeStrings {
     const val NO_SHOW = "Не явился"
 }
 
-
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 private data class GradeDisplayInfo(
     val text: String,
     val color: Color,
-    val shape: Shape
+    val shape: Shape,
+    val icon: ImageVector? = null // Добавили поле для иконки
 )
-
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun getGradeDisplayInfo(grade: String): GradeDisplayInfo {
     val unknownGradeText = stringResource(R.string.lesson_type_unknown)
+    val lockedColor = Color(0xFFBDBDBD)
     val defaultColor = MaterialTheme.colorScheme.primary
+    if (grade.isBlank()) {
+        return GradeDisplayInfo(
+            text = "",
+            color = lockedColor,
+            shape = Gem.toShape(),
+            icon = Icons.Rounded.Lock
+        )
+    }
 
     return when (grade.lowercase()) {
         GradeStrings.EXCELLENT -> GradeDisplayInfo(
@@ -100,18 +112,20 @@ private fun getGradeDisplayInfo(grade: String): GradeDisplayInfo {
     }
 }
 
-
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun AcademicPerformanceCard(item: AcademicPerformanceItem, onClick: () -> Unit) {
     val gradeInfo = getGradeDisplayInfo(grade = item.grade)
+    val isEnabled = item.grade.isNotBlank()
 
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(28.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+            containerColor = MaterialTheme.colorScheme.surfaceContainer,
+            disabledContainerColor = MaterialTheme.colorScheme.surfaceContainerLow
         ),
+        enabled = isEnabled,
         onClick = onClick
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
@@ -129,21 +143,34 @@ fun AcademicPerformanceCard(item: AcademicPerformanceItem, onClick: () -> Unit) 
                         .align(Alignment.CenterVertically)
                 )
                 Spacer(Modifier.width(8.dp))
+
+                // Блок с оценкой или замком
                 Box(
                     modifier = Modifier
                         .background(gradeInfo.color, gradeInfo.shape)
                         .size(48.dp),
                     contentAlignment = Alignment.Center
                 ) {
-                    AutoSizingText(
-                        text = gradeInfo.text,
-                        style = MaterialTheme.typography.bodyLarge.copy(
-                            color = Color.White,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 18.sp
-                        ),
-                        modifier = Modifier.padding(4.dp)
-                    )
+                    if (gradeInfo.icon != null) {
+                        // Рисуем иконку замка
+                        Icon(
+                            imageVector = gradeInfo.icon,
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    } else {
+                        // Рисуем текст оценки
+                        AutoSizingText(
+                            text = gradeInfo.text,
+                            style = MaterialTheme.typography.bodyLarge.copy(
+                                color = Color.White,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 18.sp
+                            ),
+                            modifier = Modifier.padding(4.dp)
+                        )
+                    }
                 }
             }
             Spacer(Modifier.size(12.dp))
@@ -185,8 +212,9 @@ fun AcademicPerformanceCard(item: AcademicPerformanceItem, onClick: () -> Unit) 
                 style = MaterialTheme.typography.bodySmall,
                 color = Color.Gray
             )
+
             Text(
-                item.teacher,
+                text = if (item.teacher.isNotBlank()) item.teacher else "—",
                 style = MaterialTheme.typography.bodyMedium,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis

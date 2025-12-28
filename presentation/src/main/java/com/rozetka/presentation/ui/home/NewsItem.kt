@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.rozetka.presentation.R
+import com.rozetka.presentation.util.generateColorFromHash
 import com.rozetka.presentation.util.getRandomRoundedCornerShape
 
 
@@ -41,12 +42,11 @@ fun NewsItem(image: String, categoryName: String, title: String, tag: String, on
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .height(128.dp)
-            .padding(horizontal = 12.dp),
+            .height(128.dp),
         shape = RoundedCornerShape(24.dp),
         onClick = onClick,
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+            containerColor = MaterialTheme.colorScheme.surfaceContainer
         ),
     ) {
 
@@ -82,13 +82,13 @@ fun NewsItem(image: String, categoryName: String, title: String, tag: String, on
                         Modifier
                             .size(128.dp)
                             .clip(getRandomRoundedCornerShape())
-                            .background(MaterialTheme.colorScheme.surface)
+                            .background(generateColorFromHash(title).copy(alpha = 0.15f))
                             .align(Alignment.Center)
                     ) {
                         Icon(
                             painter = painterResource(R.drawable.newsfeed),
                             contentDescription = stringResource(R.string.academic_year_content_description),
-                            tint = MaterialTheme.colorScheme.primary,
+                            tint = generateColorFromHash(title),
                             modifier = Modifier
                                 .size(48.dp)
                                 .align(Alignment.Center)

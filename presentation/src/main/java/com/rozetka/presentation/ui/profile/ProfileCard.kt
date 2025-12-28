@@ -53,8 +53,15 @@ fun ProfileCard(
                 .size(164.dp)
                 .clip(Cookie9Sided.toShape()) .align(Alignment.CenterHorizontally),
             loading = {
-                Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
-                    LoadingIndicator()
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(MaterialTheme.colorScheme.surfaceContainerLow)
+                ) {
+                    Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
+                        LoadingIndicator()
+                    }
                 }
             },
             error = {
@@ -62,7 +69,7 @@ fun ProfileCard(
                     contentAlignment = Alignment.Center,
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(MaterialTheme.colorScheme.onPrimary)
+                        .background(MaterialTheme.colorScheme.surfaceContainerLow)
                 ) {
                     Icon(
                         painterResource(R.drawable.ic_profile),

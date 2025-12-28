@@ -5,8 +5,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.rozetka.data.SecureStorage
 import com.rozetka.domain.ErrorType
-import com.rozetka.domain.UserDataHolder
 import com.rozetka.domain.ResultWrapperLogin
+import com.rozetka.domain.UserDataHolder
 import com.rozetka.domain.repository.AppRepository
 import com.rozetka.domain.repository.LoginRepository
 import com.rozetka.domain.repository.UsersRepository
@@ -42,9 +42,13 @@ class RootViewModel(
             val savedLogin = secureStorage.getLogin()
             val savedPassword = secureStorage.getPassword()
             val savedToken = secureStorage.getToken()
-
+            if (!secureStorage.getGroupName().isNullOrEmpty()) {
+                StringObject.groupName = secureStorage.getGroupName().orEmpty()
+                _startDestination.value = MAIN_ROUTE
+            }
             if (savedLogin.isNullOrBlank() || savedPassword.isNullOrBlank()) {
-                _startDestination.value = LOGIN_ROUTE
+                StringObject.isGuest = true
+                _startDestination.value = MAIN_ROUTE
                 return@launch
             }
 
@@ -110,6 +114,7 @@ class RootViewModel(
                 joinAll(profileJob, studentDataJob)
 
                 if (profileLoaded) {
+                    StringObject.isGuest = false
                     _startDestination.value = MAIN_ROUTE
                 } else {
                     _startDestination.value = LOGIN_ROUTE
@@ -119,7 +124,8 @@ class RootViewModel(
                 if (authFailed) {
                     secureStorage.clearCredentials()
                 }
-                _startDestination.value = LOGIN_ROUTE
+                StringObject.isGuest = true
+                _startDestination.value = MAIN_ROUTE
             }
         }
     }

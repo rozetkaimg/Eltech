@@ -2,19 +2,42 @@ package com.rozetka.presentation.ui.academicPerformance
 
 import android.annotation.SuppressLint
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SecondaryScrollableTabRow
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Tab
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -22,8 +45,8 @@ import androidx.navigation.NavController
 import com.rozetka.model.AcademicPerformanceItem
 import com.rozetka.presentation.R
 import com.rozetka.presentation.ui.pay.LoadingState
-import com.rozetka.presentation.util.ThemeObject.BottomNavBarPaddingValue
-import com.rozetka.presentation.util.getNavigationBarHeightDp
+import com.rozetka.presentation.util.ExpressiveErrorState
+import com.rozetka.presentation.util.UiSize
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 
@@ -44,7 +67,7 @@ fun AcademicPerformanceScreen(
         modifier = Modifier.fillMaxSize(),
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.session_results)) },
+                title = { Text(stringResource(R.string.session_results), fontWeight = FontWeight.Bold,) },
                 navigationIcon = {
                     IconButton(onClick = { navController.navigateUp() }) {
                         Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.common_back))
@@ -60,21 +83,12 @@ fun AcademicPerformanceScreen(
         ) {
             when (val state = uiState) {
                 is AcademicPerformanceUiState.Loading -> LoadingState()
-                is AcademicPerformanceUiState.Error -> {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(horizontal = 32.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        val errorMessage = state.message ?: stringResource(R.string.unknown_performance_load_error)
-                        Text(
-                            text = errorMessage,
-                            textAlign = TextAlign.Center,
-                            color = MaterialTheme.colorScheme.error
-                        )
-                    }
-                }
+                is AcademicPerformanceUiState.Error ->
+                    ExpressiveErrorState(
+                        state.message.toString(),
+                        viewModel::loadAcademicPerformance
+                    )
+
                 is AcademicPerformanceUiState.Success -> {
                     val dataBySemester = state.data.groupBy { it.semestr }
                     val semesters = dataBySemester.keys.sortedBy { it.toIntOrNull() ?: 0 }
@@ -133,28 +147,56 @@ fun AcademicPerformanceScreen(
                                 )
                             }
                         } else {
+                            val groupedData = remember(semesterData) {
+                                semesterData.groupBy { it.examType }
+                                    .toSortedMap { a, b ->
+                                        val priorityA = getControlPriority(a)
+                                        val priorityB = getControlPriority(b)
+                                        priorityA.compareTo(priorityB)
+                                    }
+                            }
+
                             LazyColumn(
                                 modifier = Modifier
                                     .fillMaxSize()
                                     .padding(horizontal = 16.dp)
                             ) {
                                 item { Spacer(Modifier.height(16.dp)) }
-                                items(
-                                    items = semesterData,
-                                    key = { item -> item.id }
-                                ) { item ->
-                                    AcademicPerformanceCard(
-                                        item = item,
-                                        onClick = { selectedItem = item }
-                                    )
-                                    Spacer(modifier = Modifier.height(12.dp))
+
+                                groupedData.forEach { (controlType, items) ->
+                                    stickyHeader {
+                                        Surface(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            color = MaterialTheme.colorScheme.surface
+                                        ) {
+                                            Text(
+                                                text = controlType,
+                                                style = MaterialTheme.typography.titleMedium,
+                                                fontWeight = FontWeight.Bold,
+                                                color = MaterialTheme.colorScheme.primary,
+                                                modifier = Modifier.padding(vertical = 8.dp)
+                                            )
+                                        }
+                                    }
+
+                                    items(
+                                        items = items,
+                                        key = { item -> item.id }
+                                    ) { item ->
+                                        AcademicPerformanceCard(
+                                            item = item,
+                                            onClick = { selectedItem = item }
+                                        )
+                                        Spacer(modifier = Modifier.height(12.dp))
+                                    }
                                 }
-                                item { Spacer(Modifier.height(getNavigationBarHeightDp() + BottomNavBarPaddingValue.dp)) }
+
+                                item { Spacer(Modifier.height(UiSize().getNavBarPaddingSize())) }
                             }
                         }
 
                         selectedItem?.let { item ->
-                            DetailsDialogAcademicPerformance(item = item, onDismiss = { selectedItem = null })
+                            DetailsBottomSheetAcademicPerformance(item = item, onDismiss = { selectedItem = null })
                         }
                     }
                 }
@@ -164,4 +206,12 @@ fun AcademicPerformanceScreen(
 }
 
 
-
+private fun getControlPriority(controlType: String?): Int {
+    if (controlType == null) return 99
+    return when {
+        controlType.contains("Экзамен", ignoreCase = true) -> 1
+        controlType.contains("Дифференцированный", ignoreCase = true) -> 2
+        controlType.contains("Зачет", ignoreCase = true) -> 3
+        else -> 4 
+    }
+}

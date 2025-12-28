@@ -1,5 +1,6 @@
 package com.rozetka.presentation.ui.searchGroup
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -9,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -16,20 +18,23 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.SearchOff
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.StarOutline
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialShapes
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SearchBar
 import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.toShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -45,6 +50,8 @@ import androidx.navigation.NavController
 import com.rozetka.presentation.R
 import com.rozetka.presentation.navigation.Screen
 import com.rozetka.presentation.ui.pay.LoadingState
+import com.rozetka.presentation.util.ExpressiveErrorState
+import com.rozetka.presentation.util.UiSize
 import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -61,11 +68,14 @@ fun SearchGroupScreen(
         topBar = { TopAppBar(title = {
 
             Box(
-                Modifier.height(64.dp).padding(end = 32.dp)
+                Modifier
+                    .height(64.dp)
+                    .padding(end = 32.dp)
                     .semantics { isTraversalGroup = true }
             ) {
                 SearchBar(
-                    modifier = Modifier.padding(bottom = 8.dp)
+                    modifier = Modifier
+                        .padding(bottom = 8.dp)
                         .semantics { traversalIndex = 0f },
                     inputField = {
                         SearchBarDefaults.InputField(
@@ -106,7 +116,8 @@ fun SearchGroupScreen(
         ) }
     ) { contentPadding ->
         Column(
-            modifier = Modifier.padding(contentPadding)
+            modifier = Modifier
+                .padding(top = contentPadding.calculateTopPadding())
                 .fillMaxSize()
                 .padding(horizontal = 16.dp, vertical = 8.dp)
         ) {
@@ -116,7 +127,7 @@ fun SearchGroupScreen(
                 FavoritesSection(
                     favorites = favorites,
                     onGroupClick = { groupName ->
-                        navController.navigate(Screen.Schedule.route + "/$groupName")
+                        navController.navigate(Screen.ScheduleLink.route + "/$groupName")
                     },
                     onRemoveFavorite = viewModel::removeFromFavorites
                 )
@@ -130,7 +141,7 @@ fun SearchGroupScreen(
                     groups = state.groups,
                     favorites = favorites,
                     onGroupClick = { groupName ->
-                        navController.navigate(Screen.Schedule.route + "/$groupName")
+                        navController.navigate(Screen.ScheduleLink.route + "/$groupName")
                     },
                     onToggleFavorite = { groupName, isFavorite ->
                         if (isFavorite) {
@@ -141,9 +152,12 @@ fun SearchGroupScreen(
                     }
                 )
 
-                is SearchGroupUiState.Error -> ErrorState(message = state.message) { viewModel.searchGroups() }
+                is SearchGroupUiState.Error -> ExpressiveErrorState(
+                    message = state.message,
+                    { viewModel.searchGroups() }
+                )
                 is SearchGroupUiState.Empty -> EmptyState(state.query)
-                is SearchGroupUiState.Initial -> InitialState(hasFavorites = favorites.isNotEmpty())
+                is SearchGroupUiState.Initial -> InitialState()
             }
         }
     }
@@ -192,7 +206,6 @@ private fun GroupList(
         Text(
             text = stringResource(R.string.search_results_title, groups.size),
             style = MaterialTheme.typography.titleLarge,
-            modifier = Modifier.padding(bottom = 12.dp)
         )
         LazyVerticalGrid(
             columns = GridCells.Fixed(3),
@@ -208,6 +221,7 @@ private fun GroupList(
                     onToggleFavorite = { onToggleFavorite(groupName, isFavorite) }
                 )
             }
+            item { Spacer(Modifier.height(UiSize().getNavBarPaddingSize())) }
         }
     }
 }
@@ -220,25 +234,35 @@ private fun GroupItem(
     onClick: () -> Unit,
     onToggleFavorite: () -> Unit
 ) {
+
     Card(
         modifier = Modifier.height(32.dp),
-        shape = RoundedCornerShape(12.dp),
+        shape = RoundedCornerShape( if(isFavorite) 12.dp else 14.dp),
         onClick = onClick,
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceContainerLow
         ),
     ) {
 
-        Row(Modifier.fillMaxSize().padding(horizontal = 12.dp).align(Alignment.CenterHorizontally)) {
+        Row(
+            Modifier
+                .fillMaxSize()
+                .padding(horizontal = 12.dp)
+                .align(Alignment.CenterHorizontally)
+        ) {
             Text(
                 text = groupName,
                 style = MaterialTheme.typography.titleMedium,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.align(Alignment.CenterVertically)
+                textAlign = TextAlign.Start,
+                modifier = Modifier
+                    .align(Alignment.CenterVertically)
+                    .weight(0.8f)
             )
             IconButton(
                 onClick = onToggleFavorite,
-                modifier = Modifier.align(Alignment.CenterVertically)
+                modifier = Modifier
+                    .align(Alignment.CenterVertically)
+                    .weight(0.2f)
             ) {
                 val description = if (isFavorite) {
                     stringResource(R.string.remove_from_favorites_desc)
@@ -248,27 +272,15 @@ private fun GroupItem(
                 Icon(
                     imageVector = if (isFavorite) Icons.Filled.Star else Icons.Filled.StarOutline,
                     contentDescription = description,
-                    tint = if (isFavorite) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                    tint = if (isFavorite) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+
                 )
             }
         }
     }
 }
 
-@Composable
-private fun ErrorState(message: String, onRetry: () -> Unit) {
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Text(text = message, color = MaterialTheme.colorScheme.error, textAlign = TextAlign.Center)
-        Spacer(Modifier.height(16.dp))
-        Button(onClick = onRetry) {
-            Text(stringResource(R.string.retry_search_button))
-        }
-    }
-}
+
 
 @Composable
 private fun EmptyState(query: String) {
@@ -280,20 +292,43 @@ private fun EmptyState(query: String) {
     }
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-private fun InitialState(hasFavorites: Boolean) {
+private fun InitialState() {
     Box(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(bottom = 128.dp),
         contentAlignment = Alignment.Center
     ) {
-        val textRes = if (hasFavorites) {
-            R.string.initial_state_with_favorites
-        } else {
-            R.string.initial_state_no_favorites
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(120.dp)
+                    .background(
+                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                        shape = MaterialShapes.Cookie6Sided.toShape()
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.SearchOff,
+                    contentDescription = null,
+                    modifier = Modifier.size(64.dp),
+                    tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
+                )
+            }
+            Spacer(modifier = Modifier.height(24.dp))
+            Text(
+                text = stringResource(id = R.string.search_groups_placeholder),
+                style = MaterialTheme.typography.headlineSmall,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+
         }
-        Text(
-            text = stringResource(textRes),
-            textAlign = TextAlign.Center
-        )
     }
 }

@@ -20,6 +20,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -28,12 +29,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.rozetka.model.Lesson
+import com.rozetka.presentation.R
 import com.rozetka.presentation.util.removeEmojis
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -90,19 +94,21 @@ fun LessonItem(
     }
 
     val shape = when {
-        totalLessonsInDay == 1 -> RoundedCornerShape(28.dp)
+        totalLessonsInDay == 1 -> RoundedCornerShape(24.dp)
         index == 0 -> RoundedCornerShape(
-            topStart = 28.dp,
-            topEnd = 28.dp,
-            bottomEnd = 8.dp,
-            bottomStart = 8.dp
+            topStart = 24.dp,
+            topEnd = 24.dp,
+            bottomEnd = 4.dp,
+            bottomStart = 4.dp
         )
+
         index == totalLessonsInDay - 1 -> RoundedCornerShape(
-            topStart = 8.dp,
-            topEnd = 8.dp,
-            bottomEnd = 28.dp,
-            bottomStart = 28.dp
+            topStart = 4.dp,
+            topEnd = 4.dp,
+            bottomEnd = 24.dp,
+            bottomStart = 24.dp
         )
+
         else -> RoundedCornerShape(8.dp)
     }
 
@@ -121,7 +127,7 @@ fun LessonItem(
             .padding(vertical = 1.dp),
         shape = shape,
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+            containerColor = MaterialTheme.colorScheme.surfaceContainer
         ),
         onClick = { onLessonClick(lesson) }
     ) {
@@ -166,8 +172,8 @@ fun LessonItem(
                         else -> Color(0xFF81C784)
                     }
                 }
-                val infiniteTransition = rememberInfiniteTransition(label = "size_transition")
 
+                val infiniteTransition = rememberInfiniteTransition(label = "size_transition")
                 val scale by infiniteTransition.animateFloat(
                     initialValue = 1.0f,
                     targetValue = 1.1f,
@@ -179,10 +185,21 @@ fun LessonItem(
                 )
 
                 Box(
-                    Modifier.background(
-                        color = colorType,
-                        shape = RoundedCornerShape(if (isLessonInProgress) 20.dp / scale else 20.dp)
-                    )
+                    modifier = Modifier
+                        .graphicsLayer {
+                            if (isLessonInProgress) {
+                                scaleX = scale
+                                scaleY = scale
+                            }
+                        }
+                        .background(
+                            color = colorType,
+                            shape = RoundedCornerShape(
+                                if (!isLessonInProgress) {
+                                    20.dp / scale
+                                } else 20.dp
+                            )
+                        )
                 ) {
                     Text(
                         text = lesson.type,
@@ -210,6 +227,13 @@ fun LessonItem(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
+                Icon(
+                    painter = painterResource(R.drawable.loc_point),
+                    contentDescription = null,
+tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                    modifier = Modifier.padding(end = 4.dp).size(20.dp)
+                )
+
                 Text(
                     text = removeEmojis(lesson.auditories.joinToString {
                         it.title.replace(Regex("<.*?>"), "")
@@ -231,6 +255,7 @@ fun LessonItem(
                             validTeachers.size == 1 -> {
                                 validTeachers.first()
                             }
+
                             else -> {
                                 validTeachers
                                     .take(2).joinToString(", ") { fullName ->
@@ -242,11 +267,13 @@ fun LessonItem(
                                                 val middleInitial = parts[2].first()
                                                 "$surname $firstInitial.$middleInitial"
                                             }
+
                                             parts.size == 2 -> {
                                                 val surname = parts[0]
                                                 val firstInitial = parts[1].first()
                                                 "$surname $firstInitial."
                                             }
+
                                             else -> {
                                                 fullName
                                             }

@@ -2,7 +2,6 @@ plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.serialization)
-    id("kotlin-kapt")
 }
 
 android {
@@ -24,6 +23,7 @@ android {
                 "proguard-rules.pro"
             )
         }
+
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
@@ -35,6 +35,7 @@ android {
 }
 
 dependencies {
+    implementation(libs.okhttp)
     implementation(project(":model"))
     implementation(libs.jsoup)
     implementation(libs.androidx.core.ktx)

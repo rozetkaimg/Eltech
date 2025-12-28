@@ -1,31 +1,40 @@
 package com.rozetka.presentation.ui.profile
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.*
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
+import com.rozetka.domain.util.StringObject
 import com.rozetka.model.User
 import com.rozetka.presentation.R
 import com.rozetka.presentation.navigation.Screen
 import com.rozetka.presentation.ui.pay.LoadingState
-import com.rozetka.domain.util.StringObject
-import com.rozetka.presentation.util.ThemeObject.BottomNavBarPaddingValue
-import com.rozetka.presentation.util.getNavigationBarHeightDp
+import com.rozetka.presentation.util.ExpressiveErrorState
+import com.rozetka.presentation.util.UiSize
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
@@ -41,31 +50,13 @@ fun ProfileScreen(
             state = state,
             navController = navController
         )
-        is ProfileUiState.Error -> ErrorState(message = state.message) { profileViewModel.getProfile() }
+        is ProfileUiState.Error -> ExpressiveErrorState(
+            message = state.message,
+            profileViewModel::getProfile
+        )
     }
 }
 
-
-
-@Composable
-private fun ErrorState(message: String, onUpdate: () -> Unit) {
-  Column (
-        modifier = Modifier.fillMaxSize(),
-
-    ) {
-
-
-      Button( onUpdate) {
-          Text(
-              text = message,
-              modifier = Modifier.padding(16.dp),
-              textAlign = TextAlign.Center,
-              style = MaterialTheme.typography.bodyLarge,
-              color = MaterialTheme.colorScheme.error
-          )
-      }
-    }
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -77,7 +68,7 @@ private fun ProfileSuccessState(
         modifier = Modifier.fillMaxSize(),
         topBar = {
             ProfileTopAppBar(
-                onSettingsClick = {  navController.navigate("Settings")  }
+                onSettingsClick = { navController.navigate("Settings") }
             )
         },
         containerColor = MaterialTheme.colorScheme.surface
@@ -85,7 +76,7 @@ private fun ProfileSuccessState(
         StudentDataLayout(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(contentPadding),
+                .padding(top = contentPadding.calculateTopPadding()),
             navController = navController,
             data = state.data
         )
@@ -99,6 +90,15 @@ private fun StudentDataLayout(
     data: User,
 ) {
     StringObject.avatar = data.avatar
+
+    val onPayment = { navController.navigate(Screen.Payment.route) }
+    val onAcademic = { navController.navigate(Screen.AcademicPerScreen.route) }
+    val onSearch = { navController.navigate(Screen.SearchStudentsScreen.route) }
+    val onDigitalService = { navController.navigate(Screen.DigitalService.route) }
+    val onPhysJournal = { navController.navigate(Screen.PhysEdJournalScreen.route) }
+    val onProjectActivity = { navController.navigate(Screen.ProjectActivity.route) }
+    val onStudentCard = { navController.navigate(Screen.StudentCardScreen.route) }
+
     BoxWithConstraints(modifier = modifier) {
         val useTwoPane = this.maxWidth > 600.dp
 
@@ -106,26 +106,37 @@ private fun StudentDataLayout(
             Row(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(horizontal = 16.dp, vertical = 24.dp),
-                horizontalArrangement = Arrangement.spacedBy(24.dp)
+                    .padding(horizontal = 24.dp, vertical = 24.dp),
+                horizontalArrangement = Arrangement.spacedBy(24.dp),
+                verticalAlignment = Alignment.Top
             ) {
                 Column(
                     modifier = Modifier
-                        .weight(1f)
-                        .verticalScroll(rememberScrollState())
-                ) {
-
-                }
-                Column(
-                    modifier = Modifier.weight(0.7f),
+                        .weight(0.4f)
+                        .verticalScroll(rememberScrollState()),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     ProfileCard(
-                        "$data.name ${data.surname}",
+                        "${data.name} ${data.surname}",
                         data.group,
                         data.avatar,
-                        {navController.navigate(Screen.StudentCardScreen.route)}
+                        onStudentCard
                     )
+                }
+                Column(
+                    modifier = Modifier
+                        .weight(0.6f)
+                        .verticalScroll(rememberScrollState())
+                ) {
+                    CategoryListContent(
+                        onPayment,
+                        onAcademic,
+                        onSearch,
+                        onDigitalService,
+                        onPhysJournal,
+                        onProjectActivity
+                    )
+                    Spacer(Modifier.height(UiSize().getNavBarPaddingSize()))
                 }
             }
         } else {
@@ -133,72 +144,30 @@ private fun StudentDataLayout(
                 modifier = Modifier
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState())
-                    .padding(horizontal = 16.dp, vertical = 24.dp),
+                    .padding(horizontal = 16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                data.name + ProfileCard(
-                    data.name + " " + data.surname,
+                ProfileCard(
+                    "${data.name} ${data.surname}",
                     data.group,
                     data.avatar,
-                    {navController.navigate(Screen.StudentCardScreen.route)}
+                    onStudentCard
                 )
+
                 Spacer(Modifier.height(24.dp))
 
+                CategoryListContent(
+                    onPayment,
+                    onAcademic,
+                    onSearch,
+                    onDigitalService,
+                    onPhysJournal,
+                    onProjectActivity
+                )
 
-
-
-                CategoryListContent({navController.navigate(Screen.Payment.route)}, {navController.navigate(Screen.AcademicPerScreen.route)}, {navController.navigate(Screen.Maps.route)}, {
-                    navController.navigate(Screen.DigitalService.route)
-                }, {
-                    navController.navigate(Screen.PhysEdJournalScreen.route)
-                }, {
-                    navController.navigate(Screen.ProjectActivity.route)
-                })
-
-                Spacer(Modifier.height(getNavigationBarHeightDp() + BottomNavBarPaddingValue.dp -45.dp))
-
+                Spacer(Modifier.height(UiSize().getNavBarPaddingSize()))
             }
         }
-    }
-}
-
-
-
-
-
-
-@Composable
-fun DetailsCard(roundedCornerShape: RoundedCornerShape, content: @Composable ColumnScope.() -> Unit ) {
-
-    Surface(
-        color = MaterialTheme.colorScheme.surfaceContainerLow,
-        shape = roundedCornerShape,
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Column(modifier = Modifier.padding(vertical = 4.dp, horizontal = 24.dp)) {
-            content()
-        }
-    }
-}
-
-
-
-
-@Composable
-fun ProfileInfoRow(label: String, value: String?) {
-    if (!value.isNullOrBlank()) {
-        Text(
-            text = buildAnnotatedString {
-                withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
-                    append("$label ")
-                }
-                append(value)
-            },
-            style = MaterialTheme.typography.bodyMedium,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 4.dp)
-        )
     }
 }
 
@@ -206,12 +175,11 @@ fun ProfileInfoRow(label: String, value: String?) {
 @Composable
 private fun ProfileTopAppBar(onSettingsClick: () -> Unit) {
     TopAppBar(
-        title = { Text(text = stringResource(R.string.profile), fontWeight = FontWeight.Bold) },
+        title = { Text(text = stringResource(R.string.services), fontWeight = FontWeight.Bold) },
         actions = {
             IconButton(onClick = onSettingsClick) {
                 Icon(
                     painterResource(R.drawable.settings_outline_28),
-
                     contentDescription = stringResource(R.string.settings),
                 )
             }

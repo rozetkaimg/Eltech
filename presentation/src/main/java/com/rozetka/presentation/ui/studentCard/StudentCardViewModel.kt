@@ -29,7 +29,6 @@ class StudentCardViewModel(
 
     fun refreshData() {
         viewModelScope.launch {
-            _uiState.value = StudentCardUiState.Loading
             usersRepository.getUserProfile(token = StringObject.ApiToken)
                 .collect { result ->
                     result.fold(
@@ -41,6 +40,39 @@ class StudentCardViewModel(
                         }
                     )
                 }
+        }
+    }
+
+    fun updateEmail(newEmail: String) {
+        viewModelScope.launch {
+            try {
+                usersRepository.changeEmail(token = StringObject.ApiToken, newEmail = newEmail)
+                refreshData()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
+    fun updatePhone(newPhone: String) {
+        viewModelScope.launch {
+            try {
+                usersRepository.changeNumber(token = StringObject.ApiToken, number = newPhone)
+                refreshData()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
+    fun updateAvatar(avatarBytes: ByteArray) {
+        viewModelScope.launch {
+            try {
+                usersRepository.changeAvatar(token = StringObject.ApiToken, avatarBytes = avatarBytes)
+                refreshData()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
         }
     }
 }

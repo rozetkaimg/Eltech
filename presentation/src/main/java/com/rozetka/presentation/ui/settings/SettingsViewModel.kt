@@ -8,9 +8,11 @@ import android.widget.Toast
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.rozetka.data.SecureStorage
+import com.rozetka.domain.util.StringObject
 import com.rozetka.localdata.SettingsData
 import com.rozetka.presentation.R
 import com.rozetka.presentation.util.ThemeObject.ColorThemeState
+import com.rozetka.presentation.util.ThemeObject.NavBarType
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -31,7 +33,30 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     private var settingsData: SettingsData = SettingsData(context)
     private val appUpdateManager: RuStoreAppUpdateManager =
         RuStoreAppUpdateManagerFactory.create(context)
+// SettingsViewModel.kt
 
+    fun logout(onComplete: () -> Unit) {
+        viewModelScope.launch {
+            val secureStorage = SecureStorage(context)
+
+            // 1. Очищаем сохраненные учетные данные и токен
+            secureStorage.clearCredentials()
+            secureStorage.saveToken("")
+            secureStorage.saveGroupName("")
+
+            // 2. Сбрасываем глобальное состояние приложения
+            StringObject.isGuest = true
+            StringObject.ApiToken = ""
+            StringObject.groupName = ""
+            StringObject.userId = 0
+            StringObject.Name = ""
+            StringObject.SurName = ""
+            StringObject.guid = ""
+
+            // 3. Выполняем колбэк для навигации
+            onComplete()
+        }
+    }
     private val listener = InstallStateUpdateListener { state ->
         _installStatus.value = state.installStatus
         when (state.installStatus) {
@@ -51,7 +76,15 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             }
         }
     }
-
+    fun setNavBar(navbar: Boolean) {
+        viewModelScope.launch {
+            SecureStorage(context).saveNavBarState(navbar)
+            NavBarType.value = navbar
+        }
+    }
+    fun getNavBar(): Boolean {
+        return SecureStorage(context).getNavBarState()
+    }
     fun getPhoto(): String {
         return SecureStorage(context).getProfilePhoto().toString()
     }

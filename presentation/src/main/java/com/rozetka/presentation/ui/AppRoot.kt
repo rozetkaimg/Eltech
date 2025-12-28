@@ -10,11 +10,12 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.rozetka.domain.util.StringObject
 import com.rozetka.presentation.ui.login.LoginScreen
 import com.rozetka.presentation.ui.main.MainScreen
 import com.rozetka.presentation.ui.pay.LoadingState
+import com.rozetka.presentation.util.ThemeObject.showSplashScreen
 import org.koin.androidx.compose.koinViewModel
-import java.nio.file.WatchEvent
 
 @Composable
 fun AppRoot(
@@ -29,8 +30,10 @@ fun AppRoot(
             MaterialTheme.colorScheme.surface)) {
 
             composable(RootViewModel.LOGIN_ROUTE) {
+                showSplashScreen.value = false
                 LoginScreen(
                     onLoginSuccess = {
+                        StringObject.isGuest = false
                         navController.navigate(RootViewModel.MAIN_ROUTE) {
                             popUpTo(RootViewModel.LOGIN_ROUTE) {
                                 inclusive = true
@@ -41,14 +44,13 @@ fun AppRoot(
             }
 
             composable(RootViewModel.MAIN_ROUTE) {
+                showSplashScreen.value = false
                 MainScreen(
-                    windowSizeClass = windowSizeClass,
+                    windowSizeClass = windowSizeClass
                 )
             }
         }
-    }
-
-     else {
+    } else {
         LoadingState()
-     }
+    }
 }

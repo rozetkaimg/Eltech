@@ -27,7 +27,6 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Link
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -69,7 +68,10 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.rozetka.model.DigitalServiceModelItem
 import com.rozetka.presentation.R
+import com.rozetka.presentation.navigation.Screen
 import com.rozetka.presentation.ui.pay.LoadingState
+import com.rozetka.presentation.util.ExpressiveErrorState
+import com.rozetka.presentation.util.UiSize
 import com.rozetka.presentation.util.getNavigationBarHeightDp
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
@@ -96,7 +98,12 @@ fun DigitalServiceScreen(
         topBar = {
             LargeTopAppBar(
                 scrollBehavior = scrollBehavior,
-                title = { Text(stringResource(R.string.digital_services), fontWeight = FontWeight.Bold) },
+                title = {
+                    Text(
+                        stringResource(R.string.digital_services),
+                        fontWeight = FontWeight.Bold
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = { navController.navigateUp() }) {
                         Icon(
@@ -121,7 +128,6 @@ fun DigitalServiceScreen(
                 .fillMaxSize()
                 .padding(
                     top = paddingValues.calculateTopPadding(),
-                    bottom = getNavigationBarHeightDp() + 80.dp
                 ),
             contentAlignment = Alignment.Center
         ) {
@@ -136,18 +142,18 @@ fun DigitalServiceScreen(
                     )
                 }
 
-                is DigitalServiceUiState.Error -> ErrorState(
+                is DigitalServiceUiState.Error -> ExpressiveErrorState(
                     message = state.message,
                     onUpdate = { viewModel.loadAppRequests() }
                 )
             }
             ExtendedFloatingActionButton(
-                onClick = { /* do something */ },
+                onClick = { navController.navigate(Screen.SubmitAnApplication.route) },
                 modifier = Modifier
                     .align(
                         Alignment.BottomEnd
                     )
-                    .padding(16.dp),
+                    .padding(end = 16.dp, bottom = UiSize().getNavBarPaddingSize() + 16.dp),
                 icon = {
                     Icon(
                         Icons.Filled.Add,
@@ -202,25 +208,7 @@ private fun DigitalServiceSuccessState(
                     onClick = { onItemClick(request) }
                 )
             }
-        }
-    }
-}
-
-@Composable
-private fun ErrorState(message: String, onUpdate: () -> Unit) {
-    Column(
-        modifier = Modifier.padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Text(
-            text = message,
-            textAlign = TextAlign.Center,
-            color = MaterialTheme.colorScheme.error
-        )
-        Spacer(Modifier.height(16.dp))
-        Button(onClick = onUpdate) {
-            Text(stringResource(R.string.try_again))
+            item { Spacer(Modifier.height(UiSize().getNavBarPaddingSize())) }
         }
     }
 }
@@ -257,9 +245,11 @@ private fun RequestDetailsSheetContent(
                 "Отклонено" -> Icons.Default.Close
                 else -> Icons.Default.Edit
             }
-            Row(modifier = Modifier.padding(bottom = 24.dp),
+            Row(
+                modifier = Modifier.padding(bottom = 24.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically) {
+                verticalAlignment = Alignment.CenterVertically
+            ) {
 
                 Box(
                     modifier = Modifier
@@ -283,8 +273,8 @@ private fun RequestDetailsSheetContent(
                     modifier = Modifier.align(Alignment.CenterVertically),
                     fontWeight = FontWeight.Bold
 
-                    )
-Spacer(Modifier.weight(0.5f))
+                )
+                Spacer(Modifier.weight(0.5f))
                 IconButton(onClick = onDismiss) {
                     Icon(
                         imageVector = Icons.Default.Close,
@@ -317,15 +307,17 @@ Spacer(Modifier.weight(0.5f))
             }
         }
 
-            item { Spacer(Modifier.height(2.dp)) }
+        item { Spacer(Modifier.height(2.dp)) }
 
 
-            item {
-                Card( modifier = Modifier.fillMaxWidth(),
-                    shape =RoundedCornerShape(8.dp ),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceContainer
-                    )) {
+        item {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(8.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainer
+                )
+            ) {
                 val annotatedText = remember(request.description) {
                     val cleanHtml = request.description
                         .replace("\\r\\n\\t", "")
@@ -341,21 +333,22 @@ Spacer(Modifier.weight(0.5f))
                         append(spanned)
                     }.toAnnotatedString()
                 }
-                    Column(  modifier = Modifier.padding(16.dp)) {
-                        DetailSectionTitle(stringResource(R.string.description))
-                        Text(
-                            text = annotatedText.text.ifEmpty { stringResource(R.string.no_description) },
-                            style = MaterialTheme.typography.bodyMedium,
+                Column(modifier = Modifier.padding(16.dp)) {
+                    DetailSectionTitle(stringResource(R.string.description))
+                    Text(
+                        text = annotatedText.text.ifEmpty { stringResource(R.string.no_description) },
+                        style = MaterialTheme.typography.bodyMedium,
 
                         )
-                    }
+                }
             }
         }
 
         item { Spacer(Modifier.height(2.dp)) }
-        item {  }
+        item { }
         item {
-            Card( modifier = Modifier.fillMaxWidth(),
+            Card(
+                modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(
                     bottomEnd = 28.dp,
                     bottomStart = 28.dp,
@@ -364,23 +357,25 @@ Spacer(Modifier.weight(0.5f))
                 ),
                 colors = CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.surfaceContainer
-                )) {
+                )
+            ) {
                 Column(modifier = Modifier.padding(16.dp)) {
-                val annotatedText = remember(request.comment) {
-                    val cleanHtml = request.comment
-                        .replace("\\r\\n\\t", "")
-                        .replace("\\\"", "\"")
-                        .replace("\\/", "/")
-                        .replace(Regex("<p>\\s*</p>"), "")
-                        .replace("<p>", "")
-                        .replace("</p>", "<br>")
-                        .trim()
+                    val annotatedText = remember(request.comment) {
+                        val cleanHtml = request.comment
+                            .replace("\\r\\n\\t", "")
+                            .replace("\\\"", "\"")
+                            .replace("\\/", "/")
+                            .replace(Regex("<p>\\s*</p>"), "")
+                            .replace("<p>", "")
+                            .replace("</p>", "<br>")
+                            .trim()
 
-                    val spanned = HtmlCompat.fromHtml(cleanHtml, HtmlCompat.FROM_HTML_MODE_COMPACT)
-                    AnnotatedString.Builder().apply {
-                        append(spanned)
-                    }.toAnnotatedString()
-                }
+                        val spanned =
+                            HtmlCompat.fromHtml(cleanHtml, HtmlCompat.FROM_HTML_MODE_COMPACT)
+                        AnnotatedString.Builder().apply {
+                            append(spanned)
+                        }.toAnnotatedString()
+                    }
 
                     DetailSectionTitle(stringResource(R.string.comment))
                     Text(
@@ -427,7 +422,9 @@ private fun FileLinkItem(name: String, url: String) {
             }
         },
         contentPadding = PaddingValues(vertical = 4.dp),
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp)
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -452,7 +449,9 @@ private fun FileLinkItem(name: String, url: String) {
 
 @Composable
 private fun DetailRow(label: String, value: String) {
-    Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)){
+    Row(modifier = Modifier
+        .fillMaxWidth()
+        .padding(horizontal = 16.dp)) {
         Text(
             text = "$label: ",
             style = MaterialTheme.typography.bodyMedium,
