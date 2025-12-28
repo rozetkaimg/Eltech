@@ -63,11 +63,9 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
@@ -130,8 +128,6 @@ fun DialogScreen(
 ) {
     val uiState by dialogViewModel.uiState.collectAsStateWithLifecycle()
     var messageText by remember { mutableStateOf("") }
-
-    // Состояние для хранения выбранных, но еще не отправленных файлов
     var selectedFiles by remember { mutableStateOf<List<java.io.File>>(emptyList()) }
 
     val context = LocalContext.current

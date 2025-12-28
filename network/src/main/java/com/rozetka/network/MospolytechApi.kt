@@ -1,12 +1,11 @@
 package com.rozetka.network
 
-import android.app.Dialog
 import com.rozetka.model.AcademicPerformance
+import com.rozetka.model.ArticleDetail
 import com.rozetka.model.Credentials
 import com.rozetka.model.DigitalServiceModelItem
 import com.rozetka.model.EmployeesModel
 import com.rozetka.model.ExternalNewsItem
-import com.rozetka.model.File
 import com.rozetka.model.MessageDialogItem
 import com.rozetka.model.MessageModelItem
 import com.rozetka.model.MessageResponse
@@ -21,7 +20,6 @@ import com.rozetka.model.SearchGroupModel
 import com.rozetka.model.SearchStudentResponse
 import com.rozetka.model.StudentProfile
 import com.rozetka.model.StudentResponse
-
 import com.rozetka.model.UseModel
 import com.rozetka.model.UserStudentCard
 
@@ -54,5 +52,6 @@ interface MospolytechApi {
     suspend fun getGroupsList(): List<String>
     suspend fun getExternalNewsList(page: Int): List<ExternalNewsItem>
     suspend fun getEventsList(page: Int): List<PolytechEvent>
+    suspend fun getExternalNewsDetail(url: String): ArticleDetail??
     suspend fun sendApplicationData(applicationId: String, token: String, params: Map<String, String>): MessageResponse
 }

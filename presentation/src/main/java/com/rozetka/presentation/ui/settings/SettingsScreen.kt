@@ -146,9 +146,9 @@ fun SettingsScreen(
                 Card(
                     modifier = Modifier
                         .fillMaxWidth(),
-                    shape = RoundedCornerShape(28.dp),
+                    shape = RoundedCornerShape(24.dp),
                     colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+                        containerColor = MaterialTheme.colorScheme.surfaceContainer
                     ),
 
                     ) {
@@ -169,7 +169,7 @@ fun SettingsScreen(
                             {
                                 settingsViewModel.logout {
 
-                                    navController.navigate(Screen.Home.route) {
+                                    navController.navigate(Screen.Login.route) {
                                         popUpTo(0) { inclusive = true }
                                     }
                                 }
@@ -312,7 +312,7 @@ fun SettingsScreen(
                     Box(
                         Modifier
                             .fillMaxWidth()
-                            .padding( vertical = 16.dp)
+                            .padding(vertical = 16.dp)
                     ) {
                         val themeConfigs = remember {
                             listOf(

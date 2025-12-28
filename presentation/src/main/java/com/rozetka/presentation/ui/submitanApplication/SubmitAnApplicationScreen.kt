@@ -19,10 +19,11 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Assignment
 import androidx.compose.material.icons.filled.Assignment
 import androidx.compose.material.icons.filled.Link
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -33,7 +34,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
@@ -47,7 +48,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -64,7 +64,6 @@ data class ServiceSection(
     val title: String,
     val links: List<ServiceLink>
 )
-
 
 fun getServiceData(): List<ServiceSection> {
     return listOf(
@@ -146,6 +145,7 @@ fun getServiceData(): List<ServiceSection> {
 @Composable
 fun SubmitAnApplicationScreen(navController: NavController) {
     var searchQuery by remember { mutableStateOf("") }
+    var showDialog by remember { mutableStateOf(false) }
 
     val allSections = remember { getServiceData() }
 
@@ -166,9 +166,22 @@ fun SubmitAnApplicationScreen(navController: NavController) {
         }
     }
 
-    val uriHandler = LocalUriHandler.current
     val scrollBehavior =
         TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
+
+    if (showDialog) {
+        AlertDialog(
+            onDismissRequest = { },
+            confirmButton = {
+                TextButton(onClick = { }) {
+                    Text("Понятно")
+                }
+            },
+            title = { Text("В разработке") },
+            text = { Text("Данный функционал находится в процессе разработки и будет доступен позже.") },
+            shape = RoundedCornerShape(28.dp)
+        )
+    }
 
     Scaffold(
         modifier = Modifier
@@ -190,20 +203,14 @@ fun SubmitAnApplicationScreen(navController: NavController) {
                             contentDescription = "Назад"
                         )
                     }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface,
-                    titleContentColor = MaterialTheme.colorScheme.onSurface,
-                    navigationIconContentColor = MaterialTheme.colorScheme.onSurface,
-                    scrolledContainerColor = MaterialTheme.colorScheme.surface
-                )
+                }
             )
         }
     ) { paddingValues ->
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(top =  paddingValues.calculateTopPadding()),
+                .padding(top = paddingValues.calculateTopPadding()),
             contentPadding = PaddingValues(bottom = 16.dp)
         ) {
             item {
@@ -225,31 +232,15 @@ fun SubmitAnApplicationScreen(navController: NavController) {
             items(filteredSections) { section ->
                 ServiceSectionItem(
                     section = section,
-                    onLinkClicked = { link ->
-                        if (link.isExternal) {
-                            try {
-                                uriHandler.openUri(link.route)
-                            } catch (e: Exception) {
-                                Log.e("SubmitAnApplicationScreen", "Could not open URL: ${link.route}", e)
-                            }
-                        } else {
-                            val navRoute = link.route
-                            Log.i("SubmitAnApplicationScreen", "Navigating to: $navRoute")
-                            navController.navigate(navRoute)
-                        }
-                    }
+                    onLinkClicked = {  }
                 )
             }
             item {
-                Spacer(modifier = Modifier.size(80.dp))
+                Spacer(modifier = Modifier.size(80.dp + 16.dp))
             }
         }
     }
 }
-
-
-
-
 
 @Composable
 fun ServiceSectionItem(
@@ -312,7 +303,7 @@ fun ServiceLinkItem(
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    imageVector = if (link.isExternal) Icons.Default.Link else Icons.Default.Assignment,
+                    imageVector = if (link.isExternal) Icons.Default.Link else Icons.AutoMirrored.Filled.Assignment,
                     contentDescription = null,
                     tint = generateColorFromHash(selectionName)
                 )
@@ -339,7 +330,6 @@ fun ServiceLinkItem(
                     )
                 }
             }
-
         }
     }
 }

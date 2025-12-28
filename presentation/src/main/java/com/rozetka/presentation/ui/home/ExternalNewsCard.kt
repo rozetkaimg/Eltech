@@ -3,7 +3,12 @@ package com.rozetka.presentation.ui.home
 import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -28,6 +33,7 @@ import com.rozetka.network.ext.getUnsafeOkHttpClient
 
 @Composable
 fun ExternalNewsCard(item: ExternalNewsItem, onClick: () -> Unit) {
+    Log.d("dep", item.toString())
     val context = LocalContext.current
     val imageLoader = remember {
         ImageLoader.Builder(context)
@@ -46,7 +52,6 @@ fun ExternalNewsCard(item: ExternalNewsItem, onClick: () -> Unit) {
                 .fillMaxSize()
                 .clickable { onClick() }
         ) {
-            // Фоновое изображение
             AsyncImage(
                 model = item.imageUrl,
                 imageLoader = imageLoader,

@@ -14,6 +14,7 @@ import com.rozetka.domain.util.StringObject
 import com.rozetka.presentation.ui.login.LoginScreen
 import com.rozetka.presentation.ui.main.MainScreen
 import com.rozetka.presentation.ui.pay.LoadingState
+import com.rozetka.presentation.util.ThemeObject.showSplashScreen
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
@@ -29,6 +30,7 @@ fun AppRoot(
             MaterialTheme.colorScheme.surface)) {
 
             composable(RootViewModel.LOGIN_ROUTE) {
+                showSplashScreen.value = false
                 LoginScreen(
                     onLoginSuccess = {
                         StringObject.isGuest = false
@@ -42,6 +44,7 @@ fun AppRoot(
             }
 
             composable(RootViewModel.MAIN_ROUTE) {
+                showSplashScreen.value = false
                 MainScreen(
                     windowSizeClass = windowSizeClass
                 )

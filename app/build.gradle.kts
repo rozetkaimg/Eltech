@@ -1,3 +1,6 @@
+import java.text.SimpleDateFormat
+import java.util.Date
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -8,13 +11,17 @@ plugins {
 android {
     namespace = "com.rozetka.epolitech"
     compileSdk = 36
-
+    val varMajor = 1
+    val varMinor = 0
+    val varPatch = 0
+    val varBuild = 18
+    fun getBuildDate(): String = SimpleDateFormat("ddMMyyyy").format(Date())
     defaultConfig {
         applicationId = "com.rozetka.eltech"
         minSdk = 26
         targetSdk = 36
-        versionCode = 5
-        versionName = "1.0.0−alpha_0.1.18"
+        versionCode = (System.currentTimeMillis() / 60000).toInt()
+        versionName = "$varMajor.$varMinor.$varPatch$varBuild${getBuildDate()}"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -53,6 +60,7 @@ android {
 
 dependencies {
     implementation(libs.androidx.glance.appwidget)
+    implementation(libs.androidx.core.splashscreen)
     implementation(libs.androidx.glance.material3)
     implementation(libs.koin.androidx.compose)
     implementation(libs.koin.android)

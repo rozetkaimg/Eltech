@@ -1,20 +1,62 @@
 package com.rozetka.presentation.ui.home
 
-import androidx.compose.animation.*
+import android.net.Uri
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandHorizontally
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.grid.*
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.filled.Public
+import androidx.compose.material3.BottomSheetDefaults
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -25,7 +67,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -37,7 +78,7 @@ import com.rozetka.model.NewsModelItem
 import com.rozetka.model.PolytechEvent
 import com.rozetka.presentation.R
 import com.rozetka.presentation.ui.pay.LoadingState
-import com.rozetka.presentation.util.UiSize
+import com.rozetka.presentation.util.ExpressiveErrorState
 import com.rozetka.presentation.util.generateColorFromHash
 import com.rozetka.presentation.util.getNavigationBarHeightDp
 import kotlinx.coroutines.launch
@@ -60,7 +101,6 @@ fun HomeScreen(
     var selectedExternalItem by remember { mutableStateOf<ExternalNewsItem?>(null) }
 
     val configuration = LocalConfiguration.current
-    val screenWidth = configuration.screenWidthDp.dp
     val isTablet = configuration.screenWidthDp > 600
 
     Scaffold(
@@ -171,11 +211,13 @@ fun HomeScreen(
         ) {
             when (val state = uiState) {
                 is HomeUiState.Loading -> LoadingState()
-                is HomeUiState.Error -> ErrorState(state.message) { viewModel.loadHomeData() }
+                is HomeUiState.Error -> ExpressiveErrorState(state.message, viewModel::loadHomeData)
                 is HomeUiState.Success -> {
                     HorizontalPager(
                         state = pagerState,
-                        modifier = Modifier.fillMaxSize().widthIn(max = 1400.dp),
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .widthIn(max = 1400.dp),
                         verticalAlignment = Alignment.Top,
                         pageSpacing = 16.dp
                     ) { pageIndex ->
@@ -185,6 +227,7 @@ fun HomeScreen(
                             onNewsClick = { selectedNewsItem = it; scope.launch { sheetState.show() } },
                             onEventClick = { selectedEventItem = it; scope.launch { sheetState.show() } },
                             onExternalClick = { selectedExternalItem = it; scope.launch { sheetState.show() } },
+                            navController = navController,
                             onLoadMore = {
                                 when (pageIndex) {
                                     0 -> viewModel.loadMoreExternalNews()
@@ -232,6 +275,7 @@ private fun HomeGridContent(
     pageIndex: Int,
     onNewsClick: (NewsModelItem) -> Unit,
     onEventClick: (PolytechEvent) -> Unit,
+    navController: NavController,
     onExternalClick: (ExternalNewsItem) -> Unit,
     onLoadMore: () -> Unit
 ) {
@@ -259,7 +303,11 @@ private fun HomeGridContent(
         when (pageIndex) {
             0 -> {
                 items(state.externalNews) { item ->
-                    ExternalNewsCard(item = item, onClick = { onExternalClick(item) })
+                    ExternalNewsCard(item = item, onClick = {
+                        val encodedUrl =
+                            Uri.encode(item.link) // item.link — это "https://mospolytech.ru/..."
+                        navController.navigate("Article/$encodedUrl")
+                    })
                 }
                 item {
                     Spacer(Modifier.size(getNavigationBarHeightDp() + 80.dp))
@@ -294,7 +342,11 @@ private fun HomeGridContent(
 
 @Composable
 private fun NewsDetailSheet(newsItem: NewsModelItem) {
-    Column(modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp).verticalScroll(rememberScrollState())) {
+    Column(
+        modifier = Modifier
+            .padding(horizontal = 24.dp, vertical = 16.dp)
+            .verticalScroll(rememberScrollState())
+    ) {
         Text(newsItem.title, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
         Text("${newsItem.date} в ${newsItem.time}", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(vertical = 8.dp))
         val imageUrl = extractImageUrl(newsItem.content)
@@ -302,7 +354,10 @@ private fun NewsDetailSheet(newsItem: NewsModelItem) {
             AsyncImage(
                 model = imageUrl,
                 contentDescription = null,
-                modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(24.dp)).aspectRatio(16f / 9f),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(24.dp))
+                    .aspectRatio(16f / 9f),
                 contentScale = ContentScale.Crop
             )
         }
@@ -318,19 +373,28 @@ private fun NewsDetailSheet(newsItem: NewsModelItem) {
 
 @Composable
 private fun EventDetailSheet(event: PolytechEvent) {
-    Column(modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp).verticalScroll(rememberScrollState())) {
+    Column(
+        modifier = Modifier
+            .padding(horizontal = 24.dp, vertical = 16.dp)
+            .verticalScroll(rememberScrollState())
+    ) {
         Text(event.title, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
         Text(event.date, color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(vertical = 8.dp))
         AsyncImage(
             model = event.imageUrl,
             contentDescription = null,
-            modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(24.dp)).aspectRatio(16f / 9f),
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(24.dp))
+                .aspectRatio(16f / 9f),
             contentScale = ContentScale.Crop
         )
         Spacer(Modifier.height(24.dp))
         Button(
             onClick = { },
-            modifier = Modifier.fillMaxWidth().height(56.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(56.dp),
             shape = RoundedCornerShape(16.dp)
         ) { Text("Зарегистрироваться", fontSize = 16.sp) }
         Spacer(Modifier.height(48.dp))
@@ -339,13 +403,20 @@ private fun EventDetailSheet(event: PolytechEvent) {
 
 @Composable
 private fun ExternalNewsDetailSheet(item: ExternalNewsItem) {
-    Column(modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp).verticalScroll(rememberScrollState())) {
+    Column(
+        modifier = Modifier
+            .padding(horizontal = 24.dp, vertical = 16.dp)
+            .verticalScroll(rememberScrollState())
+    ) {
         Text(item.title, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
         Text(item.date, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(vertical = 8.dp))
         AsyncImage(
             model = item.imageUrl,
             contentDescription = null,
-            modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(24.dp)).aspectRatio(16f / 9f),
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(24.dp))
+                .aspectRatio(16f / 9f),
             contentScale = ContentScale.Crop
         )
         Spacer(Modifier.height(20.dp))
@@ -353,23 +424,15 @@ private fun ExternalNewsDetailSheet(item: ExternalNewsItem) {
         Spacer(Modifier.height(24.dp))
         Button(
             onClick = { },
-            modifier = Modifier.fillMaxWidth().height(56.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(56.dp),
             shape = RoundedCornerShape(16.dp)
         ) { Text("Читать полностью", fontSize = 16.sp) }
         Spacer(Modifier.height(48.dp))
     }
 }
 
-@Composable
-private fun ErrorState(message: String, onUpdate: () -> Unit) {
-    Column(Modifier.padding(32.dp).fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-        Icon(Icons.Default.ErrorOutline, contentDescription = null, modifier = Modifier.size(48.dp), tint = MaterialTheme.colorScheme.error)
-        Spacer(Modifier.height(16.dp))
-        Text(text = message, textAlign = TextAlign.Center, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyLarge)
-        Spacer(Modifier.height(24.dp))
-        Button(onClick = onUpdate) { Text(stringResource(R.string.try_again_button)) }
-    }
-}
 
 private fun extractImageUrl(htmlContent: String): String {
     val pattern = Pattern.compile("src=\"([^\"]+)\"")

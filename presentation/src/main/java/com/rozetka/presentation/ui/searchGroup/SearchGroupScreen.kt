@@ -21,7 +21,6 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.SearchOff
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.StarOutline
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -51,8 +50,8 @@ import androidx.navigation.NavController
 import com.rozetka.presentation.R
 import com.rozetka.presentation.navigation.Screen
 import com.rozetka.presentation.ui.pay.LoadingState
+import com.rozetka.presentation.util.ExpressiveErrorState
 import com.rozetka.presentation.util.UiSize
-
 import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -69,11 +68,14 @@ fun SearchGroupScreen(
         topBar = { TopAppBar(title = {
 
             Box(
-                Modifier.height(64.dp).padding(end = 32.dp)
+                Modifier
+                    .height(64.dp)
+                    .padding(end = 32.dp)
                     .semantics { isTraversalGroup = true }
             ) {
                 SearchBar(
-                    modifier = Modifier.padding(bottom = 8.dp)
+                    modifier = Modifier
+                        .padding(bottom = 8.dp)
                         .semantics { traversalIndex = 0f },
                     inputField = {
                         SearchBarDefaults.InputField(
@@ -114,7 +116,8 @@ fun SearchGroupScreen(
         ) }
     ) { contentPadding ->
         Column(
-            modifier = Modifier.padding(top = contentPadding.calculateTopPadding())
+            modifier = Modifier
+                .padding(top = contentPadding.calculateTopPadding())
                 .fillMaxSize()
                 .padding(horizontal = 16.dp, vertical = 8.dp)
         ) {
@@ -149,9 +152,12 @@ fun SearchGroupScreen(
                     }
                 )
 
-                is SearchGroupUiState.Error -> ErrorState(message = state.message) { viewModel.searchGroups() }
+                is SearchGroupUiState.Error -> ExpressiveErrorState(
+                    message = state.message,
+                    { viewModel.searchGroups() }
+                )
                 is SearchGroupUiState.Empty -> EmptyState(state.query)
-                is SearchGroupUiState.Initial -> InitialState(hasFavorites = favorites.isNotEmpty())
+                is SearchGroupUiState.Initial -> InitialState()
             }
         }
     }
@@ -238,16 +244,25 @@ private fun GroupItem(
         ),
     ) {
 
-        Row(Modifier.fillMaxSize().padding(horizontal = 12.dp).align(Alignment.CenterHorizontally)) {
+        Row(
+            Modifier
+                .fillMaxSize()
+                .padding(horizontal = 12.dp)
+                .align(Alignment.CenterHorizontally)
+        ) {
             Text(
                 text = groupName,
                 style = MaterialTheme.typography.titleMedium,
                 textAlign = TextAlign.Start,
-                modifier = Modifier.align(Alignment.CenterVertically).weight(0.8f)
+                modifier = Modifier
+                    .align(Alignment.CenterVertically)
+                    .weight(0.8f)
             )
             IconButton(
                 onClick = onToggleFavorite,
-                modifier = Modifier.align(Alignment.CenterVertically).weight(0.2f)
+                modifier = Modifier
+                    .align(Alignment.CenterVertically)
+                    .weight(0.2f)
             ) {
                 val description = if (isFavorite) {
                     stringResource(R.string.remove_from_favorites_desc)
@@ -265,20 +280,7 @@ private fun GroupItem(
     }
 }
 
-@Composable
-private fun ErrorState(message: String, onRetry: () -> Unit) {
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Text(text = message, color = MaterialTheme.colorScheme.error, textAlign = TextAlign.Center)
-        Spacer(Modifier.height(16.dp))
-        Button(onClick = onRetry) {
-            Text(stringResource(R.string.retry_search_button))
-        }
-    }
-}
+
 
 @Composable
 private fun EmptyState(query: String) {
@@ -292,7 +294,7 @@ private fun EmptyState(query: String) {
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-private fun InitialState(hasFavorites: Boolean) {
+private fun InitialState() {
     Box(
         modifier = Modifier
             .fillMaxSize()

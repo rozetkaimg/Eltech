@@ -27,7 +27,6 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Link
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -71,6 +70,7 @@ import com.rozetka.model.DigitalServiceModelItem
 import com.rozetka.presentation.R
 import com.rozetka.presentation.navigation.Screen
 import com.rozetka.presentation.ui.pay.LoadingState
+import com.rozetka.presentation.util.ExpressiveErrorState
 import com.rozetka.presentation.util.UiSize
 import com.rozetka.presentation.util.getNavigationBarHeightDp
 import kotlinx.coroutines.launch
@@ -142,7 +142,7 @@ fun DigitalServiceScreen(
                     )
                 }
 
-                is DigitalServiceUiState.Error -> ErrorState(
+                is DigitalServiceUiState.Error -> ExpressiveErrorState(
                     message = state.message,
                     onUpdate = { viewModel.loadAppRequests() }
                 )
@@ -153,7 +153,7 @@ fun DigitalServiceScreen(
                     .align(
                         Alignment.BottomEnd
                     )
-                    .padding(end = 16.dp, bottom = UiSize().getNavBarPaddingSize()+16.dp),
+                    .padding(end = 16.dp, bottom = UiSize().getNavBarPaddingSize() + 16.dp),
                 icon = {
                     Icon(
                         Icons.Filled.Add,
@@ -209,25 +209,6 @@ private fun DigitalServiceSuccessState(
                 )
             }
             item { Spacer(Modifier.height(UiSize().getNavBarPaddingSize())) }
-        }
-    }
-}
-
-@Composable
-private fun ErrorState(message: String, onUpdate: () -> Unit) {
-    Column(
-        modifier = Modifier.padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Text(
-            text = message,
-            textAlign = TextAlign.Center,
-            color = MaterialTheme.colorScheme.error
-        )
-        Spacer(Modifier.height(16.dp))
-        Button(onClick = onUpdate) {
-            Text(stringResource(R.string.try_again))
         }
     }
 }

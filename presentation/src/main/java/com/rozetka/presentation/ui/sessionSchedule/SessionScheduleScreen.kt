@@ -11,7 +11,17 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -22,9 +32,30 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Face
 import androidx.compose.material.icons.filled.Warning
-import androidx.compose.material3.*
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialShapes.Companion.Cookie9Sided
-import androidx.compose.runtime.*
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.toShape
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -41,10 +72,12 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
+import com.rozetka.domain.util.StringObject
 import com.rozetka.model.ScheduleModel
 import com.rozetka.model.local.CalendarAccount
 import com.rozetka.presentation.R
 import com.rozetka.presentation.ui.pay.LoadingState
+import com.rozetka.presentation.util.ExpressiveErrorState
 import com.rozetka.presentation.util.getNavigationBarHeightDp
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
@@ -205,11 +238,10 @@ fun SessionScheduleScreen(
             ) {
                 when (val state = uiState) {
                     is SessionScheduleUiState.Loading -> LoadingState()
-                    is SessionScheduleUiState.Error -> {
-                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                            Text(text = state.message)
-                        }
-                    }
+                    is SessionScheduleUiState.Error -> ExpressiveErrorState(
+                        message = state.message,
+                        { viewModel.getSessionSchedule(StringObject.ApiToken) }
+                    )
                     is SessionScheduleUiState.Success -> {
                         SessionContent(state.data, navController)
                     }
@@ -236,7 +268,9 @@ fun TopNotification(
         visible = notification != null,
         enter = slideInVertically(initialOffsetY = { -it }),
         exit = slideOutVertically(targetOffsetY = { -it }),
-        modifier = modifier.padding(horizontal = 16.dp).fillMaxWidth()
+        modifier = modifier
+            .padding(horizontal = 16.dp)
+            .fillMaxWidth()
     ) {
         notification?.let {
             val backgroundColor = if (it.type == NotificationType.SUCCESS)
@@ -405,7 +439,11 @@ fun SessionContent(schedule: ScheduleModel, navController: NavHostController) {
                         containerColor = MaterialTheme.colorScheme.tertiaryContainer
                     )
                 ) {
-                    Row(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp)
+                    ) {
                         Box(
                             Modifier
                                 .size(64.dp)
@@ -416,7 +454,9 @@ fun SessionContent(schedule: ScheduleModel, navController: NavHostController) {
                                 imageVector = Icons.Default.Face,
                                 contentDescription = null,
                                 tint = MaterialTheme.colorScheme.tertiary,
-                                modifier = Modifier.size(32.dp).align(Alignment.Center)
+                                modifier = Modifier
+                                    .size(32.dp)
+                                    .align(Alignment.Center)
                             )
                         }
                         Column(
@@ -457,7 +497,11 @@ fun EmptyStateCard() {
         shape = RoundedCornerShape(28.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)
     ) {
-        Row(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
             Box(
                 Modifier
                     .size(64.dp)
@@ -468,10 +512,16 @@ fun EmptyStateCard() {
                     painter = painterResource(R.drawable.book_spread_outline_24),
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(32.dp).align(Alignment.Center)
+                    modifier = Modifier
+                        .size(32.dp)
+                        .align(Alignment.Center)
                 )
             }
-            Column(modifier = Modifier.padding(start = 16.dp).align(Alignment.CenterVertically)) {
+            Column(
+                modifier = Modifier
+                    .padding(start = 16.dp)
+                    .align(Alignment.CenterVertically)
+            ) {
                 Text(
                     text = "Выходной",
                     style = MaterialTheme.typography.titleMedium,

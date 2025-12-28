@@ -1,6 +1,8 @@
 package com.rozetka.network
 
 import com.rozetka.model.AcademicPerformance
+import com.rozetka.model.ArticleDetail
+import com.rozetka.model.ContentBlock
 import com.rozetka.model.Credentials
 import com.rozetka.model.DigitalServiceModelItem
 import com.rozetka.model.EmployeesModel
@@ -36,7 +38,6 @@ import io.ktor.client.request.headers
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
-import io.ktor.client.statement.request
 import io.ktor.http.Headers
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
@@ -146,7 +147,10 @@ class MospolytechMethods() : MospolytechApi {
     }
 
     override suspend fun getLastNews(token: String): List<NewsModelItem> {
-       return provideUnsecureHttpClient().get("/?getAlerts&token=${token}").body()
+        val response = provideUnsecureHttpClient().get("/?getAlerts&token=${token}")
+        return if (response.status == HttpStatusCode.OK) {
+            response.body()
+        } else emptyList()
     }
 
     override suspend fun getUserInfo(token: String): UseModel {
@@ -434,15 +438,11 @@ class MospolytechMethods() : MospolytechApi {
         }
 
         try {
-            // Отправляем запрос с заголовком XMLHttpRequest, чтобы получить JSON
+
             val responseText: String = provideUnsecureHttpClientClean().get("https://mospolytech.ru/news/?PAGEN_1=$page") {
                 header("x-requested-with", "XMLHttpRequest")
             }.bodyAsText()
-
-            // Декодируем обертку JSON
             val apiResponse = jsonParser.decodeFromString<MospolytechNewsResponse>(responseText)
-
-            // Парсим полученное поле html
             val doc = Jsoup.parse(apiResponse.html)
             val items = doc.select(".card-news-wide-list__item")
 
@@ -465,7 +465,7 @@ class MospolytechMethods() : MospolytechApi {
                 val fullImageUrl = if (imgSrc.startsWith("http")) {
                     imgSrc
                 } else if (imgSrc.startsWith("data:image")) {
-                    "" // Пропускаем заглушки base64
+                    ""
                 } else {
                     "https://mospolytech.ru$imgSrc"
                 }
@@ -482,5 +482,66 @@ class MospolytechMethods() : MospolytechApi {
             e.printStackTrace()
             return emptyList()
         }
+    }
+
+    override suspend fun getExternalNewsDetail(url: String): ArticleDetail? {
+        val jsonParser = Json { ignoreUnknownKeys = true; isLenient = true }
+
+        try {
+            val responseText: String = provideUnsecureHttpClientClean().get(url) {
+                header("x-requested-with", "XMLHttpRequest")
+            }.bodyAsText()
+
+            val htmlContent = try {
+                jsonParser.decodeFromString<MospolytechNewsResponse>(responseText).html
+            } catch (_: Exception) {
+                responseText
+            }
+
+            val doc = Jsoup.parse(htmlContent)
+            val blocks = mutableListOf<ContentBlock>()
+
+            val headerImg = doc.select(".news-detail-head__image img").first()
+            headerImg?.let { img ->
+                val src = img.attr("data-src").ifEmpty { img.attr("src") }
+                if (src.isNotEmpty() && !src.startsWith("data:image")) {
+                    blocks.add(ContentBlock.Image(fixUrl(src)))
+                }
+            }
+
+            val contentElement = doc.select(".user-text, .news-detail__text").first()
+
+            contentElement?.children()?.forEach { element ->
+                val images = element.select("img")
+
+                if (images.isNotEmpty()) {
+                    images.forEach { img ->
+                        val src = img.attr("data-src").ifEmpty { img.attr("src") }
+                        if (src.isNotEmpty() && !src.startsWith("data:image")) {
+                            blocks.add(ContentBlock.Image(fixUrl(src)))
+                        }
+                    }
+                }
+
+
+                val text = element.text().trim()
+                if (text.isNotEmpty()) {
+                    blocks.add(ContentBlock.Text(element.outerHtml()))
+                }
+            }
+
+            return ArticleDetail(
+                title = doc.select(".news-detail-head__title, h1").text().trim(),
+                date = doc.select(".numerical-item").text().replace(Regex("\\s+"), " ").trim(),
+                blocks = blocks
+            )
+        } catch (e: Exception) {
+            e.printStackTrace()
+            return null
+        }
+    }
+
+    private fun fixUrl(url: String): String {
+        return if (url.startsWith("http")) url else "https://mospolytech.ru$url"
     }
 }

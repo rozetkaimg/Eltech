@@ -1,11 +1,27 @@
 package com.rozetka.presentation.ui.message
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.*
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.VerticalDivider
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -16,9 +32,9 @@ import androidx.navigation.NavController
 import com.rozetka.model.MessageModelItem
 import com.rozetka.presentation.ui.dialog.DialogScreen
 import com.rozetka.presentation.ui.pay.LoadingState
+import com.rozetka.presentation.util.ExpressiveErrorState
 import com.rozetka.presentation.util.getNavigationBarHeightDp
 import org.koin.androidx.compose.koinViewModel
-
 
 
 @Composable
@@ -34,7 +50,10 @@ fun MessagesScreen(
 
     when (val state = uiState) {
         is MessagesUiState.Loading -> LoadingState()
-        is MessagesUiState.Error -> ErrorState(state.message) { messagesViewModel.getMessages() }
+        is MessagesUiState.Error -> ExpressiveErrorState(
+            state.message,
+            messagesViewModel::getMessages
+        )
         is MessagesUiState.Success -> {
             if (isTablet) {
                 Row(modifier = Modifier.fillMaxSize()) {
@@ -116,16 +135,3 @@ private fun EmptyChatPlaceholder() {
     }
 }
 
-@Composable
-private fun ErrorState(message: String, onRetry: () -> Unit) {
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(text = message, color = MaterialTheme.colorScheme.error)
-        Button(onClick = onRetry, modifier = Modifier.padding(top = 16.dp)) {
-            Text("Повторить")
-        }
-    }
-}

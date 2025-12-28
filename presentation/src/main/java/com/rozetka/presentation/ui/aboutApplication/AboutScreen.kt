@@ -43,14 +43,15 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.core.net.toUri
 import androidx.navigation.NavController
 import com.rozetka.presentation.R
 import com.rozetka.presentation.ui.settings.ItemPosition
 import com.rozetka.presentation.ui.settings.ModernSettingsItem
 import com.rozetka.presentation.util.AppVersionText
-import com.rozetka.presentation.util.openUrlInBrowser
-import androidx.core.net.toUri
 import com.rozetka.presentation.util.generateColorFromHash
+import com.rozetka.presentation.util.getNavigationBarHeightDp
+import com.rozetka.presentation.util.openUrlInBrowser
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
@@ -82,10 +83,12 @@ fun AboutScreen(navController: NavController) {
         Column(
             Modifier
                 .fillMaxSize()
-                .padding(top = padding.calculateTopPadding(), start = 16.dp, end = 16.dp).verticalScroll(scrollState)
+                .padding(top = padding.calculateTopPadding(), start = 16.dp, end = 16.dp)
+                .verticalScroll(scrollState)
         ) {
             Box(
-                modifier = Modifier.align(Alignment.CenterHorizontally)
+                modifier = Modifier
+                    .align(Alignment.CenterHorizontally)
                     .clip(Cookie9Sided.toShape())
                     .background(MaterialTheme.colorScheme.primaryContainer)
             ) {
@@ -93,8 +96,9 @@ fun AboutScreen(navController: NavController) {
                     painter = painterResource(R.drawable.ic_politech_logo),
                     contentDescription = null,
                     modifier = Modifier
-                        .size(256.dp)
-                        .align(Alignment.Center).padding(56.dp),
+                        .size(220.dp)
+                        .align(Alignment.Center)
+                        .padding(36.dp),
                     colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimaryContainer)
                 )
             }
@@ -165,6 +169,7 @@ fun AboutScreen(navController: NavController) {
                     openUrlInBrowser(context, "https://mospolytech.ru/")
                 }
             )
+            Spacer(Modifier.size(getNavigationBarHeightDp()))
         }
     }
 }

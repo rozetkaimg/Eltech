@@ -1,5 +1,6 @@
 package com.rozetka.presentation.navigation
 
+import android.net.Uri
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -16,32 +17,32 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
-import com.rozetka.presentation.ui.login.LoginScreen
-import com.rozetka.presentation.ui.submitanApplication.SubmitAnApplicationScreen
+import com.rozetka.domain.util.StringObject
 import com.rozetka.presentation.ui.aboutApplication.AboutScreen
 import com.rozetka.presentation.ui.academicPerformance.AcademicPerformanceScreen
-import com.rozetka.presentation.ui.digitalService.DigitalServiceScreen
-import com.rozetka.presentation.ui.home.HomeScreen
-import com.rozetka.presentation.ui.message.MessagesScreen
+import com.rozetka.presentation.ui.article.ArticleDetailScreen
+import com.rozetka.presentation.ui.createApplication.CreateApplicationScreen
 import com.rozetka.presentation.ui.dialog.DialogScreen
+import com.rozetka.presentation.ui.digitalService.DigitalServiceScreen
+import com.rozetka.presentation.ui.employees.EmployeesScreen
+import com.rozetka.presentation.ui.groupJournal.GroupJournalScreen
+import com.rozetka.presentation.ui.guestSearchGroup.GuestSearchGroupScreen
+import com.rozetka.presentation.ui.home.HomeScreen
+import com.rozetka.presentation.ui.login.LoginScreen
 import com.rozetka.presentation.ui.maps.MapsScreen
+import com.rozetka.presentation.ui.message.MessagesScreen
 import com.rozetka.presentation.ui.pay.PayScreen
 import com.rozetka.presentation.ui.physEdJournal.PhysEdJournalScreen
 import com.rozetka.presentation.ui.profile.ProfileScreen
 import com.rozetka.presentation.ui.projectActivity.ProjectActivityScreen
+import com.rozetka.presentation.ui.scheduleLink.ScheduleLinkScreen
 import com.rozetka.presentation.ui.searchGroup.SearchGroupScreen
+import com.rozetka.presentation.ui.sessionSchedule.SessionScheduleScreen
 import com.rozetka.presentation.ui.settings.SettingsScreen
 import com.rozetka.presentation.ui.shedule.ScheduleScreen
 import com.rozetka.presentation.ui.studentCard.StudentCardScreen
-import com.rozetka.domain.util.StringObject
-
-import com.rozetka.presentation.ui.employees.EmployeesScreen
-import com.rozetka.presentation.ui.groupJournal.GroupJournalScreen
-import com.rozetka.presentation.ui.guestSearchGroup.GuestSearchGroupScreen
-import com.rozetka.presentation.ui.scheduleLink.ScheduleLinkScreen
-import com.rozetka.presentation.ui.sessionSchedule.SessionScheduleScreen
 import com.rozetka.presentation.ui.students.StudentsScreen
-import com.rozetka.presentation.ui.createApplication.CreateApplicationScreen
+import com.rozetka.presentation.ui.submitanApplication.SubmitAnApplicationScreen
 import com.rozetka.presentation.ui.teacherReview.TeacherReviewScreen
 import com.rozetka.presentation.ui.teacherSchedule.TeacherScheduleScreen
 import com.rozetka.presentation.ui.teachersRaiting.TeacherRatingScreen
@@ -123,7 +124,23 @@ fun AppNavHost(
                 userName = userName
             )
         }
+        composable(
+            route = Screen.ArticleScreen.route,
+            arguments = listOf(
+                navArgument("url") {
+                    type = NavType.StringType
+                }
+            )
+        ) { backStackEntry ->
 
+            val encodedUrl = backStackEntry.arguments?.getString("url") ?: ""
+            val articleUrl = Uri.decode(encodedUrl)
+
+            ArticleDetailScreen(
+                articleUrl = articleUrl,
+                onBackClick = { navController.popBackStack() }
+            )
+        }
         composable(Screen.AcademicPerScreen.route) {
             AcademicPerformanceScreen(navController)
 

@@ -1,15 +1,7 @@
 package com.rozetka.presentation.navigation
 
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.DataArray
-import androidx.compose.ui.graphics.vector.ImageVector
 import com.rozetka.presentation.R
 import com.rozetka.presentation.navigation.Screen.AboutApplication.route
-import com.rozetka.presentation.new.CalendarOutline28
-import com.rozetka.presentation.new.HomeOutline28
-import com.rozetka.presentation.new.MailOutline28
-import com.rozetka.presentation.new.Profile28
-import com.rozetka.presentation.new.ServicesOutline28
 
 sealed class Screen(
     val route: String,
@@ -19,7 +11,12 @@ sealed class Screen(
     val parentRoute: String? = null
 ) {
     data object Login :
-        Screen("login", R.string.login_hint, icon = R.drawable.newsfeed, isFullScreen = false)
+        Screen(
+            "login",
+            R.string.login_hint,
+            icon = R.drawable.door_arrow_left_outline_24,
+            isFullScreen = false
+        )
 
     data object GuestGroupInput : Screen(
         route = "GuestGroupInput",
@@ -27,6 +24,7 @@ sealed class Screen(
         icon = R.drawable.door_arrow_left_outline_24,
         isFullScreen = false
     )
+
 
     data object Profile : Screen("profile_route", R.string.profile, 0, false)
     data object Schedule : Screen(
@@ -42,6 +40,12 @@ sealed class Screen(
         parentRoute = Schedule.route
     )
 
+    data object ArticleScreen : Screen(
+        route = "Article/{url}",
+        titleResId = R.string.schedule,
+        icon = R.drawable.newsfeed,
+        parentRoute = Home.route
+    )
     data object ScheduleLink : Screen(
         route = "ScheduleLink",
         titleResId = R.string.schedule,
@@ -138,7 +142,7 @@ sealed class Screen(
         titleResId = R.string.session_results,
         icon = R.drawable.newsfeed,
         isFullScreen = false,
-        parentRoute = route
+        parentRoute = Service.route
     )
 
     data object TeacherRating : Screen(
@@ -187,7 +191,8 @@ sealed class Screen(
         route = "applications/{applicationId}",
         titleResId = R.string.services,
         isFullScreen = false,
-        icon = R.drawable.services_outline_24
+        icon = R.drawable.services_outline_24,
+        parentRoute = Service.route
     )
 
     data object Payment : Screen(

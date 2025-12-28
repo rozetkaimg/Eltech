@@ -42,7 +42,9 @@ import coil.compose.SubcomposeAsyncImage
 import com.rozetka.model.StudentR
 import com.rozetka.presentation.R
 import com.rozetka.presentation.navigation.Screen
+import com.rozetka.presentation.ui.groupJournal.ErrorState
 import com.rozetka.presentation.ui.pay.LoadingState
+import com.rozetka.presentation.util.ExpressiveErrorState
 import com.rozetka.presentation.util.generateColorFromHash
 import com.rozetka.presentation.util.getNavigationBarHeightDp
 import org.koin.androidx.compose.koinViewModel
@@ -128,9 +130,9 @@ fun StudentsScreen(
                         modifier = Modifier.padding(horizontal = 16.dp)
                     )
                 }
-                is StudentsUiState.Error -> ErrorState(
+                is StudentsUiState.Error -> ExpressiveErrorState(
                     message = state.message,
-                    onRetry = { viewModel.searchStudents() }
+                    { viewModel.searchStudents() }
                 )
                 is StudentsUiState.Empty -> EmptyState(state.query)
                 is StudentsUiState.Initial -> InitialState()
@@ -435,7 +437,11 @@ private fun StudentDetailsBottomSheet(
                 }
 
                 is MessageUiState.Loading -> {
-                    Box(modifier = Modifier.fillMaxWidth().height(100.dp), contentAlignment = Alignment.Center) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(100.dp), contentAlignment = Alignment.Center
+                    ) {
                         CircularProgressIndicator()
                     }
                 }
@@ -506,24 +512,6 @@ private fun StudentInfoRow(
     }
 }
 
-@Composable
-private fun ErrorState(message: String, onRetry: () -> Unit) {
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Text(
-            text = message,
-            color = MaterialTheme.colorScheme.error,
-            textAlign = TextAlign.Center
-        )
-        Spacer(Modifier.height(16.dp))
-        Button(onClick = onRetry) {
-            Text(stringResource(R.string.retry_search_button))
-        }
-    }
-}
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable

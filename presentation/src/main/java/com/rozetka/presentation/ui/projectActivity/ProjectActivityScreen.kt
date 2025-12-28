@@ -17,7 +17,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -42,17 +41,15 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.rozetka.model.PDModel
 import com.rozetka.presentation.R
 import com.rozetka.presentation.ui.pay.LoadingState
-import com.rozetka.presentation.util.ThemeObject
+import com.rozetka.presentation.util.ExpressiveErrorState
 import com.rozetka.presentation.util.UiSize
 import com.rozetka.presentation.util.generateColorFromHash
-import com.rozetka.presentation.util.getNavigationBarHeightDp
 import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -104,7 +101,7 @@ fun ProjectActivityScreen(
             when (val state = uiState) {
                 is ProjectActivityUiState.Loading -> LoadingState()
                 is ProjectActivityUiState.Success -> ProjectActivitySuccessState(data = state.projectData)
-                is ProjectActivityUiState.Error -> ErrorState(
+                is ProjectActivityUiState.Error -> ExpressiveErrorState(
                     message = state.message,
                     onUpdate = { viewModel.loadProjectData() }
                 )
@@ -418,21 +415,3 @@ private fun InfoRow(label: String, value: String) {
 }
 
 
-@Composable
-private fun ErrorState(message: String, onUpdate: () -> Unit) {
-    Column(
-        modifier = Modifier.padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Text(
-            text = message,
-            textAlign = TextAlign.Center,
-            color = MaterialTheme.colorScheme.error
-        )
-        Spacer(Modifier.height(16.dp))
-        Button(onClick = onUpdate) {
-            Text(stringResource(R.string.try_again))
-        }
-    }
-}

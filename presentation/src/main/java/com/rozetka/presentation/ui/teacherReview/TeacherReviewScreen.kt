@@ -24,6 +24,7 @@ import com.rozetka.model.campus.Criteria
 import com.rozetka.model.campus.ReviewOptions
 import com.rozetka.model.campus.Tag
 import com.rozetka.presentation.ui.pay.LoadingState
+import com.rozetka.presentation.util.ExpressiveErrorState
 import com.rozetka.presentation.util.UiSize
 import org.koin.androidx.compose.koinViewModel
 
@@ -82,11 +83,7 @@ fun TeacherReviewScreen(
         Box(modifier = Modifier.padding(top = paddingValues.calculateTopPadding())) {
             when (val state = uiState) {
                 is ReviewFieldsUiState.Loading -> LoadingState()
-                is ReviewFieldsUiState.Error -> {
-                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text(text = state.message, color = MaterialTheme.colorScheme.error)
-                    }
-                }
+                is ReviewFieldsUiState.Error -> ExpressiveErrorState(state.message, {})
                 is ReviewFieldsUiState.Success -> {
                     ReviewFormContent(
                         options = state.data,

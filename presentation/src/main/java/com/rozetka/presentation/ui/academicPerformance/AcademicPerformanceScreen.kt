@@ -2,16 +2,37 @@ package com.rozetka.presentation.ui.academicPerformance
 
 import android.annotation.SuppressLint
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SecondaryScrollableTabRow
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Tab
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -24,6 +45,7 @@ import androidx.navigation.NavController
 import com.rozetka.model.AcademicPerformanceItem
 import com.rozetka.presentation.R
 import com.rozetka.presentation.ui.pay.LoadingState
+import com.rozetka.presentation.util.ExpressiveErrorState
 import com.rozetka.presentation.util.UiSize
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
@@ -61,21 +83,12 @@ fun AcademicPerformanceScreen(
         ) {
             when (val state = uiState) {
                 is AcademicPerformanceUiState.Loading -> LoadingState()
-                is AcademicPerformanceUiState.Error -> {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(horizontal = 32.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        val errorMessage = state.message ?: stringResource(R.string.unknown_performance_load_error)
-                        Text(
-                            text = errorMessage,
-                            textAlign = TextAlign.Center,
-                            color = MaterialTheme.colorScheme.error
-                        )
-                    }
-                }
+                is AcademicPerformanceUiState.Error ->
+                    ExpressiveErrorState(
+                        state.message.toString(),
+                        viewModel::loadAcademicPerformance
+                    )
+
                 is AcademicPerformanceUiState.Success -> {
                     val dataBySemester = state.data.groupBy { it.semestr }
                     val semesters = dataBySemester.keys.sortedBy { it.toIntOrNull() ?: 0 }

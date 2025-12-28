@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -20,7 +19,6 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material.icons.rounded.School
@@ -41,7 +39,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -59,13 +56,13 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
-import com.rozetka.model.Lesson
+import com.rozetka.domain.util.StringObject
 import com.rozetka.model.ScheduleModel
 import com.rozetka.presentation.R
 import com.rozetka.presentation.navigation.Screen
 import com.rozetka.presentation.new.CalendarOutline28
 import com.rozetka.presentation.ui.pay.LoadingState
-import com.rozetka.domain.util.StringObject
+import com.rozetka.presentation.util.ExpressiveErrorState
 import com.rozetka.presentation.util.getNavigationBarHeightDp
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
@@ -205,21 +202,9 @@ fun ScheduleScreen(
                     LoadingState()
                 }
 
-                is ScheduleUiState.Error -> {
-                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Surface(
-                            color = MaterialTheme.colorScheme.surface,
-                            shape = RoundedCornerShape(28.dp),
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(200.dp)
-                                .align(Alignment.Center)
-                                .padding(16.dp)
-                        ) {
-                            Text(stringResource(R.string.no_schedule_placeholder))
-                        }
-                    }
-                }
+                is ScheduleUiState.Error -> ExpressiveErrorState(
+                    "Расписание недоступно",
+                    { viewModel.getSchedule(StringObject.groupName) })
 
                 is ScheduleUiState.Success -> {
                     if (viewModel.getScheduleState()) {

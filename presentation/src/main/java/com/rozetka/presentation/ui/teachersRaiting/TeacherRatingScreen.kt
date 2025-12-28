@@ -1,26 +1,64 @@
+@file:Suppress("DEPRECATION")
+
 package com.rozetka.presentation.ui.teachersRaiting
 
 import android.annotation.SuppressLint
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.FlowRowOverflow
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.outlined.ThumbDown
 import androidx.compose.material.icons.outlined.ThumbUp
-import androidx.compose.material3.*
+import androidx.compose.material3.Badge
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialShapes.Companion.Cookie9Sided
-import androidx.compose.runtime.*
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SuggestionChip
+import androidx.compose.material3.SuggestionChipDefaults
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.toShape
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -45,6 +83,7 @@ import com.rozetka.presentation.R
 import com.rozetka.presentation.new.CalendarOutline28
 import com.rozetka.presentation.ui.pay.LoadingState
 import com.rozetka.presentation.util.CollapsingToolbarScaffold
+import com.rozetka.presentation.util.ExpressiveErrorState
 import com.rozetka.presentation.util.ScrollStrategy
 import com.rozetka.presentation.util.UiSize
 import com.rozetka.presentation.util.generateColorFromHash
@@ -81,33 +120,13 @@ fun TeacherRatingScreen(
             }
         )
 
-        is TeacherRatingUiState.Error -> ErrorState(
+        is TeacherRatingUiState.Error -> ExpressiveErrorState(
             message = state.message,
             onUpdate = { viewModel.getTeacherRating(teacherId) }
         )
     }
 }
 
-@Composable
-private fun ErrorState(message: String, onUpdate: () -> Unit) {
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Text(
-            text = message,
-            modifier = Modifier.padding(16.dp),
-            textAlign = TextAlign.Center,
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.error
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-        Button(onClick = onUpdate) {
-            Text(stringResource(R.string.retry_button))
-        }
-    }
-}
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter", "DefaultLocale")
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
@@ -202,13 +221,19 @@ private fun TeacherRatingSuccessState(
                                         contentAlignment = Alignment.Center,
                                         modifier = Modifier
                                             .fillMaxSize()
-                                            .background(generateColorFromHash(state.data.teacher.name).copy(0.15f))
+                                            .background(
+                                                generateColorFromHash(state.data.teacher.name).copy(
+                                                    0.15f
+                                                )
+                                            )
                                     ) {
                                         Icon(
                                             painterResource(R.drawable.ic_profile),
                                             tint = generateColorFromHash(state.data.teacher.name),
                                             contentDescription = stringResource(R.string.cd_profile_photo_placeholder),
-                                            modifier = Modifier.size(150.dp).padding(16.dp)
+                                            modifier = Modifier
+                                                .size(150.dp)
+                                                .padding(16.dp)
                                         )
                                     }
                                 }
@@ -633,48 +658,6 @@ fun ReactionCounter(
 }
 
 
-@Composable
-private fun InfoRow(label: String, value: String) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodyMedium,
-            fontWeight = FontWeight.SemiBold,
-            maxLines = 2,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.weight(0.6f)
-        )
-        Text(
-            text = value,
-            style = MaterialTheme.typography.bodyMedium,
-            modifier = Modifier.weight(1f),
-            color = MaterialTheme.colorScheme.onSurface
-        )
-    }
-}
-@Composable
-private fun InfoRowSmall(label: String, value: String) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            text = label + ":",
-            style = MaterialTheme.typography.bodyMedium,
-            fontWeight = FontWeight.SemiBold,
-            maxLines = 2,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.weight(0.8f)
-        )
-        Text(
-            text = value,
-            style = MaterialTheme.typography.bodyMedium,
-            modifier = Modifier.weight(0.2f),
-            color = MaterialTheme.colorScheme.onSurface
-        )
-    }
-}
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun QualitiesSection(tags: List<TeacherTag>) {

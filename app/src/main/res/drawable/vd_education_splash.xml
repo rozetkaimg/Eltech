@@ -1,0 +1,16 @@
+<animated-vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:drawable="@drawable/ic_education_splash">
+
+    <target
+        android:name="badge_group"
+        android:animation="@anim/overshoot_interpolator" />
+
+    <target
+        android:name="cap_group"
+        android:animation="@anim/cap_landing" />
+
+    <target
+        android:name="tassel_group"
+        android:animation="@anim/tassel_swing" />
+
+</animated-vector>

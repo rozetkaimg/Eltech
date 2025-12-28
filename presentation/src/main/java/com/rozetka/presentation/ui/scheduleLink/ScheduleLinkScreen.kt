@@ -1,16 +1,13 @@
 package com.rozetka.presentation.ui.scheduleLink
 
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -31,7 +28,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -45,6 +41,7 @@ import com.rozetka.presentation.ui.shedule.DaySchedule
 import com.rozetka.presentation.ui.shedule.ScheduleScreenData
 import com.rozetka.presentation.ui.shedule.ScheduleUiState
 import com.rozetka.presentation.ui.shedule.WeekScheduleContent
+import com.rozetka.presentation.util.ExpressiveErrorState
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 
@@ -90,21 +87,9 @@ fun ScheduleLinkScreen(
                     LoadingState()
                 }
 
-                is ScheduleUiState.Error -> {
-                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Surface(
-                            color = MaterialTheme.colorScheme.surface,
-                            shape = RoundedCornerShape(28.dp),
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(200.dp)
-                                .align(Alignment.Center)
-                                .padding(16.dp)
-                        ) {
-                            Text(stringResource(R.string.no_schedule_placeholder))
-                        }
-                    }
-                }
+                is ScheduleUiState.Error -> ExpressiveErrorState(
+                    "Расписание недоступно",
+                    { viewModel.getSchedule(groupName) })
 
                 is ScheduleUiState.Success -> {
                     if (viewModel.getScheduleState()) {
