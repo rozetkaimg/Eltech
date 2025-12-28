@@ -60,7 +60,7 @@ This project is built with 100% **Kotlin** and modern Android technologies.
 
 1.  Clone the repository:
     ```sh
-    git clone [https://github.com/rozetkaimg/Eltech.git](https://github.com/rozetkaimg/Eltech.git)
+    git clone https://github.com/rozetkaimg/Eltech.git
     ```
 2.  Open the project in [Android Studio](https://developer.android.com/studio).
 3.  Build the project (Build -> Make Project).
