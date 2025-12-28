@@ -15,8 +15,7 @@ sealed interface ArticleUiState {
     data class Error(val message: String) : ArticleUiState
 }
 
-class ArticleViewModel : ViewModel() {
-    private val repository = MospolytechMethods()
+class ArticleViewModel(private val repository: MospolytechMethods ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<ArticleUiState>(ArticleUiState.Loading)
     val uiState: StateFlow<ArticleUiState> = _uiState.asStateFlow()

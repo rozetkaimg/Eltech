@@ -299,3 +299,12 @@ fun generateColorFromHash(str: String): Color {
     val b = (hash and 0xFF)
     return Color(r, g, b)
 }
+fun getAcademicEventColor(eventType: String): Color {
+    return when (eventType.lowercase().trim()) {
+        "консультация" -> Color(0xFF2196F3)
+        "зачет"        -> Color(0xFF4CAF50)
+        "диф. зачет" -> Color(0xFFFF9800)
+        "экзамен"      -> Color(0xFFF44336)
+        else           -> Color(0xFF9E9E9E)
+    }
+}

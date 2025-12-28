@@ -170,54 +170,7 @@ fun DaySchedule(dayKey: String, lessonsByTime: Map<String, List<Lesson>>, week: 
                 }
             }
         } else {
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 1.dp)
-                ,
-                shape = RoundedCornerShape(28.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceContainerLow
-                ),
-
-                ) {
-
-                Row(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
-                    Box(
-                        Modifier
-                            .size(64.dp)
-                            .clip(Cookie9Sided.toShape())
-                            .background(MaterialTheme.colorScheme.surface)
-                    ) {
-                        Icon(
-                            painter = painterResource(R.drawable.home_outline),
-                            contentDescription = stringResource(R.string.academic_year_content_description),
-                            tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier
-                                .size(32.dp)
-                                .align(Alignment.Center)
-                        )
-                    }
-                    Column(modifier = Modifier.padding(start = 16.dp).align(Alignment.CenterVertically)) {
-                        Text(
-                            text = stringResource(R.string.weekend_text_line1),
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.SemiBold,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                        Text(
-                            text = stringResource(R.string.weekend_text_line2),
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            fontSize = 14.sp,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-
-                }
-
-            }
+           WeekEndCard()
 
         }
 
@@ -244,18 +197,18 @@ fun BreakItem(
     val timeFormatter = remember { DateTimeFormatter.ofPattern("HH:mm") }
 
     val shape = when {
-        totalItemsInDay == 1 -> RoundedCornerShape(28.dp)
+        totalItemsInDay == 1 -> RoundedCornerShape(24.dp)
         index == 0 -> RoundedCornerShape(
-            topStart = 28.dp,
-            topEnd = 28.dp,
-            bottomEnd = 8.dp,
-            bottomStart = 8.dp
+            topStart = 24.dp,
+            topEnd = 24.dp,
+            bottomEnd = 4.dp,
+            bottomStart = 4.dp
         )
         index == totalItemsInDay - 1 -> RoundedCornerShape(
-            topStart = 8.dp,
-            topEnd = 8.dp,
-            bottomEnd = 28.dp,
-            bottomStart = 28.dp
+            topStart = 4.dp,
+            topEnd = 4.dp,
+            bottomEnd = 24.dp,
+            bottomStart = 24.dp
         )
         else -> RoundedCornerShape(8.dp)
     }

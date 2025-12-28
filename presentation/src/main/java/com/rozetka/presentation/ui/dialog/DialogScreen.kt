@@ -95,7 +95,7 @@ fun formatTime(dateTimeString: String): String {
 
 private fun getDisplayDate(datetime: String): String {
     return try {
-        val datePart = datetime.substring(0, 10)
+        val datePart = datetime.take(10)
         val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
         val messageDate = LocalDate.parse(datePart, formatter)
         val today = LocalDate.now()
@@ -104,11 +104,11 @@ private fun getDisplayDate(datetime: String): String {
             today -> "Сегодня"
             today.minusDays(1) -> "Вчера"
             else -> {
-                val outFormatter = DateTimeFormatter.ofPattern("d MMMM", Locale("ru"))
+                val outFormatter = DateTimeFormatter.ofPattern("d MMMM")
                 messageDate.format(outFormatter)
             }
         }
-    } catch (e: Exception) {
+    } catch (_: Exception) {
         datetime
     }
 }
@@ -141,7 +141,6 @@ fun DialogScreen(
                 val files = withContext(Dispatchers.IO) {
                     uris.mapNotNull { uri -> uriToFile(context, uri) }
                 }
-                // Добавляем новые файлы к уже выбранным
                 if (files.isNotEmpty()) {
                     selectedFiles = selectedFiles + files
                 }
@@ -173,19 +172,15 @@ fun DialogScreen(
                 selectedFiles = selectedFiles,
                 onTextChanged = { messageText = it },
                 onSendMessage = {
-                    // Логика отправки
                     if (selectedFiles.isNotEmpty()) {
-                        // Если есть файлы, проверяем наличие текста (если нужно)
                         if (messageText.isBlank()) {
                             Toast.makeText(context, "Добавьте описание к файлу", Toast.LENGTH_SHORT).show()
                         } else {
                             dialogViewModel.sendFiles(selectedFiles, userId, messageText)
-                            // Очистка после отправки
                             messageText = ""
                             selectedFiles = emptyList()
                         }
                     } else if (messageText.isNotBlank()) {
-                        // Только текст
                         dialogViewModel.sendMessage(messageText, userId)
                         messageText = ""
                     }

@@ -12,7 +12,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -35,19 +35,19 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.text.HtmlCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.rozetka.model.ArticleDetail
 import com.rozetka.model.ContentBlock
 import com.rozetka.presentation.ui.pay.LoadingState
 import com.rozetka.presentation.util.getNavigationBarHeightDp
+import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ArticleDetailScreen(
     articleUrl: String,
     onBackClick: () -> Unit,
-    viewModel: ArticleViewModel = viewModel()
+    viewModel: ArticleViewModel = koinViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
@@ -62,7 +62,7 @@ fun ArticleDetailScreen(
             LargeTopAppBar(
                 title = { Text("Статья", fontWeight = FontWeight.Medium) },
                 navigationIcon = {
-                    IconButton(onClick = onBackClick) { Icon(Icons.Default.ArrowBack, null) }
+                    IconButton(onClick = onBackClick) { Icon(Icons.AutoMirrored.Filled.ArrowBack, null) }
                 },
                 scrollBehavior = scrollBehavior
             )
@@ -137,7 +137,7 @@ private fun HtmlText(html: String) {
             TextView(context).apply {
                 setTextColor(textColor)
                 setLinkTextColor(linkColor)
-                textSize = 17f // Примерно bodyLarge
+                textSize = 17f
 
             }
         },
