@@ -65,7 +65,7 @@ fun ExternalNewsCard(item: ExternalNewsItem, onClick: () -> Unit) {
                 }
             )
 
-            // Затемняющий градиент снизу для читаемости текста
+
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -77,7 +77,7 @@ fun ExternalNewsCard(item: ExternalNewsItem, onClick: () -> Unit) {
                     )
             )
 
-            // Дата новости (вверху справа)
+
             Card(
                 modifier = Modifier
                     .align(Alignment.TopEnd)
@@ -93,7 +93,7 @@ fun ExternalNewsCard(item: ExternalNewsItem, onClick: () -> Unit) {
                 )
             }
 
-            // Заголовок и категория (внизу слева)
+
             Column(
                 modifier = Modifier
                     .align(Alignment.BottomStart)
@@ -108,7 +108,7 @@ fun ExternalNewsCard(item: ExternalNewsItem, onClick: () -> Unit) {
                     maxLines = 2
                 )
                 Text(
-                    text = "Новость", // Вместо "Мероприятие"
+                    text = "Новость",
                     fontSize = 14.sp,
                     color = Color.White.copy(alpha = 0.7f),
                     modifier = Modifier.padding(top = 4.dp)

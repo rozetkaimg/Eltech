@@ -73,10 +73,12 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import com.rozetka.domain.util.StringObject
+import com.rozetka.model.Lesson
 import com.rozetka.model.ScheduleModel
 import com.rozetka.model.local.CalendarAccount
 import com.rozetka.presentation.R
 import com.rozetka.presentation.ui.pay.LoadingState
+import com.rozetka.presentation.ui.shedule.LessonDetailsBottomSheet
 import com.rozetka.presentation.util.ExpressiveErrorState
 import com.rozetka.presentation.util.getNavigationBarHeightDp
 import kotlinx.coroutines.launch
@@ -107,6 +109,8 @@ fun SessionScheduleScreen(
     var showBottomSheet by remember { mutableStateOf(false) }
     var availableCalendars by remember { mutableStateOf<List<CalendarAccount>>(emptyList()) }
     var notification by remember { mutableStateOf<NotificationState?>(null) }
+    var selectedLesson by remember { mutableStateOf<Lesson?>(null) }
+
     val sheetState = rememberModalBottomSheetState()
 
     LaunchedEffect(Unit) {
@@ -141,6 +145,7 @@ fun SessionScheduleScreen(
         viewModel.getSessionSchedule(groupName)
     }
 
+    // Диалог выбора календаря
     if (showBottomSheet) {
         ModalBottomSheet(
             onDismissRequest = { showBottomSheet = false },
@@ -177,6 +182,19 @@ fun SessionScheduleScreen(
                 }
             }
         }
+    }
+
+    // Диалог деталей пары (LessonDetailsBottomSheet)
+    if (selectedLesson != null) {
+        LessonDetailsBottomSheet(
+            lesson = selectedLesson!!,
+            onDismissRequest = { selectedLesson = null },
+            onLinkClick = { teacher ->
+                // Закрываем диалог и переходим к расписанию преподавателя
+                selectedLesson = null
+                navController.navigate("teacherSchedule/$teacher")
+            }
+        )
     }
 
     Scaffold(
@@ -243,7 +261,13 @@ fun SessionScheduleScreen(
                         { viewModel.getSessionSchedule(StringObject.ApiToken) }
                     )
                     is SessionScheduleUiState.Success -> {
-                        SessionContent(state.data, navController)
+                        SessionContent(
+                            schedule = state.data,
+                            navController = navController,
+                            onLessonClick = { lesson ->
+                                selectedLesson = lesson
+                            }
+                        )
                     }
                     else -> {}
                 }
@@ -341,7 +365,11 @@ fun CalendarAvatar(name: String) {
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun SessionContent(schedule: ScheduleModel, navController: NavHostController) {
+fun SessionContent(
+    schedule: ScheduleModel,
+    navController: NavHostController,
+    onLessonClick: (Lesson) -> Unit
+) {
     val context = LocalContext.current
     val dayNameFormatter = remember { DateTimeFormatter.ofPattern("EEEE", Locale("ru")) }
     val dateNumFormatter = remember { DateTimeFormatter.ofPattern("dd.MM", Locale("ru")) }
@@ -397,11 +425,7 @@ fun SessionContent(schedule: ScheduleModel, navController: NavHostController) {
                         index = index,
                         totalLessonsInDay = dayLessons.size,
                         lessonDate = date,
-                        onLessonClick = {
-                            if (it.teacher.isNotBlank()) {
-                                navController.navigate("teacherSchedule/${it.teacher}")
-                            }
-                        },
+                        onLessonClick = { onLessonClick(it) },
                         onExportToCalendar = { title, desc, loc, start, end ->
                             val intent = Intent(Intent.ACTION_INSERT).apply {
                                 data = CalendarContract.Events.CONTENT_URI

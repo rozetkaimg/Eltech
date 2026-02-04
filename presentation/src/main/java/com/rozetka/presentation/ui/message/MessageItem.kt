@@ -91,10 +91,7 @@ fun MessageItem(
 
             Spacer(modifier = Modifier.width(16.dp))
 
-            // Основной контент
             Column(modifier = Modifier.weight(1f)) {
-
-                // 1. ТЕМА (Subject) - отдельной строкой сверху
                 if (!message.subject.isNullOrBlank()) {
                     Surface(
                         color = MaterialTheme.colorScheme.surfaceVariant,
@@ -124,7 +121,7 @@ fun MessageItem(
                         fontWeight = FontWeight.Bold,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.weight(1f) // Имя занимает все свободное место
+                        modifier = Modifier.weight(1f)
                     )
 
                     Text(

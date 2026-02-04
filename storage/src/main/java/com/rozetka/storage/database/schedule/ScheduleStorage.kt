@@ -1,9 +1,9 @@
 package com.rozetka.storage.database.schedule
+
 import androidx.room.withTransaction
 import com.rozetka.model.Group
 import com.rozetka.model.Lesson
 import com.rozetka.model.ScheduleModel
-
 
 class ScheduleStorage(
     private val db: ScheduleDatabase,
@@ -11,16 +11,17 @@ class ScheduleStorage(
 ) {
 
     suspend fun saveSchedule(scheduleModel: ScheduleModel) {
-        val groupTitle = scheduleModel.group.title
+        val group = scheduleModel.group ?: return
+        val groupTitle = group.title
 
         val groupEntity = GroupEntity(
             groupTitle = groupTitle,
-            comment = scheduleModel.group.comment,
-            course = scheduleModel.group.course,
-            dateFrom = scheduleModel.group.dateFrom,
-            dateTo = scheduleModel.group.dateTo,
-            evening = scheduleModel.group.evening,
-            isSession = scheduleModel.isSession
+            comment = group.comment,
+            course = group.course,
+            dateFrom = group.dateFrom,
+            dateTo = group.dateTo,
+            evening = group.evening,
+            isSession = scheduleModel.isSession ?: false
         )
 
         db.withTransaction {

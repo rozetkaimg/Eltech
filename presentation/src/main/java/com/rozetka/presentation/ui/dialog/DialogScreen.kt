@@ -43,10 +43,12 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialShapes.Companion.Cookie9Sided
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -54,6 +56,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.toShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -63,6 +66,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -72,10 +76,12 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
+import coil.compose.SubcomposeAsyncImage
 import com.rozetka.domain.util.StringObject
 import com.rozetka.model.File
 import com.rozetka.model.MessageDialogItem
 import com.rozetka.presentation.ui.pay.LoadingState
+import com.rozetka.presentation.util.generateColorFromHash
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -118,18 +124,21 @@ sealed interface DialogUiItem {
     data class DateHeader(val dateText: String) : DialogUiItem
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun DialogScreen(
     dialogViewModel: DialogViewModel = koinViewModel(),
     navController: NavController,
     userId: String,
-    userName: String
+    userName: String,
+    isTablet: Boolean = false,
+    avatarURL: String = "",
+    isSubject: Boolean = false
 ) {
     val uiState by dialogViewModel.uiState.collectAsStateWithLifecycle()
     var messageText by remember { mutableStateOf("") }
     var selectedFiles by remember { mutableStateOf<List<java.io.File>>(emptyList()) }
-
+    var authorName: String = userName
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
@@ -151,47 +160,93 @@ fun DialogScreen(
     LaunchedEffect(userId) {
         dialogViewModel.startPolling(userId)
     }
-
+    val names = authorName.split(" ").filter { it.isNotEmpty() }
+    val initials = if (names.size >= 2) {
+        "${names[0].first()}${names[1].first()}"
+    } else {
+        names.firstOrNull()?.take(1) ?: "?"
+    }
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(text = userName) },
-                navigationIcon = {
-                    IconButton(onClick = { navController.navigateUp() }) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = null
+                title = {
+
+                    Row(
+                        modifier = Modifier.padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        SubcomposeAsyncImage(
+                            model = avatarURL,
+                            contentDescription = null,
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier
+                                .size(56.dp)
+                                .clip(Cookie9Sided.toShape()),
+                            error = {
+                                Box(
+                                    contentAlignment = Alignment.Center,
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .background(generateColorFromHash(authorName).copy(alpha = 0.15f))
+                                ) {
+                                    Text(
+                                        text = initials.uppercase(),
+                                        style = MaterialTheme.typography.titleMedium,
+                                        color = generateColorFromHash(authorName)
+                                    )
+                                }
+                            }
                         )
+
+                        Spacer(modifier = Modifier.width(16.dp))
+
+
+
+                    Text(text = authorName) }},
+                navigationIcon = {
+                    if(!isTablet) {
+                        IconButton(onClick = { navController.navigateUp() }) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = null
+                            )
+                        }
                     }
                 }
             )
         },
         bottomBar = {
-            MessageInputExpressive(
-                text = messageText,
-                selectedFiles = selectedFiles,
-                onTextChanged = { messageText = it },
-                onSendMessage = {
-                    if (selectedFiles.isNotEmpty()) {
-                        if (messageText.isBlank()) {
-                            Toast.makeText(context, "Добавьте описание к файлу", Toast.LENGTH_SHORT).show()
-                        } else {
-                            dialogViewModel.sendFiles(selectedFiles, userId, messageText)
+            if (!isSubject) {
+                MessageInputExpressive(
+                    text = messageText,
+                    selectedFiles = selectedFiles,
+                    onTextChanged = { messageText = it },
+                    onSendMessage = {
+                        if (selectedFiles.isNotEmpty()) {
+                            if (messageText.isBlank()) {
+                                Toast.makeText(
+                                    context,
+                                    "Добавьте описание к файлу",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            } else {
+                                dialogViewModel.sendFiles(selectedFiles, userId, messageText)
+                                messageText = ""
+                                selectedFiles = emptyList()
+                            }
+                        } else if (messageText.isNotBlank()) {
+                            dialogViewModel.sendMessage(messageText, userId)
                             messageText = ""
-                            selectedFiles = emptyList()
                         }
-                    } else if (messageText.isNotBlank()) {
-                        dialogViewModel.sendMessage(messageText, userId)
-                        messageText = ""
+                    },
+                    onAttachFile = {
+                        filePickerLauncher.launch("*/*")
+                    },
+                    onRemoveFile = { fileToRemove ->
+                        selectedFiles = selectedFiles.filter { it != fileToRemove }
                     }
-                },
-                onAttachFile = {
-                    filePickerLauncher.launch("*/*")
-                },
-                onRemoveFile = { fileToRemove ->
-                    selectedFiles = selectedFiles.filter { it != fileToRemove }
-                }
-            )
+                )
+            }
         }
     ) { paddingValues ->
         Box(
@@ -204,6 +259,7 @@ fun DialogScreen(
                 is DialogUiState.Success -> DialogSuccessState(
                     messages = state.data
                 )
+
                 is DialogUiState.Error -> ErrorState(message = state.message) {
                     dialogViewModel.loadMessages(userId, isSilent = false)
                 }
@@ -278,6 +334,7 @@ private fun DialogSuccessState(messages: List<MessageDialogItem>) {
                     is DialogUiItem.DateHeader -> {
                         DateHeaderItem(dateText = item.dateText)
                     }
+
                     is DialogUiItem.Message -> {
                         MessageBubble(
                             message = item.message,
@@ -412,7 +469,8 @@ fun MessageInputExpressive(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 12.dp) .navigationBarsPadding(),
+                        .padding(horizontal = 16.dp, vertical = 12.dp)
+                        .navigationBarsPadding(),
                     verticalAlignment = Alignment.Bottom
                 ) {
                     TextField(

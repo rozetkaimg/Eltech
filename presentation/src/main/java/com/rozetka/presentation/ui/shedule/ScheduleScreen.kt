@@ -3,6 +3,7 @@ package com.rozetka.presentation.ui.shedule
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -26,12 +27,15 @@ import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material.icons.rounded.School
 import androidx.compose.material.icons.rounded.Search
+import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialShapes.Companion.Cookie9Sided
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.Scaffold
@@ -41,6 +45,7 @@ import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.toShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
@@ -52,10 +57,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.LineHeightStyle
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -207,15 +214,26 @@ fun ScheduleScreen(
                 is ScheduleUiState.Error -> ExpressiveErrorState(
                     "Расписание недоступно",
                     { viewModel.getSchedule(StringObject.groupName) })
+
                 is ScheduleUiState.Success -> {
-                    if (viewModel.getScheduleState()) {
-                        WeekSchedule(state.data, paddingValues, navController)
+                    if (state.data.isScheduleMissing) {
+                        MissingScheduleView(
+                            groupName = StringObject.groupName,
+                            onNavigateToSession = {
+                                navController.navigate("SessionSchedule/${StringObject.groupName}")
+                            }
+                        )
                     } else {
-                        DaySchedule(state.data, paddingValues) {
-                            navController.navigate("teacherSchedule/${it}")
+                        if (viewModel.getScheduleState()) {
+                            WeekSchedule(state.data, paddingValues, navController)
+                        } else {
+                            DaySchedule(state.data, paddingValues) {
+                                navController.navigate("teacherSchedule/${it}")
+                            }
                         }
                     }
                 }
+
                 is ScheduleUiState.Initial -> {}
             }
         }
@@ -224,7 +242,11 @@ fun ScheduleScreen(
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun WeekSchedule(state: ScheduleScreenData, paddingValues: PaddingValues, navController: NavHostController) {
+fun WeekSchedule(
+    state: ScheduleScreenData,
+    paddingValues: PaddingValues,
+    navController: NavHostController
+) {
     val screenData = state
     val pagerState = rememberPagerState(
         initialPage = screenData.initialWeekIndex,
@@ -270,11 +292,16 @@ fun WeekSchedule(state: ScheduleScreenData, paddingValues: PaddingValues, navCon
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun DaySchedule(state: ScheduleScreenData, paddingValues: PaddingValues, onLinkClick: (String) -> Unit) {
+fun DaySchedule(
+    state: ScheduleScreenData,
+    paddingValues: PaddingValues,
+    onLinkClick: (String) -> Unit
+) {
     val screenData = state
     val startDate = screenData.weeks.first().startDate
     val endDate = screenData.weeks.last().endDate
-    val allDays = (0L until ChronoUnit.DAYS.between(startDate, endDate) + 1).map { startDate.plusDays(it) }
+    val allDays =
+        (0L until ChronoUnit.DAYS.between(startDate, endDate) + 1).map { startDate.plusDays(it) }
 
     val initialPage = allDays.indexOf(LocalDate.now())
     val todayIndex = if (initialPage == -1) 0 else initialPage
@@ -307,13 +334,14 @@ fun DaySchedule(state: ScheduleScreenData, paddingValues: PaddingValues, onLinkC
                 edgePadding = 0.dp,
                 containerColor = MaterialTheme.colorScheme.surface
             ) {
-                val dateParser = remember { java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd") }
+                val dateParser =
+                    remember { java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd") }
                 val today = LocalDate.now()
                 val currentTime = java.time.LocalTime.now()
 
                 allDays.forEachIndexed { index, date ->
                     val dayKey = date.dayOfWeek.value.toString()
-                    val lessonsMap = screenData.fullSchedule.grid[dayKey] ?: emptyMap()
+                    val lessonsMap = screenData.fullSchedule.grid?.get(dayKey) ?: emptyMap()
                     val dotsData = remember(lessonsMap, date) {
                         lessonsMap.entries
                             .sortedBy { it.key }
@@ -322,8 +350,10 @@ fun DaySchedule(state: ScheduleScreenData, paddingValues: PaddingValues, onLinkC
                                 val lessonsInSlot = entry.value
                                 val activeLesson = lessonsInSlot.firstOrNull { lesson ->
                                     val name = lesson.sbj.lowercase()
-                                    val dateFrom = runCatching { LocalDate.parse(lesson.df, dateParser) }.getOrNull()
-                                    val dateTo = runCatching { LocalDate.parse(lesson.dt, dateParser) }.getOrNull()
+                                    val dateFrom =
+                                        runCatching { LocalDate.parse(lesson.df, dateParser) }.getOrNull()
+                                    val dateTo =
+                                        runCatching { LocalDate.parse(lesson.dt, dateParser) }.getOrNull()
                                     val isWithinRange = dateFrom != null && dateTo != null &&
                                             !date.isBefore(dateFrom) && !date.isAfter(dateTo)
                                     val isRealLesson = lesson.sbj.isNotBlank() &&
@@ -381,7 +411,10 @@ fun DaySchedule(state: ScheduleScreenData, paddingValues: PaddingValues, onLinkC
                                         MaterialTheme.colorScheme.onSurfaceVariant
                                 )
 
-                                Box(modifier = Modifier.height(10.dp), contentAlignment = Alignment.Center) {
+                                Box(
+                                    modifier = Modifier.height(10.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
                                     if (dotsData.isNotEmpty()) {
                                         androidx.compose.foundation.layout.Row(
                                             horizontalArrangement = Arrangement.spacedBy(3.dp),
@@ -413,7 +446,7 @@ fun DaySchedule(state: ScheduleScreenData, paddingValues: PaddingValues, onLinkC
             ) { pageIndex ->
                 val selectedDate = allDays[pageIndex]
                 val dayKey = selectedDate.dayOfWeek.value.toString()
-                val lessonsForDay = screenData.fullSchedule.grid[dayKey] ?: emptyMap()
+                val lessonsForDay = screenData.fullSchedule.grid?.get(dayKey) ?: emptyMap()
                 val weekInfo = screenData.weeks.firstOrNull { week ->
                     !selectedDate.isBefore(week.startDate) && !selectedDate.isAfter(week.endDate)
                 } ?: screenData.weeks.first()
@@ -485,7 +518,7 @@ fun WeekScheduleContent(schedule: ScheduleModel, week: WeekInfo, navController: 
     val todayDayKey = today.dayOfWeek.value.toString()
 
     val displayElements = remember(schedule, isCurrentWeek, todayDayKey) {
-        val days = schedule.grid.entries
+        val days = (schedule.grid ?: emptyMap()).entries
             .sortedBy { it.key.toInt() }
             .map { it.key to (it.value as Map<String, List<Lesson>>?) }
             .toMutableList()
@@ -548,9 +581,69 @@ fun ScheduleDayHeader(dayKey: String, week: WeekInfo) {
     val dayOfWeekFormatter = remember { SimpleDateFormat("EEEE", Locale.getDefault()) }
     val dayName = dayOfWeekFormatter.format(date.toEpochDay() * 24 * 60 * 60 * 1000L)
         .replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
-        Text(
-            text = "$dayName, ${date.dayOfMonth}.${date.monthValue}",
-            style = MaterialTheme.typography.titleLarge,
-            modifier = Modifier.padding(bottom = 8.dp))
+    Text(
+        text = "$dayName, ${date.dayOfMonth}.${date.monthValue}",
+        style = MaterialTheme.typography.titleLarge,
+        modifier = Modifier.padding(bottom = 8.dp)
+    )
+}
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+fun MissingScheduleView(
+    groupName: String,
+    onNavigateToSession: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Box(
+            modifier = Modifier
+                .size(100.dp)
+                .background(
+                    color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.5f),
+                    shape = Cookie9Sided.toShape()
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = ImageVector.vectorResource(com.rozetka.presentation.R.drawable.education_outline_28),
+                contentDescription = null,
+                modifier = Modifier.size(48.dp),
+                tint = MaterialTheme.colorScheme.error
+            )
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        Text(
+            text = "Расписание отсутствует",
+            style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Text(
+            text = "Для группы $groupName не найдено регулярного расписания.",
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center
+        )
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        Button(
+            onClick = onNavigateToSession,
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 32.dp),
+            shape = RoundedCornerShape(12.dp)
+        ) {
+            Text("Проверить расписание сессии")
+        }
+    }
 }

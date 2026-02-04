@@ -34,7 +34,8 @@ data class WeekInfo(
 data class ScheduleScreenData(
     val fullSchedule: ScheduleModel,
     val weeks: List<WeekInfo>,
-    val initialWeekIndex: Int
+    val initialWeekIndex: Int,
+    val isScheduleMissing: Boolean = false
 )
 
 class ScheduleViewModel(
@@ -47,17 +48,16 @@ class ScheduleViewModel(
     val uiState: StateFlow<ScheduleUiState> = _uiState.asStateFlow()
     private val secureStorage: SecureStorage = SecureStorage(application)
 
-init {
-    try {
-        viewModelScope.launch {
-            campusToken = campusApi.getBearerToken().token
+    init {
+        try {
+            viewModelScope.launch {
+                campusToken = campusApi.getBearerToken().token
+            }
+        } catch (e: Exception) {
+
         }
-    } catch (e: Exception){
-
+        getSchedule(StringObject.groupName)
     }
-getSchedule(StringObject.groupName)
-
-}
 
     fun getSchedule(group: String) {
         viewModelScope.launch {
@@ -67,7 +67,8 @@ getSchedule(StringObject.groupName)
             val groupToFetch = if (group.isEmpty()) userOwnGroup else group
 
             if (groupToFetch.isEmpty()) {
-                _uiState.value = ScheduleUiState.Error(application.getString(R.string.error_group_not_found_prompt))
+                _uiState.value =
+                    ScheduleUiState.Error(application.getString(R.string.error_group_not_found_prompt))
                 return@launch
             }
 
@@ -79,7 +80,12 @@ getSchedule(StringObject.groupName)
 
             scheduleFlow
                 .catch { e ->
-                    _uiState.value = ScheduleUiState.Error(application.getString(R.string.error_critical_prefix, e.message))
+                    _uiState.value = ScheduleUiState.Error(
+                        application.getString(
+                            R.string.error_critical_prefix,
+                            e.message
+                        )
+                    )
                 }
                 .collect { result ->
                     result.onSuccess { scheduleData ->
@@ -96,11 +102,20 @@ getSchedule(StringObject.groupName)
     }
 
     private fun processScheduleData(schedule: ScheduleModel): ScheduleScreenData {
-        val startDate = LocalDate.parse(schedule.group.dateFrom)
-        val endDate = LocalDate.parse(schedule.group.dateTo)
+        if (schedule.group == null || schedule.grid.isNullOrEmpty()) {
+            return ScheduleScreenData(
+                fullSchedule = schedule,
+                weeks = emptyList(),
+                initialWeekIndex = 0,
+                isScheduleMissing = true
+            )
+        }
+
+        val startDate = LocalDate.parse(schedule.group?.dateFrom?: "0")
+        val endDate = LocalDate.parse(schedule.group?.dateTo?: "0")
         val weeks = generateWeeks(startDate, endDate)
         val initialIndex = findCurrentWeekIndex(weeks)
-        return ScheduleScreenData(schedule, weeks, initialIndex)
+        return ScheduleScreenData(schedule, weeks, initialIndex, isScheduleMissing = false)
     }
 
     private fun generateWeeks(start: LocalDate, end: LocalDate): List<WeekInfo> {
