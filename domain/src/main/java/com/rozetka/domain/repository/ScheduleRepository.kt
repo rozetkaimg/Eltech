@@ -22,66 +22,59 @@ class ScheduleRepository(
 
     @RequiresPermission(Manifest.permission.ACCESS_NETWORK_STATE)
     fun getSchedule(groupTitle: String): Flow<Result<ScheduleModel>> = flow {
+        // 1. Emit cached data immediately if exists
+        val cachedData = storage.getSchedule(groupTitle)
+        if (cachedData != null) {
+            emit(Result.success(cachedData))
+        }
+
+        // 2. Fetch from network and update cache
         if (NetworkUtils.isNetworkAvailable(context)) {
             try {
                 val networkResponse = networkApi.getScheduleByGroup(groupTitle)
                 storage.saveSchedule(networkResponse)
                 emit(Result.success(networkResponse))
-
             } catch (e: Exception) {
                 if (e is CancellationException) throw e
-
-                Log.w("ScheduleRepository", "Network fetch failed, trying cache", e)
-                val cachedData = storage.getSchedule(groupTitle)
-                if (cachedData != null) {
-                    emit(Result.success(cachedData))
-                } else {
+                Log.w("ScheduleRepository", "Network fetch failed", e)
+                // If we didn't have cache, emit error. Otherwise, we already emitted cache.
+                if (cachedData == null) {
                     emit(Result.failure(Exception("Ошибка сети. Кэш пуст.", e)))
                 }
             }
-        } else {
-            Log.d("ScheduleRepository", "No network, fetching from cache")
-            val cachedData = storage.getSchedule(groupTitle)
-            if (cachedData != null) {
-                emit(Result.success(cachedData))
-            } else {
-                emit(Result.failure(Exception("Нет подключения к сети и кэш пуст.")))
-            }
-        }
-    }
-    fun getSessionScheduleOnlyNetwork(groupTitle: String): Flow<Result<ScheduleModel>> = flow {
-        try {
-            val networkResponse = networkApi.getSessionSchedule(groupTitle)
-
-            emit(Result.success(networkResponse))
-        } catch (e: Exception) {
-            if (e is CancellationException) throw e
-
-            val errorMessage = if (e is IOException) {
-                "Ошибка сети. Не удалось обновить данные."
-            } else {
-                e.message ?: "Неизвестная ошибка"
-            }
-            Log.e("ScheduleRepository", "Network-only fetch failed", e)
-            emit(Result.failure(Exception(errorMessage, e)))
+        } else if (cachedData == null) {
+            emit(Result.failure(Exception("Нет подключения к сети и кэш пуст.")))
         }
     }
 
-    fun getScheduleOnlyNetwork(groupTitle: String): Flow<Result<ScheduleModel>> = flow {
-        try {
-            val networkResponse = networkApi.getScheduleByGroup(groupTitle)
-            storage.saveSchedule(networkResponse)
-            emit(Result.success(networkResponse))
-        } catch (e: Exception) {
-            if (e is CancellationException) throw e
+    fun getSessionSchedule(groupTitle: String): Flow<Result<ScheduleModel>> = flow {
+        // 1. Emit cached data immediately if exists
+        val cachedData = storage.getSchedule(groupTitle) // Note: getSchedule in storage can handle session flag if we set it
+        if (cachedData != null && cachedData.isSession == true) {
+            emit(Result.success(cachedData))
+        }
 
-            val errorMessage = if (e is IOException) {
-                "Ошибка сети. Не удалось обновить данные."
-            } else {
-                e.message ?: "Неизвестная ошибка"
+        // 2. Fetch from network and update cache
+        if (NetworkUtils.isNetworkAvailable(context)) {
+            try {
+                val networkResponse = networkApi.getSessionSchedule(groupTitle)
+                val responseWithFlag = networkResponse.copy(isSession = true)
+                storage.saveSchedule(responseWithFlag)
+                emit(Result.success(responseWithFlag))
+            } catch (e: Exception) {
+                if (e is CancellationException) throw e
+                Log.w("ScheduleRepository", "Session network fetch failed", e)
+                if (cachedData == null || cachedData.isSession != true) {
+                    emit(Result.failure(Exception("Ошибка сети. Кэш сессии пуст.", e)))
+                }
             }
-            Log.e("ScheduleRepository", "Network-only fetch failed", e)
-            emit(Result.failure(Exception(errorMessage, e)))
+        } else if (cachedData == null || cachedData.isSession != true) {
+            emit(Result.failure(Exception("Нет подключения к сети и кэш сессии пуст.")))
         }
     }
+
+    fun getSessionScheduleOnlyNetwork(groupTitle: String): Flow<Result<ScheduleModel>> = getSessionSchedule(groupTitle)
+
+    fun getScheduleOnlyNetwork(groupTitle: String): Flow<Result<ScheduleModel>> = getSchedule(groupTitle)
+
 }

@@ -10,5 +10,8 @@ interface UserStorage {
     fun saveAuthToken(token: String)
     fun getAuthToken(): String?
 
+    fun saveMoodleSession(session: String)
+    fun getMoodleSession(): String?
+
     fun clear()
 }

@@ -13,6 +13,9 @@ import com.rozetka.presentation.ui.home.HomeViewModel
 import com.rozetka.presentation.ui.login.LoginViewModel
 import com.rozetka.presentation.ui.message.MessagesViewModel
 import com.rozetka.presentation.ui.teacherSchedule.TeacherScheduleViewModel
+import com.rozetka.presentation.ui.moodle.DeadlinesViewModel
+import com.rozetka.presentation.ui.moodle.MoodleViewModel
+import com.rozetka.presentation.ui.moodle.QuizViewModel
 import com.rozetka.presentation.ui.pay.PayViewModel
 import com.rozetka.presentation.ui.physEdJournal.PhysEdJournalViewModel
 import com.rozetka.presentation.ui.profile.ProfileViewModel
@@ -26,12 +29,14 @@ import com.rozetka.presentation.ui.studentCard.StudentCardViewModel
 import com.rozetka.presentation.ui.students.StudentsViewModel
 import com.rozetka.presentation.ui.teacherReview.TeacherReviewViewModel
 import com.rozetka.presentation.ui.teachersRaiting.TeacherRatingViewModel
+import com.rozetka.presentation.ui.moodle.quiz.ActiveQuizViewModel
+import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
 
 val presentationModule = module {
     viewModelOf(::RootViewModel)
-    viewModelOf(::HomeViewModel)
+    viewModel { HomeViewModel(get(), get()) }
     viewModelOf(::EmployeesViewModel)
     viewModelOf(::ProfileViewModel)
     viewModelOf(::LoginViewModel)
@@ -56,4 +61,8 @@ val presentationModule = module {
     viewModelOf(::GuestSearchGroupViewModel)
     viewModelOf(::CreateApplicationViewModel)
     viewModelOf(::ArticleViewModel)
+    viewModelOf(::MoodleViewModel)
+    viewModelOf(::QuizViewModel)
+    viewModelOf(::ActiveQuizViewModel)
+    viewModelOf(::DeadlinesViewModel)
 }

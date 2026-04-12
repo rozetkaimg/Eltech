@@ -20,6 +20,7 @@ import com.rozetka.domain.util.StringObject
 import com.rozetka.presentation.navigation.AppNavHost
 import com.rozetka.presentation.navigation.Screen
 import com.rozetka.presentation.navigation.bottomNavItems
+import com.rozetka.presentation.ui.moodle.MoodleScreen
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
@@ -57,7 +58,11 @@ fun MainScreen(
         Screen.SessionSchedule,
         Screen.GuestGroupInput,
         Screen.CreateApplicationScreen,
-        Screen.ArticleScreen
+        Screen.ArticleScreen,
+        Screen.MoodleDetail,
+        Screen.Moodle,
+        Screen.Login,
+
     )
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()

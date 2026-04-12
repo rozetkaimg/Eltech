@@ -82,7 +82,7 @@ sealed class Screen(
     )
 
     data object Dialo : Screen(
-        route = "dialo/{userName}/{userId}",
+        route = "dialo/{userName}/{userId}?avatarUrl={avatarUrl}&isSubject={isSubject}&opponentData={opponentData}",
         titleResId = R.string.back_content_description,
         icon = 0,
         isFullScreen = true,
@@ -127,6 +127,14 @@ sealed class Screen(
         icon = R.drawable.newsfeed,
         isFullScreen = false,
         parentRoute = Service.route
+    )
+
+    data object SearchPeople : Screen(
+        route = "SearchPeople",
+        titleResId = R.string.mail,
+        icon = R.drawable.baseline_search_24,
+        isFullScreen = false,
+        parentRoute = Mail.route
     )
 
     data object AcademicPerScreen : Screen(
@@ -203,6 +211,46 @@ sealed class Screen(
         parentRoute = Service.route
     )
 
+    data object Moodle : Screen(
+        route = "moodle",
+        titleResId = R.string.services,
+        icon = R.drawable.moodle_595b40b75ba036ed117d67bb,
+        isFullScreen = false,
+        parentRoute = Service.route
+    )
+
+    data object MoodleDeadlines : Screen(
+        route = "moodle_deadlines",
+        titleResId = R.string.services,
+        icon = R.drawable.moodle_595b40b75ba036ed117d67bb,
+        isFullScreen = false,
+        parentRoute = Moodle.route
+    )
+
+    data object MoodleDetail : Screen(
+        route = "moodle_detail/{courseId}/{courseTitle}",
+        titleResId = R.string.services,
+        icon = R.drawable.moodle_595b40b75ba036ed117d67bb,
+        isFullScreen = false,
+        parentRoute = Moodle.route
+    )
+
+    data object Quiz : Screen(
+        route = "quiz/{quizId}/{quizTitle}",
+        titleResId = R.string.services,
+        icon = R.drawable.moodle_595b40b75ba036ed117d67bb,
+        isFullScreen = false,
+        parentRoute = MoodleDetail.route
+    )
+
+    data object ActiveQuiz : Screen(
+        route = "active_quiz/{quizUrl}/{quizTitle}",
+        titleResId = R.string.services,
+        icon = R.drawable.moodle_595b40b75ba036ed117d67bb,
+        isFullScreen = true,
+        parentRoute = Quiz.route
+    )
+
     data object Settings : Screen(
         route = "Settings",
         titleResId = R.string.settings,
@@ -218,7 +266,62 @@ sealed class Screen(
         isFullScreen = true,
 
     )
+
+    data object AddAccount : Screen(
+        route = "add_account",
+        titleResId = R.string.login_hint,
+        icon = R.drawable.door_arrow_left_outline_24,
+        isFullScreen = true
+    )
+
+    fun isChildOf(parentRoute: String): Boolean {
+        var current: String? = this.parentRoute
+        while (current != null) {
+            if (current == parentRoute) return true
+            current = allScreens.find { it.route == current }?.parentRoute
+        }
+        return false
+    }
 }
+
+val allScreens = listOf(
+    Screen.Login,
+    Screen.Schedule,
+    Screen.Mail,
+    Screen.Profile,
+    Screen.Service,
+    Screen.Settings,
+    Screen.Payment,
+    Screen.Home,
+    Screen.Dialo,
+    Screen.AcademicPerScreen,
+    Screen.DigitalService,
+    Screen.PhysEdJournalScreen,
+    Screen.SearchGroupScreen,
+    Screen.AboutApplication,
+    Screen.ProjectActivity,
+    Screen.Maps,
+    Screen.SubmitAnApplication,
+    Screen.StudentCardScreen,
+    Screen.Employees,
+    Screen.TeacherSchedule,
+    Screen.TeacherRating,
+    Screen.ScheduleLink,
+    Screen.SearchStudentsScreen,
+    Screen.SearchPeople,
+    Screen.PhysGroupJournalScreen,
+    Screen.TeacherReview,
+    Screen.SessionSchedule,
+    Screen.GuestGroupInput,
+    Screen.CreateApplicationScreen,
+    Screen.ArticleScreen,
+    Screen.MoodleDetail,
+    Screen.Moodle,
+    Screen.MoodleDeadlines,
+    Screen.Quiz,
+    Screen.ActiveQuiz,
+    Screen.AddAccount
+)
 
 val bottomNavItems = listOf(
     Screen.Home, Screen.Schedule, Screen.Mail, Screen.Service

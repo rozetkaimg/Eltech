@@ -41,7 +41,7 @@ import com.rozetka.presentation.util.getRandomRoundedCornerShape
 fun TeacherLessonDetailsDialog(
     lesson: LessonS,
     onDismissRequest: () -> Unit,
-    onTeacherClick: (String) -> Unit = {} // Добавлено для консистентности
+    onTeacherClick: (String) -> Unit = {}
 ) {
     ModalBottomSheet(
         onDismissRequest = onDismissRequest,
@@ -56,14 +56,14 @@ fun TeacherLessonDetailsDialog(
                 .padding(bottom = 32.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Заголовок: Иконка + Название (в ряд, как в обычном расписании)
+
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Box(
                     modifier = Modifier
-                        .size(64.dp) // Чуть меньше, чтобы гармонично смотрелось в ряду
+                        .size(64.dp)
                         .clip(RoundedCornerShape(20.dp))
                         .background(MaterialTheme.colorScheme.surfaceVariant),
                     contentAlignment = Alignment.Center
@@ -183,7 +183,6 @@ fun AuditoryInfoS(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp)
                 ) {
-                    // Используем текст из ресурсов для кнопки ссылки
                     Text(stringResource(R.string.error_open_link_no_app))
                 }
             }

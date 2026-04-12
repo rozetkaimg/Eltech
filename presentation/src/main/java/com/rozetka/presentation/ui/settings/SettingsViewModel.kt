@@ -2,7 +2,9 @@ package com.rozetka.presentation.ui.settings
 
 import android.annotation.SuppressLint
 import android.app.Application
+import android.content.Intent
 import android.content.IntentSender
+import android.os.Build
 import android.util.Log
 import android.widget.Toast
 import androidx.lifecycle.AndroidViewModel
@@ -25,8 +27,58 @@ import ru.rustore.sdk.appupdate.model.AppUpdateOptions
 import ru.rustore.sdk.appupdate.model.AppUpdateType
 import ru.rustore.sdk.appupdate.model.InstallStatus
 import ru.rustore.sdk.appupdate.model.UpdateAvailability
+import com.rozetka.model.UserAccount
 
 class SettingsViewModel(application: Application) : AndroidViewModel(application) {
+
+    private val secureStorage = SecureStorage(application)
+    private val _accounts = MutableStateFlow<List<UserAccount>>(secureStorage.getUserAccounts())
+    val accounts: StateFlow<List<UserAccount>> = _accounts.asStateFlow()
+
+    fun switchAccount(account: UserAccount, onComplete: () -> Unit) {
+        viewModelScope.launch {
+            val currentAccounts = secureStorage.getUserAccounts()
+            
+            // Update active status in the list
+            val updatedAccounts = currentAccounts.map {
+                it.copy(isActive = it.login == account.login)
+            }
+            secureStorage.saveUserAccounts(updatedAccounts)
+            _accounts.value = updatedAccounts
+
+            // Set as active credentials
+            secureStorage.saveLogin(account.login)
+            secureStorage.savePassword(account.password)
+            secureStorage.saveToken(account.token)
+            secureStorage.saveName(account.name)
+            secureStorage.saveGroupName(account.group)
+            secureStorage.saveProfilePhoto(account.avatar)
+            
+            // Critical: Reset global StringObject to prevent residual data
+            StringObject.ApiToken = account.token
+            StringObject.groupName = account.group
+            StringObject.Name = account.name.substringBefore(" ")
+            StringObject.SurName = account.name.substringAfter(" ", "")
+            StringObject.avatar = account.avatar
+            StringObject.isGuest = false
+
+            onComplete()
+        }
+    }
+
+    fun removeAccount(account: UserAccount) {
+        viewModelScope.launch {
+            val updatedAccounts = _accounts.value.filter { it.login != account.login }
+            secureStorage.saveUserAccounts(updatedAccounts)
+            _accounts.value = updatedAccounts
+            
+            if (account.isActive && updatedAccounts.isNotEmpty()) {
+                switchAccount(updatedAccounts.first()) {}
+            } else if (updatedAccounts.isEmpty()) {
+                logout {}
+            }
+        }
+    }
 
     @SuppressLint("StaticFieldLeak")
     private val context = getApplication<Application>().applicationContext
@@ -35,26 +87,38 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         RuStoreAppUpdateManagerFactory.create(context)
 // SettingsViewModel.kt
 
-    fun logout(onComplete: () -> Unit) {
+    fun logout(onComplete: (Boolean) -> Unit) {
         viewModelScope.launch {
             val secureStorage = SecureStorage(context)
+            val currentAccounts = secureStorage.getUserAccounts()
+            val activeAccount = currentAccounts.find { it.isActive }
+            
+            // 1. Remove the active account from the list
+            val updatedAccounts = currentAccounts.filter { !it.isActive }
+            secureStorage.saveUserAccounts(updatedAccounts)
+            _accounts.value = updatedAccounts
 
-            // 1. Очищаем сохраненные учетные данные и токен
-            secureStorage.clearCredentials()
-            secureStorage.saveToken("")
-            secureStorage.saveGroupName("")
+            if (updatedAccounts.isNotEmpty()) {
+                // 2. Switch to the next available account
+                switchAccount(updatedAccounts.first()) {
+                    onComplete(true) // Stay on settings/main
+                }
+            } else {
+                // 3. Last account logout - clean everything and go to login
+                secureStorage.clearCredentials()
+                secureStorage.saveToken("")
+                secureStorage.saveGroupName("")
 
-            // 2. Сбрасываем глобальное состояние приложения
-            StringObject.isGuest = true
-            StringObject.ApiToken = ""
-            StringObject.groupName = ""
-            StringObject.userId = 0
-            StringObject.Name = ""
-            StringObject.SurName = ""
-            StringObject.guid = ""
+                StringObject.isGuest = true
+                StringObject.ApiToken = ""
+                StringObject.groupName = ""
+                StringObject.userId = 0
+                StringObject.Name = ""
+                StringObject.SurName = ""
+                StringObject.guid = ""
 
-            // 3. Выполняем колбэк для навигации
-            onComplete()
+                onComplete(false) // Navigate to login
+            }
         }
     }
     private val listener = InstallStateUpdateListener { state ->
@@ -95,25 +159,58 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         return SecureStorage(context).getGroupName().toString()
     }
 
-    private val _notificationState = MutableStateFlow(SecureStorage(context).getScheduleNotificationState())
+    private val _notificationState = MutableStateFlow(secureStorage.getScheduleNotificationState())
     val notificationState: StateFlow<Boolean> = _notificationState.asStateFlow()
 
+    private val _chatNotificationState = MutableStateFlow(secureStorage.getChatNotificationState())
+    val chatNotificationState: StateFlow<Boolean> = _chatNotificationState.asStateFlow()
+
     fun saveScheduleNotificationState(state: Boolean) {
-        SecureStorage(context).saveScheduleNotificationState(state)
+        secureStorage.saveScheduleNotificationState(state)
         _notificationState.value = state
+        
+        val intent = Intent()
+        intent.setClassName(context.packageName, "com.rozetka.epolitech.services.LessonNotificationService")
+        if (state) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                context.startForegroundService(intent)
+            } else {
+                context.startService(intent)
+            }
+        } else {
+            context.stopService(intent)
+        }
+    }
+
+    fun saveChatNotificationState(state: Boolean) {
+        secureStorage.saveChatNotificationState(state)
+        _chatNotificationState.value = state
+        
+        val intent = Intent()
+        intent.setClassName(context.packageName, "com.rozetka.epolitech.services.MessageNotificationService")
+        if (state) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                context.startForegroundService(intent)
+            } else {
+                context.startService(intent)
+            }
+        } else {
+            context.stopService(intent)
+        }
     }
 
     fun onNotificationPermissionResult(isGranted: Boolean) {
         if (isGranted) {
             saveScheduleNotificationState(true)
+            saveChatNotificationState(true)
         } else {
             Toast.makeText(context, context.getString(R.string.notification_permission_denied), Toast.LENGTH_SHORT).show()
         }
     }
 
-    fun getScheduleState(): Boolean = SecureStorage(context).getScheduleState()
+    fun getScheduleState(): Boolean = secureStorage.getScheduleState()
     fun saveScheduleState(state: Boolean) {
-        SecureStorage(context).saveScheduleState(state)
+        secureStorage.saveScheduleState(state)
     }
     init {
         appUpdateManager.registerListener(listener)

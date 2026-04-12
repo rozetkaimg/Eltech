@@ -14,5 +14,6 @@ interface UserRepository {
     fun clearUserData()
     fun getUser(): Flow<User?>
     suspend fun refreshUser(): Result<Unit>
-
+    suspend fun getMoodleSession(): String?
+    suspend fun saveMoodleSession(session: String)
 }

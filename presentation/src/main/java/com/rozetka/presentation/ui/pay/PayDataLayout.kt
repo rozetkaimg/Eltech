@@ -1,6 +1,7 @@
 package com.rozetka.presentation.ui.pay
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -26,6 +27,9 @@ import com.rozetka.presentation.R
 
 @Composable
 fun PayDataLayout(data: PayModel, contentPadding: PaddingValues) {
+    val hasEducation = data.contracts.education.isNotEmpty()
+    val hasDormitory = data.contracts.dormitory.isNotEmpty()
+
     LazyColumn(
         verticalArrangement = Arrangement.spacedBy(16.dp),
         modifier = Modifier
@@ -33,7 +37,26 @@ fun PayDataLayout(data: PayModel, contentPadding: PaddingValues) {
             .padding(top = contentPadding.calculateTopPadding())
             .padding(horizontal = 16.dp),
     ) {
-        if (data.contracts.education.isNotEmpty()) {
+        if (!hasEducation && !hasDormitory) {
+            item {
+                Box(
+                    modifier = Modifier
+                        .fillParentMaxSize()
+                        .padding(bottom = 64.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            text = "У вас нет активных договоров",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
+        }
+
+        if (hasEducation) {
             item {
                 Text(
                     text = stringResource(R.string.education_payment_title),
@@ -42,12 +65,11 @@ fun PayDataLayout(data: PayModel, contentPadding: PaddingValues) {
                 )
             }
             items(data.contracts.education) { contract ->
-
-                Text(stringResource(R.string.educational_contract, contract))
+                DormitoryCard(contract)
             }
         }
 
-        if (data.contracts.dormitory.isNotEmpty()) {
+        if (hasDormitory) {
             item {
                 Text(
                     text = stringResource(R.string.dormitory_payment_title),
@@ -58,18 +80,20 @@ fun PayDataLayout(data: PayModel, contentPadding: PaddingValues) {
             items(data.contracts.dormitory) { contract ->
                 DormitoryCard(contract)
             }
-            item {
-                Text(
-                    text = stringResource(R.string.payment_schedule_title),
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold
-                )
+            
+            if (data.contracts.dormitory[0].paygraph.isNotEmpty()) {
+                item {
+                    Text(
+                        text = stringResource(R.string.payment_schedule_title),
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(top = 8.dp)
+                    )
+                }
+                items(data.contracts.dormitory[0].paygraph) { item ->
+                    PaymentPlanCard(item)
+                }
             }
-            items(data.contracts.dormitory[0].paygraph) { item ->
-                PaymentPlanCard(item)
-
-            }
-
         }
     }
 }

@@ -27,6 +27,7 @@ class UserStorageImpl(context: Context) : UserStorage {
         private const val KEY_LOGIN = "LOGIN"
         private const val KEY_PASSWORD = "PASSWORD"
         private const val KEY_AUTH_TOKEN = "AUTH_TOKEN"
+        private const val KEY_MOODLE_SESSION = "MOODLE_SESSION"
     }
 
     override fun saveLogin(login: String) {
@@ -51,6 +52,14 @@ class UserStorageImpl(context: Context) : UserStorage {
 
     override fun getAuthToken(): String? {
         return sharedPreferences.getString(KEY_AUTH_TOKEN, null)
+    }
+
+    override fun saveMoodleSession(session: String) {
+        sharedPreferences.edit { putString(KEY_MOODLE_SESSION, session) }
+    }
+
+    override fun getMoodleSession(): String? {
+        return sharedPreferences.getString(KEY_MOODLE_SESSION, null)
     }
 
     override fun clear() {

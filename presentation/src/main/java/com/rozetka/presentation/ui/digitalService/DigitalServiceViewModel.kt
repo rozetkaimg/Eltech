@@ -36,7 +36,7 @@ class DigitalServiceViewModel : ViewModel() {
                 val requestsData = repository.getAppRequests(token)
                 _uiState.value = DigitalServiceUiState.Success(requestsData)
             } catch (e: Exception) {
-                _uiState.value = DigitalServiceUiState.Error("Ошибка загрузки данных: ${e.message}")
+                _uiState.value = DigitalServiceUiState.Error(e.message ?: "Unknown error")
             }
         }
     }

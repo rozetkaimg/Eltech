@@ -18,8 +18,8 @@ fun CategoryListContent(
     toMaps: () -> Unit,
     toDigitalService: () -> Unit,
     toPhysEdJournal: () -> Unit,
-    toProjectActivity: () -> Unit
-
+    toProjectActivity: () -> Unit,
+    toMoodle: () -> Unit
 ) {
     CategoryItem(
         iconResId = R.drawable.education_outline_28,
@@ -83,6 +83,16 @@ fun CategoryListContent(
         shape = RoundedCornerShape(8.dp),
         onClick = toPay,
         Color(0xFFFAD1E2)
+    )
+    Spacer(Modifier.size(2.dp))
+
+    CategoryItem(
+        iconResId = R.drawable.moodle_595b40b75ba036ed117d67bb,
+        title = "Moodle (LMS)",
+        subtitle = "Учебные курсы и материалы",
+        shape = RoundedCornerShape(8.dp),
+        onClick = toMoodle,
+        Color(0xFFFFE082)
     )
     Spacer(Modifier.size(2.dp))
 

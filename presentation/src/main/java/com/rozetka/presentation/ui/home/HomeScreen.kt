@@ -1,6 +1,5 @@
 package com.rozetka.presentation.ui.home
 
-import android.net.Uri
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.fadeIn
@@ -11,10 +10,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -24,22 +21,17 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Public
+import androidx.compose.material.icons.rounded.Schedule
 import androidx.compose.material3.BottomSheetDefaults
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -50,8 +42,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -59,9 +49,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -71,21 +59,19 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
-import coil.compose.AsyncImage
 import com.rozetka.domain.UserDataHolder
 import com.rozetka.model.ExternalNewsItem
 import com.rozetka.model.NewsModelItem
+import com.rozetka.model.NotificationModelItem
 import com.rozetka.model.PolytechEvent
 import com.rozetka.presentation.R
 import com.rozetka.presentation.ui.pay.LoadingState
 import com.rozetka.presentation.util.ExpressiveErrorState
 import com.rozetka.presentation.util.generateColorFromHash
-import com.rozetka.presentation.util.getNavigationBarHeightDp
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
-import java.util.regex.Pattern
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun HomeScreen(
     navController: NavController,
@@ -94,11 +80,13 @@ fun HomeScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val scope = rememberCoroutineScope()
-    val pagerState = rememberPagerState(pageCount = { 3 })
+    val pagerState = rememberPagerState(pageCount = { 4 })
 
     var selectedNewsItem by remember { mutableStateOf<NewsModelItem?>(null) }
     var selectedEventItem by remember { mutableStateOf<PolytechEvent?>(null) }
     var selectedExternalItem by remember { mutableStateOf<ExternalNewsItem?>(null) }
+    var selectedNotification by remember { mutableStateOf<NotificationModelItem?>(null) }
+    var showNotificationsSheet by remember { mutableStateOf(false) }
 
     val configuration = LocalConfiguration.current
     val isTablet = configuration.screenWidthDp > 600
@@ -124,7 +112,11 @@ fun HomeScreen(
                             )
                         },
                         actions = {
-                            IconButton(onClick = {}) {
+                            IconButton(onClick = {
+                                if (uiState is HomeUiState.Success) {
+                                    showNotificationsSheet = true
+                                }
+                            }) {
                                 Icon(
                                     painterResource(R.drawable.notifications_28),
                                     contentDescription = null,
@@ -142,14 +134,13 @@ fun HomeScreen(
                         Card(
                             modifier = Modifier,
                             shape = RoundedCornerShape(30.dp),
-
                             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh)
                         ) {
                             val tabs = listOf(
                                 Triple("Сайт", Icons.Default.Public, 0),
                                 Triple("События", ImageVector.vectorResource(R.drawable.calendar_outline_24), 1),
                                 Triple("Новости", ImageVector.vectorResource(R.drawable.newsfeed), 2),
-
+                                Triple("Дедлайны", Icons.Rounded.Schedule, 3),
                             )
 
                             LazyRow(
@@ -224,9 +215,9 @@ fun HomeScreen(
                         HomeGridContent(
                             state = state,
                             pageIndex = pageIndex,
-                            onNewsClick = { selectedNewsItem = it; scope.launch { sheetState.show() } },
-                            onEventClick = { selectedEventItem = it; scope.launch { sheetState.show() } },
-                            onExternalClick = { selectedExternalItem = it; scope.launch { sheetState.show() } },
+                            onNewsClick = { selectedNewsItem = it },
+                            onEventClick = { selectedEventItem = it },
+                            onExternalClick = { selectedExternalItem = it },
                             navController = navController,
                             onLoadMore = {
                                 when (pageIndex) {
@@ -241,204 +232,38 @@ fun HomeScreen(
         }
     }
 
-    if (sheetState.isVisible) {
+    if (showNotificationsSheet || selectedNewsItem != null || selectedEventItem != null || selectedExternalItem != null || selectedNotification != null) {
         ModalBottomSheet(
             onDismissRequest = {
-                scope.launch {
-                    sheetState.hide()
-                    selectedNewsItem = null
-                    selectedEventItem = null
-                    selectedExternalItem = null
-                }
+                showNotificationsSheet = false
+                selectedNewsItem = null
+                selectedEventItem = null
+                selectedExternalItem = null
+                selectedNotification = null
             },
             sheetState = sheetState,
             dragHandle = { BottomSheetDefaults.DragHandle() },
-
         ) {
             Box(
                 modifier = Modifier.fillMaxWidth(),
                 contentAlignment = Alignment.Center
             ) {
                 Box(modifier = Modifier.widthIn(max = 800.dp)) {
+                    if (showNotificationsSheet && uiState is HomeUiState.Success) {
+                        NotificationsListSheet(
+                            notifications = (uiState as HomeUiState.Success).notifications,
+                            onNotificationClick = {
+                                selectedNotification = it
+                                showNotificationsSheet = false
+                            }
+                        )
+                    }
                     selectedExternalItem?.let { ExternalNewsDetailSheet(it) }
                     selectedNewsItem?.let { NewsDetailSheet(it) }
                     selectedEventItem?.let { EventDetailSheet(it) }
+                    selectedNotification?.let { NotificationDetailSheet(it) }
                 }
             }
         }
     }
-}
-
-@Composable
-private fun HomeGridContent(
-    state: HomeUiState.Success,
-    pageIndex: Int,
-    onNewsClick: (NewsModelItem) -> Unit,
-    onEventClick: (PolytechEvent) -> Unit,
-    navController: NavController,
-    onExternalClick: (ExternalNewsItem) -> Unit,
-    onLoadMore: () -> Unit
-) {
-    val gridState = rememberLazyGridState()
-    val shouldLoadMore = remember {
-        derivedStateOf {
-            val lastVisibleItem = gridState.layoutInfo.visibleItemsInfo.lastOrNull()
-                ?: return@derivedStateOf false
-            lastVisibleItem.index >= gridState.layoutInfo.totalItemsCount - 2
-        }
-    }
-
-    LaunchedEffect(shouldLoadMore.value) {
-        if (shouldLoadMore.value) onLoadMore()
-    }
-
-    LazyVerticalGrid(
-        state = gridState,
-        columns = GridCells.Adaptive(minSize = 340.dp),
-        modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 24.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        when (pageIndex) {
-            0 -> {
-                items(state.externalNews) { item ->
-                    ExternalNewsCard(item = item, onClick = {
-                        val encodedUrl =
-                            Uri.encode(item.link) // item.link — это "https://mospolytech.ru/..."
-                        navController.navigate("Article/$encodedUrl")
-                    })
-                }
-                item {
-                    Spacer(Modifier.size(getNavigationBarHeightDp() + 80.dp))
-                }
-            }
-            2 -> {
-                items(state.news) { item ->
-                    NewsItem(
-                        image = extractImageUrl(item.content),
-                        categoryName = item.date,
-                        title = item.title,
-                        tag = item.time,
-                        onClick = { onNewsClick(item) }
-                    )
-                }
-                item {
-                    Spacer(Modifier.size(getNavigationBarHeightDp() + 80.dp))
-                }
-            }
-            1 -> {
-                items(state.events) { event ->
-                    EventItem(event = event, onClick = { onEventClick(event) })
-                }
-                item {
-                    Spacer(Modifier.size(getNavigationBarHeightDp() + 80.dp))
-                }
-
-            }
-        }
-    }
-}
-
-@Composable
-private fun NewsDetailSheet(newsItem: NewsModelItem) {
-    Column(
-        modifier = Modifier
-            .padding(horizontal = 24.dp, vertical = 16.dp)
-            .verticalScroll(rememberScrollState())
-    ) {
-        Text(newsItem.title, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
-        Text("${newsItem.date} в ${newsItem.time}", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(vertical = 8.dp))
-        val imageUrl = extractImageUrl(newsItem.content)
-        if (imageUrl.isNotEmpty()) {
-            AsyncImage(
-                model = imageUrl,
-                contentDescription = null,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(24.dp))
-                    .aspectRatio(16f / 9f),
-                contentScale = ContentScale.Crop
-            )
-        }
-        Spacer(Modifier.height(20.dp))
-        Text(
-            text = android.text.Html.fromHtml(newsItem.content, android.text.Html.FROM_HTML_MODE_LEGACY).toString(),
-            style = MaterialTheme.typography.bodyLarge,
-            lineHeight = 24.sp
-        )
-        Spacer(Modifier.height(48.dp))
-    }
-}
-
-@Composable
-private fun EventDetailSheet(event: PolytechEvent) {
-    Column(
-        modifier = Modifier
-            .padding(horizontal = 24.dp, vertical = 16.dp)
-            .verticalScroll(rememberScrollState())
-    ) {
-        Text(event.title, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
-        Text(event.date, color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(vertical = 8.dp))
-        AsyncImage(
-            model = event.imageUrl,
-            contentDescription = null,
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(24.dp))
-                .aspectRatio(16f / 9f),
-            contentScale = ContentScale.Crop
-        )
-        Spacer(Modifier.height(24.dp))
-        Button(
-            onClick = { },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(56.dp),
-            shape = RoundedCornerShape(16.dp)
-        ) { Text("Зарегистрироваться", fontSize = 16.sp) }
-        Spacer(Modifier.height(48.dp))
-    }
-}
-
-@Composable
-private fun ExternalNewsDetailSheet(item: ExternalNewsItem) {
-    Column(
-        modifier = Modifier
-            .padding(horizontal = 24.dp, vertical = 16.dp)
-            .verticalScroll(rememberScrollState())
-    ) {
-        Text(item.title, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
-        Text(item.date, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(vertical = 8.dp))
-        AsyncImage(
-            model = item.imageUrl,
-            contentDescription = null,
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(24.dp))
-                .aspectRatio(16f / 9f),
-            contentScale = ContentScale.Crop
-        )
-        Spacer(Modifier.height(20.dp))
-        Text(item.description, style = MaterialTheme.typography.bodyLarge, lineHeight = 26.sp)
-        Spacer(Modifier.height(24.dp))
-        Button(
-            onClick = { },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(56.dp),
-            shape = RoundedCornerShape(16.dp)
-        ) { Text("Читать полностью", fontSize = 16.sp) }
-        Spacer(Modifier.height(48.dp))
-    }
-}
-
-
-private fun extractImageUrl(htmlContent: String): String {
-    val pattern = Pattern.compile("src=\"([^\"]+)\"")
-    val matcher = pattern.matcher(htmlContent)
-    return if (matcher.find()) {
-        val src = matcher.group(1) ?: ""
-        if (src.startsWith("http")) src else "https://e.mospolytech.ru/old/$src"
-    } else ""
 }

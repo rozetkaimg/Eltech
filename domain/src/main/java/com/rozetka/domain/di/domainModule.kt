@@ -3,6 +3,7 @@ package com.rozetka.domain.di
 
 import com.rozetka.domain.repository.AppRepository
 import com.rozetka.domain.repository.LoginRepository
+import com.rozetka.domain.repository.MoodleRepository
 import com.rozetka.domain.repository.ScheduleRepository
 import com.rozetka.domain.repository.UsersRepository
 import com.rozetka.domain.usecase.CalendarUseCase

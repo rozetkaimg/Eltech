@@ -1,6 +1,7 @@
 package com.rozetka.presentation.ui.shedule
 
 import android.app.Application
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.rozetka.data.SecureStorage
@@ -49,12 +50,12 @@ class ScheduleViewModel(
     private val secureStorage: SecureStorage = SecureStorage(application)
 
     init {
-        try {
-            viewModelScope.launch {
+        viewModelScope.launch {
+            try {
                 campusToken = campusApi.getBearerToken().token
+            } catch (e: Exception) {
+                Log.e("ScheduleViewModel", "Failed to get campus token", e)
             }
-        } catch (e: Exception) {
-
         }
         getSchedule(StringObject.groupName)
     }
@@ -72,29 +73,31 @@ class ScheduleViewModel(
                 return@launch
             }
 
-            val scheduleFlow: Flow<Result<ScheduleModel>> = if (group.isNotEmpty()) {
-                scheduleRepository.getScheduleOnlyNetwork(groupToFetch)
-            } else {
-                scheduleRepository.getSchedule(groupToFetch)
-            }
-
-            scheduleFlow
+            // Always use the robust getSchedule from repository
+            scheduleRepository.getSchedule(groupToFetch)
                 .catch { e ->
+                    Log.e("ScheduleViewModel", "Flow error in getSchedule", e)
                     _uiState.value = ScheduleUiState.Error(
                         application.getString(
                             R.string.error_critical_prefix,
-                            e.message
+                            e.message ?: "Unknown error"
                         )
                     )
                 }
                 .collect { result ->
                     result.onSuccess { scheduleData ->
-                        val screenData = processScheduleData(scheduleData)
-                        _uiState.value = ScheduleUiState.Success(screenData)
+                        try {
+                            val screenData = processScheduleData(scheduleData)
+                            _uiState.value = ScheduleUiState.Success(screenData)
+                        } catch (e: Exception) {
+                            Log.e("ScheduleViewModel", "Error processing schedule data", e)
+                            _uiState.value = ScheduleUiState.Error("Ошибка обработки данных расписания")
+                        }
                     }
                     result.onFailure { throwable ->
+                        Log.e("ScheduleViewModel", "Result failure in getSchedule", throwable)
                         _uiState.value = ScheduleUiState.Error(
-                            application.getString(R.string.error_load_prefix, throwable.message)
+                            application.getString(R.string.error_load_prefix, throwable.message ?: "Network error")
                         )
                     }
                 }
@@ -102,7 +105,8 @@ class ScheduleViewModel(
     }
 
     private fun processScheduleData(schedule: ScheduleModel): ScheduleScreenData {
-        if (schedule.group == null || schedule.grid.isNullOrEmpty()) {
+        val group = schedule.group
+        if (group == null || schedule.grid.isNullOrEmpty()) {
             return ScheduleScreenData(
                 fullSchedule = schedule,
                 weeks = emptyList(),
@@ -111,8 +115,12 @@ class ScheduleViewModel(
             )
         }
 
-        val startDate = LocalDate.parse(schedule.group?.dateFrom?: "0")
-        val endDate = LocalDate.parse(schedule.group?.dateTo?: "0")
+        // Safer parsing with fallback
+        val startDate = runCatching { LocalDate.parse(group.dateFrom) }
+            .getOrDefault(LocalDate.now())
+        val endDate = runCatching { LocalDate.parse(group.dateTo) }
+            .getOrDefault(startDate.plusMonths(4))
+
         val weeks = generateWeeks(startDate, endDate)
         val initialIndex = findCurrentWeekIndex(weeks)
         return ScheduleScreenData(schedule, weeks, initialIndex, isScheduleMissing = false)

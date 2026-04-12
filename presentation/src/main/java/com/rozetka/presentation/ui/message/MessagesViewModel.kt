@@ -5,9 +5,12 @@ import androidx.lifecycle.viewModelScope
 import com.rozetka.domain.util.StringObject.ApiToken
 import com.rozetka.model.MessageModelItem
 import com.rozetka.network.MospolytechMethods
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
 class MessagesViewModel(
@@ -17,21 +20,36 @@ class MessagesViewModel(
     private val _uiState = MutableStateFlow<MessagesUiState>(MessagesUiState.Loading)
     val uiState: StateFlow<MessagesUiState> = _uiState.asStateFlow()
 
+    private var pollingJob: Job? = null
+
     init {
         getMessages()
     }
 
     fun getMessages() {
-        viewModelScope.launch {
+        pollingJob?.cancel()
+        pollingJob = viewModelScope.launch {
             _uiState.value = MessagesUiState.Loading
-            try {
+            while (isActive) {
+                try {
+                    val newMessages = repository.getMsgDialogues(ApiToken)
+                    val currentState = _uiState.value
 
-                val messages = repository.getMsgDialogues(ApiToken)
-                _uiState.value = MessagesUiState.Success(messages)
-            } catch (e: Exception) {
-                _uiState.value = MessagesUiState.Error(
-                    e.message ?: "Неизвестная ошибка загрузки сообщений."
-                )
+                    if (currentState is MessagesUiState.Success) {
+                        if (currentState.data != newMessages) {
+                            _uiState.value = MessagesUiState.Success(newMessages)
+                        }
+                    } else {
+                        _uiState.value = MessagesUiState.Success(newMessages)
+                    }
+                } catch (e: Exception) {
+                    if (_uiState.value !is MessagesUiState.Success) {
+                        _uiState.value = MessagesUiState.Error(
+                            e.message ?: "Неизвестная ошибка загрузки сообщений."
+                        )
+                    }
+                }
+                delay(5000L)
             }
         }
     }
