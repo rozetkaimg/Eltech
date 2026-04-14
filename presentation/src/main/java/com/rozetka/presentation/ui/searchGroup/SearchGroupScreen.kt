@@ -137,20 +137,28 @@ fun SearchGroupScreen(
 
             when (val state = uiState) {
                 is SearchGroupUiState.Loading -> LoadingState()
-                is SearchGroupUiState.Success -> GroupList(
-                    groups = state.groups,
-                    favorites = favorites,
-                    onGroupClick = { groupName ->
-                        navController.navigate(Screen.ScheduleLink.route + "/$groupName")
-                    },
-                    onToggleFavorite = { groupName, isFavorite ->
-                        if (isFavorite) {
-                            viewModel.removeFromFavorites(groupName)
-                        } else {
-                            viewModel.addToFavorites(groupName)
+                is SearchGroupUiState.Success -> {
+                    Text(
+                        text = "Найдено групп: ${state.groups.size}",
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.padding(vertical = 8.dp)
+                    )
+                    GroupList(
+                        groups = state.groups,
+                        favorites = favorites,
+                        onGroupClick = { groupName ->
+                            navController.navigate(Screen.ScheduleLink.route + "/$groupName")
+                        },
+                        onToggleFavorite = { groupName, isFavorite ->
+                            if (isFavorite) {
+                                viewModel.removeFromFavorites(groupName)
+                            } else {
+                                viewModel.addToFavorites(groupName)
+                            }
                         }
-                    }
-                )
+                    )
+                }
 
                 is SearchGroupUiState.Error -> ExpressiveErrorState(
                     message = state.message,
@@ -203,10 +211,6 @@ private fun GroupList(
     onToggleFavorite: (String, Boolean) -> Unit
 ) {
     Column {
-        Text(
-            text = stringResource(R.string.search_results_title, groups.size),
-            style = MaterialTheme.typography.titleLarge,
-        )
         LazyVerticalGrid(
             columns = GridCells.Fixed(3),
             verticalArrangement = Arrangement.spacedBy(8.dp),

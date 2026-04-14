@@ -2,18 +2,7 @@ package com.rozetka.presentation.ui.students
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
@@ -23,40 +12,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Message
 import androidx.compose.material.icons.automirrored.filled.Send
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.DateRange
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.School
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.SearchOff
-import androidx.compose.material3.Badge
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialShapes
-import androidx.compose.material3.MaterialShapes.Companion.Cookie9Sided
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SearchBar
-import androidx.compose.material3.SearchBarDefaults
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.rememberModalBottomSheetState
-import androidx.compose.material3.toShape
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -74,12 +32,13 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import coil.compose.SubcomposeAsyncImage
 import com.rozetka.model.StudentR
+import com.rozetka.model.Specialty
+import com.rozetka.model.GroupInfo
 import com.rozetka.presentation.R
 import com.rozetka.presentation.navigation.Screen
 import com.rozetka.presentation.ui.pay.LoadingState
 import com.rozetka.presentation.util.ExpressiveErrorState
 import com.rozetka.presentation.util.generateColorFromHash
-import com.rozetka.presentation.util.getNavigationBarHeightDp
 import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -96,13 +55,15 @@ fun StudentsScreen(
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     Scaffold(
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
             TopAppBar(
+                windowInsets = WindowInsets.statusBars,
                 title = {
                     Box(
                         Modifier
                             .height(64.dp)
-                            .padding(end = 32.dp)
+                            .padding(end = 16.dp)
                             .semantics { isTraversalGroup = true }
                     ) {
                         SearchBar(
@@ -117,12 +78,7 @@ fun StudentsScreen(
                                     expanded = false,
                                     onExpandedChange = {},
                                     placeholder = { Text("Поиск студентов") },
-                                    leadingIcon = {
-                                        Icon(
-                                            imageVector = Icons.Default.Search,
-                                            contentDescription = null
-                                        )
-                                    }
+                                    leadingIcon = { Icon(Icons.Default.Search, null) }
                                 )
                             },
                             expanded = false,
@@ -131,26 +87,20 @@ fun StudentsScreen(
                     }
                 },
                 navigationIcon = {
-                    Box(Modifier.height(64.dp)) {
-                        IconButton(
-                            onClick = { navController.navigateUp() },
-                            modifier = Modifier.align(Alignment.Center)
-                        ) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = stringResource(R.string.common_back)
-                            )
-                        }
+                    IconButton(onClick = { navController.navigateUp() }) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(R.string.common_back)
+                        )
                     }
                 }
             )
         }
     ) { contentPadding ->
-        Column(
+        Box(
             modifier = Modifier
-                .padding(contentPadding)
                 .fillMaxSize()
-                .padding(vertical = 8.dp)
+                .padding(top = contentPadding.calculateTopPadding())
         ) {
             when (val state = uiState) {
                 is StudentsUiState.Loading -> LoadingState()
@@ -159,13 +109,12 @@ fun StudentsScreen(
                         items = state.items,
                         isLoadingMore = state.isLoadingMore,
                         onLoadMore = viewModel::loadNextPage,
-                        onItemClick = { selectedStudent = it },
-                        modifier = Modifier.padding(horizontal = 16.dp)
+                        onItemClick = { selectedStudent = it }
                     )
                 }
                 is StudentsUiState.Error -> ExpressiveErrorState(
                     message = state.message,
-                    { viewModel.searchStudents() }
+                    onUpdate = { viewModel.searchStudents() }
                 )
                 is StudentsUiState.Empty -> EmptyState(state.query)
                 is StudentsUiState.Initial -> InitialState()
@@ -178,11 +127,13 @@ fun StudentsScreen(
                     selectedStudent = null
                     viewModel.resetMessageState()
                 },
-                sheetState = sheetState
+                sheetState = sheetState,
+
             ) {
                 StudentDetailsBottomSheet(
                     student = selectedStudent!!,
                     messageUiState = messageUiState,
+                    viewModel = viewModel,
                     onSendMessage = { message ->
                         viewModel.sendMessageToStudent(selectedStudent!!.id, message)
                     },
@@ -209,10 +160,26 @@ private fun StudentsList(
     modifier: Modifier = Modifier
 ) {
     LazyColumn(
-        modifier = modifier,
+        modifier = modifier.fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(12.dp),
-        contentPadding = PaddingValues(bottom = 16.dp)
+        contentPadding = PaddingValues(
+            top = 8.dp,
+            start = 16.dp,
+            end = 16.dp,
+            bottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding() + 90.dp
+        )
     ) {
+        item {
+            Text(
+                text = "Найдено студентов: ${items.size}",
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp)
+            )
+        }
+
         itemsIndexed(items) { index, student ->
             if (index >= items.size - 1 && !isLoadingMore) {
                 onLoadMore()
@@ -225,18 +192,10 @@ private fun StudentsList(
 
         if (isLoadingMore) {
             item {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    contentAlignment = Alignment.Center
-                ) {
+                Box(Modifier.fillMaxWidth().padding(16.dp), Alignment.Center) {
                     CircularProgressIndicator(modifier = Modifier.size(24.dp))
                 }
             }
-        }
-        item {
-            Spacer(Modifier.height(getNavigationBarHeightDp() + 40.dp))
         }
     }
 }
@@ -245,45 +204,34 @@ private fun StudentsList(
 @Composable
 private fun StudentItem(
     student: StudentR,
+    viewModel: StudentsViewModel = koinViewModel(),
     onClick: () -> Unit
 ) {
+    val specialty = remember(student.group) {
+        viewModel.getSpecialtyForGroup(student.group)
+    }
+
     Card(
         shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainer
-        ),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
         onClick = onClick
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
+            modifier = Modifier.fillMaxWidth().padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             SubcomposeAsyncImage(
                 model = student.avatar.ifEmpty { null },
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
-                modifier = Modifier
-                    .size(56.dp)
-                    .clip(Cookie9Sided.toShape()),
-                loading = {
-                    Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
-                        CircularProgressIndicator(strokeWidth = 2.dp)
-                    }
-                },
+                modifier = Modifier.size(56.dp).clip(MaterialShapes.Cookie9Sided.toShape()),
+                loading = { Box(Modifier.fillMaxSize(), Alignment.Center) { CircularProgressIndicator(strokeWidth = 2.dp) } },
                 error = {
                     Box(
-                        contentAlignment = Alignment.Center,
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(generateColorFromHash(student.fio).copy(0.15f))
+                        Modifier.fillMaxSize().background(generateColorFromHash(student.fio).copy(0.15f)),
+                        Alignment.Center
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.Person,
-                            contentDescription = null,
-                            tint = generateColorFromHash(student.fio)
-                        )
+                        Icon(Icons.Default.Person, null, tint = generateColorFromHash(student.fio))
                     }
                 }
             )
@@ -294,24 +242,28 @@ private fun StudentItem(
                 Text(
                     text = student.fio,
                     style = MaterialTheme.typography.titleMedium,
-                    maxLines = 2,
+                    maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
-                if (student.group.isNotBlank()) {
-                    Text(
-                        text = student.group,
-                        style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                }
-                if (student.faculty.isNotBlank()) {
-                    Text(
-                        text = student.faculty,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
+                Column () {
+                    if (student.group.isNotBlank()) {
+                        Text(
+                            text = specialty.fullName,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+
+                        Text(
+                            text = student.group,
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+
+
+
+                    }
                 }
             }
         }
@@ -323,70 +275,48 @@ private fun StudentItem(
 private fun StudentDetailsBottomSheet(
     student: StudentR,
     messageUiState: MessageUiState,
+    viewModel: StudentsViewModel,
     onSendMessage: (String) -> Unit,
     onNavigateToDialog: (String) -> Unit,
     onScheduleClick: (String) -> Unit
 ) {
     var messageText by remember { mutableStateOf("") }
+    val groupInfo = remember(student.group) {
+        viewModel.getGroupInfo(student.group)
+    }
 
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 24.dp)
-            .padding(bottom = 48.dp),
+            .padding(bottom = 32.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         SubcomposeAsyncImage(
             model = student.avatar.ifEmpty { null },
             contentDescription = null,
             contentScale = ContentScale.Crop,
-            modifier = Modifier
-                .size(160.dp)
-                .clip(Cookie9Sided.toShape()),
-            loading = {
-                Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
-                    CircularProgressIndicator()
-                }
-            },
+            modifier = Modifier.size(160.dp).clip(MaterialShapes.Cookie9Sided.toShape()),
+            loading = { Box(Modifier.fillMaxSize(), Alignment.Center) { CircularProgressIndicator() } },
             error = {
                 Box(
-                    contentAlignment = Alignment.Center,
-                    modifier = Modifier
-                        .fillMaxSize()
-
-                        .background(generateColorFromHash(student.fio).copy(0.15f))
+                    Modifier.fillMaxSize().background(generateColorFromHash(student.fio).copy(0.15f)),
+                    Alignment.Center
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Person,
-                        contentDescription = null,
-                        modifier = Modifier.size(64.dp),
-                        tint = generateColorFromHash(student.fio)
-                    )
+                    Icon(Icons.Default.Person, null, modifier = Modifier.size(64.dp), tint = generateColorFromHash(student.fio))
                 }
             }
         )
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        Text(
-            text = student.fio,
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.Bold,
-            textAlign = TextAlign.Center
-        )
+        Text(student.fio, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
 
         if (student.group.isNotBlank()) {
             Spacer(modifier = Modifier.height(8.dp))
-            Badge(
-                containerColor = MaterialTheme.colorScheme.primaryContainer,
-                contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-            ) {
-                Text(
-                    text = student.group,
-                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                    style = MaterialTheme.typography.titleMedium
-                )
+            Badge(containerColor = MaterialTheme.colorScheme.primaryContainer, contentColor = MaterialTheme.colorScheme.onPrimaryContainer) {
+                Text(student.group, modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp), style = MaterialTheme.typography.titleMedium)
             }
         }
 
@@ -394,40 +324,33 @@ private fun StudentDetailsBottomSheet(
         HorizontalDivider()
         Spacer(modifier = Modifier.height(24.dp))
 
-        Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-            if (student.faculty.isNotBlank()) {
-                StudentInfoRow(
-                    icon = Icons.Default.School,
-                    value = student.faculty
-                )
-            }
+        if (groupInfo.specialty != Specialty.UNKNOWN) {
+            StudentInfoRow(Icons.Default.School, "Направление", groupInfo.specialty.name)
+            Spacer(modifier = Modifier.height(16.dp))
+            StudentInfoRow(Icons.Default.Assignment, "Профиль", groupInfo.profile)
+            Spacer(modifier = Modifier.height(16.dp))
+        }
+
+        if (student.faculty.isNotBlank()) {
+            StudentInfoRow(Icons.Default.AccountBalance, "Подразделение", student.faculty)
+            Spacer(modifier = Modifier.height(16.dp))
         }
 
         if (student.group.isNotBlank()) {
-            Spacer(modifier = Modifier.height(24.dp))
             Button(
                 onClick = { onScheduleClick(student.group) },
                 modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer
-                ),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondaryContainer, contentColor = MaterialTheme.colorScheme.onSecondaryContainer),
                 contentPadding = PaddingValues(vertical = 16.dp)
             ) {
-                Icon(Icons.Default.DateRange, contentDescription = null)
+                Icon(Icons.Default.DateRange, null)
                 Spacer(modifier = Modifier.width(8.dp))
                 Text("Расписание группы")
             }
         }
 
         Spacer(modifier = Modifier.height(32.dp))
-
-        Text(
-            text = "Написать сообщение",
-            style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier.align(Alignment.Start)
-        )
-
+        Text("Написать сообщение", style = MaterialTheme.typography.titleMedium)
         Spacer(modifier = Modifier.height(8.dp))
 
         AnimatedContent(targetState = messageUiState, label = "message_state") { state ->
@@ -444,69 +367,36 @@ private fun StudentDetailsBottomSheet(
                             maxLines = 5,
                             isError = state is MessageUiState.Error
                         )
-
                         if (state is MessageUiState.Error) {
-                            Text(
-                                text = state.message,
-                                color = MaterialTheme.colorScheme.error,
-                                style = MaterialTheme.typography.bodySmall,
-                                modifier = Modifier.padding(top = 4.dp)
-                            )
+                            Text(state.message, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(top = 4.dp))
                         }
-
                         Spacer(modifier = Modifier.height(16.dp))
-
                         Button(
                             onClick = { onSendMessage(messageText) },
                             modifier = Modifier.fillMaxWidth(),
                             enabled = messageText.isNotBlank(),
                             contentPadding = PaddingValues(vertical = 16.dp)
                         ) {
-                            Icon(Icons.AutoMirrored.Filled.Send, contentDescription = null)
+                            Icon(Icons.AutoMirrored.Filled.Send, null)
                             Spacer(modifier = Modifier.width(8.dp))
                             Text("Отправить")
                         }
                     }
                 }
-
-                is MessageUiState.Loading -> {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(100.dp), contentAlignment = Alignment.Center
-                    ) {
-                        CircularProgressIndicator()
-                    }
-                }
-
+                is MessageUiState.Loading -> Box(Modifier.fillMaxWidth().height(100.dp), Alignment.Center) { CircularProgressIndicator() }
                 is MessageUiState.Success -> {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.CheckCircle,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(48.dp)
-                        )
+                    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
+                        Icon(Icons.Default.CheckCircle, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(48.dp))
                         Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            text = "Сообщение отправлено!",
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.primary
-                        )
+                        Text("Сообщение отправлено!", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.primary)
                         Spacer(modifier = Modifier.height(16.dp))
                         Button(
                             onClick = { onNavigateToDialog(state.dialogId) },
                             modifier = Modifier.fillMaxWidth(),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                                contentColor = MaterialTheme.colorScheme.onSecondaryContainer
-                            ),
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondaryContainer, contentColor = MaterialTheme.colorScheme.onSecondaryContainer),
                             contentPadding = PaddingValues(vertical = 16.dp)
                         ) {
-                            Icon(Icons.AutoMirrored.Filled.Message, contentDescription = null)
+                            Icon(Icons.AutoMirrored.Filled.Message, null)
                             Spacer(modifier = Modifier.width(8.dp))
                             Text("Перейти в диалог")
                         }
@@ -518,66 +408,27 @@ private fun StudentDetailsBottomSheet(
 }
 
 @Composable
-private fun StudentInfoRow(
-    icon: ImageVector,
-    value: String
-) {
+private fun StudentInfoRow(icon: ImageVector, label: String, value: String) {
     Row(verticalAlignment = Alignment.CenterVertically) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.size(24.dp)
-        )
+        Icon(icon, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(24.dp))
         Spacer(modifier = Modifier.width(16.dp))
         Column {
-            Text(
-                text = "Факультет",
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            Text(
-                text = value,
-                style = MaterialTheme.typography.bodyLarge
-            )
+            Text(label, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(value, style = MaterialTheme.typography.bodyLarge)
         }
     }
 }
 
-
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun EmptyState(query: String) {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(120.dp)
-                    .background(
-                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
-                        shape = MaterialShapes.Cookie6Sided.toShape()
-                    ),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Default.SearchOff,
-                    contentDescription = null,
-                    modifier = Modifier.size(64.dp),
-                    tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
-                )
+    Box(Modifier.fillMaxSize(), Alignment.Center) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Box(Modifier.size(120.dp).background(MaterialTheme.colorScheme.primary.copy(0.1f), MaterialShapes.Cookie6Sided.toShape()), Alignment.Center) {
+                Icon(Icons.Default.SearchOff, null, modifier = Modifier.size(64.dp), tint = MaterialTheme.colorScheme.primary.copy(0.5f))
             }
             Spacer(modifier = Modifier.height(24.dp))
-            Text(
-                text = stringResource(R.string.empty_state_message, query),
-                style = MaterialTheme.typography.headlineSmall,
-                color = MaterialTheme.colorScheme.onSurface
-            )
+            Text(stringResource(R.string.empty_state_message, query), style = MaterialTheme.typography.headlineSmall, color = MaterialTheme.colorScheme.onSurface)
         }
     }
 }
@@ -585,37 +436,13 @@ private fun EmptyState(query: String) {
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun InitialState() {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(120.dp)
-                    .background(
-                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
-                        shape = MaterialShapes.Cookie6Sided.toShape()
-                    ),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Default.SearchOff,
-                    contentDescription = null,
-                    modifier = Modifier.size(64.dp),
-                    tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
-                )
+    Box(Modifier.fillMaxSize(), Alignment.Center) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Box(Modifier.size(120.dp).background(MaterialTheme.colorScheme.primary.copy(0.1f), MaterialShapes.Cookie6Sided.toShape()), Alignment.Center) {
+                Icon(Icons.Default.SearchOff, null, modifier = Modifier.size(64.dp), tint = MaterialTheme.colorScheme.primary.copy(0.5f))
             }
             Spacer(modifier = Modifier.height(24.dp))
-            Text(
-                text = "Введите ФИО или группу\nдля поиска студентов",
-                style = MaterialTheme.typography.headlineSmall,
-                color = MaterialTheme.colorScheme.onSurface,
-                textAlign = TextAlign.Center
-            )
+            Text("Введите ФИО или группу\nдля поиска студентов", style = MaterialTheme.typography.headlineSmall, color = MaterialTheme.colorScheme.onSurface, textAlign = TextAlign.Center)
         }
     }
 }
