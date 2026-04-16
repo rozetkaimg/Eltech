@@ -6,7 +6,6 @@
     <string name="schedule">Schedule</string>
     <string name="services">Services</string>
     <string name="university_life">University life</string>
-    <string name="logo_description">NSTU Logo</string>
     <string name="login_hint">Login</string>
     <string name="password_hint">Enter Password</string>
     <string name="forgot_password">Forgot password?</string>
@@ -14,13 +13,9 @@
     <string name="control_week">Control week</string>
     <string name="session_results">Session results</string>
     <string name="attendance">Attendance</string>
-    <string name="wifi_title">NSTU Wi-Fi</string>
-    <string name="wifi_action_get_password">Get Password</string>
     <string name="store_title">Store</string>
-    <string name="store_description">NSTU Merch</string>
     <string name="group_leader_title">Group Leader Portal</string>
     <string name="group_leader_action_mark_attendance">Mark Attendance</string>
-    <string name="library_title">NSTU Library</string>
     <string name="library_barcode_label">Barcode</string>
     <string name="services_title">Services</string>
     <string name="services_action_pay">Pay</string>
@@ -28,7 +23,6 @@
     <string name="important_title">Important</string>
     <string name="forgot_password_button">Forgot password?</string>
     <string name="sign_in_button">Sign In</string>
-    <string name="auth_required_message">An NSTU account is required for some sections of the application to work.</string>
     <string name="login_failed_title">Sign-in failed</string>
     <string name="it_works_debug">It works</string>
     <string name="week">Week</string>
@@ -342,8 +336,20 @@
     <string name="action_open">Open</string>
     <string name="error_download_failed">Download failed</string>
     <string name="error_file_preparation">Error preparing file</string>
-    <string name="preparing_for_share">Preparing to share...</string>
+    <string name="preparing_for_share">Preparing to share…</string>
     <string name="cannot_open_file">Cannot open file</string>
     <string name="choose_file">Choose file</string>
     <string name="error_load_data">Error loading data: %1$s</string>
+    <string name="group_journal_title">Group journal</string>
+    <string name="group_journal_data_not_available">Failed to load data</string>
+    <string name="group_journal_total_students">Total students: %1$d</string>
+    <string name="group_journal_debt_badge">DEBT</string>
+    <string name="group_journal_visits">Visits</string>
+    <string name="group_journal_points">Points</string>
+    <string name="group_journal_lms">LMS</string>
+    <string name="group_journal_health_group_basic">Basic</string>
+    <string name="group_journal_health_group_preparatory">Preparatory</string>
+    <string name="group_journal_health_group_special_a">Special A</string>
+    <string name="group_journal_health_group_special_b">Special B</string>
+    <string name="group_journal_health_group_none">Not specified</string>
 </resources>

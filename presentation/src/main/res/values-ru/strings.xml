@@ -23,8 +23,6 @@
     <string name="control_week">Контрольная неделя</string>
     <string name="session_results">Результаты сессии</string>
     <string name="attendance">Посещаемость</string>
-    <string name="wifi_title">Wi-Fi НГТУ</string>
-    <string name="wifi_action_get_password">Получить пароль</string>
     <string name="store_title">Магазин</string>
     <string name="group_leader_title">Портал старосты</string>
     <string name="group_leader_action_mark_attendance">Отметить посещаемость</string>
@@ -47,8 +45,6 @@
     <string name="campuse_map">Карта кампуса</string>
     <string name="campuse_map_subtitel">Помощь в навигации</string>
     <string name="employees">Сотрудники</string>
-
-    <string name="auth_required_message">Для работы некоторых разделов приложения требуется учетная запись НГТУ.</string>
     <string name="login_failed_title">Ошибка входа</string>
     <string name="it_works_debug">Оно работает</string>
     <string name="error_invalid_credentials">Неверный логин или пароль. Пожалуйста, проверьте свои данные.</string>
@@ -120,7 +116,7 @@
     <string name="widget_description">Виджет для отображения расписания</string>
     <string name="widget_title_today">Расписание на сегодня</string>
     <string name="widget_title_date">Расписание на дату</string>
-    <string name="widget_loading">Загрузка...</string>
+    <string name="widget_loading">Загрузка…</string>
     <string name="widget_no_lessons_today">Сегодня нет пар</string>
     <string name="widget_error_data">Ошибка данных</string>
     <string name="widget_error_prefix">Ошибка:</string>
@@ -144,6 +140,8 @@
     <string name="check_updates_subtitle">Проверить наличие новой версии</string>
     <string name="search_settings">Поиск настроек</string>
     <string name="live_notification_title">Live-уведомление</string>
+    <string name="chat_notification_title">Уведомление чата</string>
+    <string name="chat_notification_subtitle">Создать сервис уведомлений чата</string>
     <string name="live_notification_subtitle">Создавать Live-уведомление</string>
 
     <string name="navigating_to_about_toast">Переход к экрану \'О приложении\'</string>
@@ -163,12 +161,11 @@
     <string name="update_downloaded">Обновление загружено</string>
     <string name="update_download_error">Ошибка загрузки обновления</string>
     <string name="notification_permission_denied">Разрешение на уведомления не предоставлено</string>
-    <string name="checking_for_updates">Проверяем наличие обновлений...</string>
+    <string name="checking_for_updates">Проверяем наличие обновлений…</string>
     <string name="update_found">Найдено обновление!</string>
     <string name="latest_version_installed">У вас последняя версия</string>
     <string name="update_check_failed">Не удалось проверить обновления</string>
     <string name="update_start_failed">Не удалось запустить обновление</string>
-
     <string name="attendance_title">Моя посещаемость</string>
     <string name="back_content_description">Назад</string>
     <string name="attendance_data_not_found">Данные о посещаемости не найдены.</string>
@@ -176,7 +173,6 @@
     <string name="unknown_discipline">Неизвестная дисциплина</string>
     <string name="no_lesson_data">Нет данных о занятии</string>
     <string name="attendance_not_committed">Посещаемость никогда не проставлялась</string>
-
     <string name="no_messages_yet">У вас пока нет сообщений</string>
     <string name="select_message_to_view">Выберите сообщение для просмотра</string>
     <string name="author_photo_description">Фото автора</string>
@@ -315,6 +311,12 @@
     <string name="error_teacher_fio_not_found">ФИО преподавателя не найдено.</string>
     <string name="error_unknown">Произошла неизвестная ошибка.</string>
     <string name="session_schedule_title">Расписание сессии</string>
+    <string name="moodle_title">Moodle (LMS)</string>
+    <string name="moodle_subtitle">Учебные курсы и материалы</string>
+    <string name="moodle_auth_prompt">Для доступа к курсам необходимо войти в систему Moodle</string>
+    <string name="moodle_login_button">Войти</string>
+    <string name="moodle_load_error">Не удалось загрузить курсы или список пуст</string>
+    <string name="moodle_retry_button">Повторить</string>
     <string name="search_chats_placeholder">Поиск по чатам…</string>
     <string name="close_search">Закрыть поиск</string>
     <string name="search">Поиск</string>
@@ -343,8 +345,20 @@
     <string name="action_open">Открыть</string>
     <string name="error_download_failed">Ошибка загрузки</string>
     <string name="error_file_preparation">Ошибка при подготовке файла</string>
-    <string name="preparing_for_share">Подготовка к отправке...</string>
+    <string name="preparing_for_share">Подготовка к отправке…</string>
     <string name="cannot_open_file">Не удалось открыть файл</string>
     <string name="choose_file">Выберите файл</string>
     <string name="error_load_data">Ошибка загрузки данных: %1$s</string>
+    <string name="group_journal_title">Журнал группы</string>
+    <string name="group_journal_data_not_available">Не удалось получить данные</string>
+    <string name="group_journal_total_students">Всего студентов: %1$d</string>
+    <string name="group_journal_debt_badge">ДОЛГ</string>
+    <string name="group_journal_visits">Посещения</string>
+    <string name="group_journal_points">Баллы</string>
+    <string name="group_journal_lms">LMS</string>
+    <string name="group_journal_health_group_basic">Основная</string>
+    <string name="group_journal_health_group_preparatory">Подготовительная</string>
+    <string name="group_journal_health_group_special_a">Спец. А</string>
+    <string name="group_journal_health_group_special_b">Спец. Б</string>
+    <string name="group_journal_health_group_none">Не указана</string>
 </resources>
