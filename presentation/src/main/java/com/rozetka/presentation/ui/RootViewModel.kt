@@ -42,6 +42,12 @@ class RootViewModel(
             val savedLogin = secureStorage.getLogin()
             val savedPassword = secureStorage.getPassword()
             val savedToken = secureStorage.getToken()
+
+            // Initialize token immediately for offline-first support
+            if (!savedToken.isNullOrBlank()) {
+                ApiToken = savedToken
+            }
+
             if (!secureStorage.getGroupName().isNullOrEmpty()) {
                 StringObject.groupName = secureStorage.getGroupName().orEmpty()
                 _startDestination.value = MAIN_ROUTE

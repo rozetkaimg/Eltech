@@ -55,7 +55,7 @@ class CalendarRepositoryImpl(private val context: Context) : CalendarRepository 
     override suspend fun exportSchedule(schedule: ScheduleModel, calendarId: Long): Int = withContext(Dispatchers.IO) {
         try {
             var eventCount = 0
-            schedule.grid.forEach { (dateString, timeMap) ->
+            schedule.grid?.forEach { (dateString, timeMap) ->
                 val date = try { LocalDate.parse(dateString) } catch (e: Exception) { null } ?: return@forEach
                 timeMap.forEach { (lessonNumber, lessons) ->
                     lessons.forEach { lesson ->

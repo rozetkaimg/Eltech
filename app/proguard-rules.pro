@@ -75,3 +75,5 @@
 -keep,allowoptimization class com.rozetka.network.di.NetworkModuleKt
 -dontwarn com.rozetka.storage.di.StorageModuleKt
 -dontwarn com.rozetka.network.di.NetworkModuleKt
+-dontwarn com.google.re2j.Matcher
+-dontwarn com.google.re2j.Pattern

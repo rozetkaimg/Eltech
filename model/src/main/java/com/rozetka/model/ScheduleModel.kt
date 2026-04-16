@@ -8,14 +8,19 @@ import kotlinx.serialization.Serializable
 data class ScheduleModel(
     @SerialName("status")
     val status: String,
-    @SerialName("grid")
-    val grid: Map<String, Map<String, List<Lesson>>>,
-    @SerialName("group")
-    val group: Group,
-    @SerialName("isSession")
-    val isSession: Boolean
-)
 
+    @SerialName("message")
+    val message: String? = null,
+
+    @SerialName("grid")
+    val grid: Map<String, Map<String, List<Lesson>>> = emptyMap(),
+
+    @SerialName("group")
+    val group: Group? = null,
+
+    @SerialName("isSession")
+    val isSession: Boolean? = null
+)
 
 @Serializable
 data class Lesson(

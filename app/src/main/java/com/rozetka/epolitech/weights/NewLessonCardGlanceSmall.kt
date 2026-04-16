@@ -1,6 +1,7 @@
 package com.rozetka.epolitech.weights
 
 import android.annotation.SuppressLint
+import android.content.Intent
 import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
@@ -10,10 +11,9 @@ import androidx.glance.GlanceModifier
 import androidx.glance.GlanceTheme
 import androidx.glance.LocalContext
 import androidx.glance.action.Action
-import androidx.glance.action.ActionParameters
-import androidx.glance.action.actionParametersOf
 import androidx.glance.action.clickable
 import androidx.glance.appwidget.action.actionRunCallback
+import androidx.glance.appwidget.action.actionStartService
 import androidx.glance.appwidget.cornerRadius
 import androidx.glance.background
 import androidx.glance.layout.Alignment
@@ -24,25 +24,16 @@ import androidx.glance.layout.Spacer
 import androidx.glance.layout.fillMaxWidth
 import androidx.glance.layout.height
 import androidx.glance.layout.padding
-import androidx.glance.layout.width
 import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
-import com.rozetka.data.SecureStorage // Добавлен импорт
+import com.rozetka.data.SecureStorage
 import com.rozetka.epolitech.R
 import com.rozetka.epolitech.StartScheduleAction
-import com.rozetka.epolitech.services.StartLessonNotificationAction
+import com.rozetka.epolitech.services.LessonNotificationService
 import com.rozetka.model.Lesson
 import java.text.SimpleDateFormat
 import java.util.Locale
-
-private val lessonNameKey = ActionParameters.Key<String>("lessonNameKey")
-private val lessonTimeKey = ActionParameters.Key<String>("lessonTimeKey")
-private val lessonAuditoryKey = ActionParameters.Key<String>("lessonAuditoryKey")
-private val lessonStartTimeKey = ActionParameters.Key<Long>("lessonStartTimeKey")
-private val lessonEndTimeKey = ActionParameters.Key<Long>("lessonEndTimeKey")
-
-
 
 private fun parseLessonTimestamps(dateString: String, timeString: String): Pair<Long, Long> {
     val parts = timeString.split('-')
@@ -53,27 +44,17 @@ private fun parseLessonTimestamps(dateString: String, timeString: String): Pair<
 
     val startTimeStr = parts[0].trim()
     val endTimeStr = parts[1].trim()
-
     val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
 
-    try {
-
+    return try {
         val startDate = sdf.parse("$dateString $startTimeStr")
         val endDate = sdf.parse("$dateString $endTimeStr")
-
-        if (startDate == null || endDate == null) {
-            Log.e("NewLessonCardGlance", "Parsing returned null date for: $dateString, $timeString")
-            return 0L to 0L
-        }
-
-
-        return startDate.time to endDate.time
+        (startDate?.time ?: 0L) to (endDate?.time ?: 0L)
     } catch (e: Exception) {
         Log.e("NewLessonCardGlance", "Failed to parse date/time", e)
-        return 0L to 0L
+        0L to 0L
     }
 }
-
 
 @SuppressLint("LocalContextResourcesRead")
 @Composable
@@ -99,20 +80,34 @@ fun NewLessonCardGlanceSmall(
     val auditoryText = lesson.auditories.joinToString { it.title.replace(Regex("<.*?>"), "") }
     val (lessonStartTimeMillis, lessonEndTimeMillis) = parseLessonTimestamps(dateString, lessonTime)
 
+    val currentTime = System.currentTimeMillis()
+    val isValidTime = lessonStartTimeMillis != 0L && lessonEndTimeMillis != 0L
+    val isActive = isValidTime && currentTime in lessonStartTimeMillis..lessonEndTimeMillis
+    val isPast = isValidTime && currentTime > lessonEndTimeMillis
+
+    val cardBackground = when {
+        isActive -> GlanceTheme.colors.secondaryContainer
+        isPast -> GlanceTheme.colors.surface
+        else -> GlanceTheme.colors.surfaceVariant
+    }
+
+    val mainTextColor = when {
+        isPast -> GlanceTheme.colors.outline
+        else -> GlanceTheme.colors.onSurface
+    }
+
     val clickableAction: Action = if (!SecureStorage(context).getScheduleNotificationState()) {
-        Log.d("info",SecureStorage(context).getScheduleNotificationState().toString() )
         actionRunCallback<StartScheduleAction>()
     } else {
-
-        actionRunCallback<StartLessonNotificationAction>(
-            parameters = actionParametersOf(
-                lessonNameKey to lesson.sbj,
-                lessonTimeKey to lessonTime,
-                lessonAuditoryKey to auditoryText,
-                lessonStartTimeKey to lessonStartTimeMillis,
-                lessonEndTimeKey to lessonEndTimeMillis
-            )
-        )
+        val serviceIntent = Intent(context, LessonNotificationService::class.java).apply {
+            action = LessonNotificationService.ACTION_START
+            putExtra(LessonNotificationService.EXTRA_LESSSON_NAME, lesson.sbj)
+            putExtra(LessonNotificationService.EXTRA_LESSSON_TIME, lessonTime)
+            putExtra(LessonNotificationService.EXTRA_LESSSON_AUDITORY, auditoryText)
+            putExtra(LessonNotificationService.EXTRA_LESSSON_START_TIME, lessonStartTimeMillis)
+            putExtra(LessonNotificationService.EXTRA_LESSSON_END_TIME, lessonEndTimeMillis)
+        }
+        actionStartService(intent = serviceIntent, isForegroundService = true)
     }
 
     Box(
@@ -123,7 +118,7 @@ fun NewLessonCardGlanceSmall(
         Column(
             modifier = GlanceModifier
                 .fillMaxWidth()
-                .background(GlanceTheme.colors.surfaceVariant)
+                .background(cardBackground)
                 .cornerRadius(16.dp)
                 .padding(8.dp)
                 .clickable(clickableAction)
@@ -132,15 +127,13 @@ fun NewLessonCardGlanceSmall(
                 modifier = GlanceModifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-
                 Text(
                     text = lessonTime,
                     style = TextStyle(
                         fontWeight = FontWeight.Bold,
-                        color = GlanceTheme.colors.onSurface
+                        color = mainTextColor
                     )
                 )
-
             }
             Spacer(GlanceModifier.height(8.dp))
             Text(
@@ -148,14 +141,14 @@ fun NewLessonCardGlanceSmall(
                 style = TextStyle(
                     fontWeight = FontWeight.Bold,
                     fontSize = 16.sp,
-                    color = GlanceTheme.colors.onSurface
+                    color = mainTextColor
                 ),
                 maxLines = 2
             )
             Spacer(GlanceModifier.height(4.dp))
             Row(modifier = GlanceModifier.fillMaxWidth()) {
                 Text(
-                    text = lesson.auditories.joinToString { it.title.replace(Regex("<.*?>"), "") },
+                    text = auditoryText,
                     style = TextStyle(fontSize = 12.sp, color = GlanceTheme.colors.onSurfaceVariant),
                     modifier = GlanceModifier.defaultWeight(),
                     maxLines = 1,
@@ -164,7 +157,7 @@ fun NewLessonCardGlanceSmall(
                 Text(
                     text = text,
                     modifier = GlanceModifier
-                        .background(color)
+                        .background(if (isPast) Color.Gray.copy(alpha = 0.5f) else color)
                         .cornerRadius(16.dp)
                         .padding(horizontal = 8.dp, vertical = 4.dp),
                     style = TextStyle(

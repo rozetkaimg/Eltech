@@ -92,7 +92,8 @@ fun AppBottomNavigationBarNew(
                     items(3) { index ->
                         val screen = bottomBarItems[index]
                         val isSelected = currentScreen?.route == screen.route ||
-                                currentScreen?.parentRoute == screen.route
+                                currentScreen?.parentRoute == screen.route ||
+                                currentScreen?.isChildOf(screen.route) == true
 
                         ShortNavigationBarItem(
                             iconPosition = NavigationItemIconPosition.Start,
@@ -136,7 +137,8 @@ fun AppBottomNavigationBarNew(
             Box {
                 val screen = bottomBarItems[3]
                 val isSelected = currentScreen?.route == screen.route ||
-                        currentScreen?.parentRoute == screen.route
+                        currentScreen?.parentRoute == screen.route ||
+                        currentScreen?.isChildOf(screen.route) == true
                 Card(
                     modifier = Modifier
                         .padding(bottom = getNavigationBarHeightDp() + 20.dp)
@@ -288,7 +290,9 @@ fun AppBottomNavigationBarOld(
 
         bottomBarItems.forEach { screen ->
             val isSelected =
-                currentScreen?.route == screen.route || currentScreen?.parentRoute == screen.route
+                currentScreen?.route == screen.route || 
+                        currentScreen?.parentRoute == screen.route ||
+                        currentScreen?.isChildOf(screen.route) == true
 
             NavigationBarItem(
                 icon = {
@@ -341,7 +345,9 @@ fun AppNavigationRail(
     NavigationRail(containerColor = MaterialTheme.colorScheme.surfaceContainerLow) {
         bottomBarItems.forEach { screen ->
             val isSelected =
-                currentScreen?.route == screen.route || currentScreen?.parentRoute == screen.route
+                currentScreen?.route == screen.route || 
+                        currentScreen?.parentRoute == screen.route ||
+                        currentScreen?.isChildOf(screen.route) == true
             NavigationRailItem(
                 icon = {
                     Icon(

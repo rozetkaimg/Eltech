@@ -55,7 +55,7 @@ fun GroupJournalScreen(
             LargeTopAppBar(
                 title = {
                     Text(
-                        "Журнал группы",
+                        text = stringResource(R.string.group_journal_title),
                         fontWeight = FontWeight.Bold
                     )
                 },
@@ -97,7 +97,7 @@ fun GroupJournalScreen(
                         )
                     } else {
                         ErrorState(
-                            message = "Не удалось получить данные",
+                            message = stringResource(R.string.group_journal_data_not_available),
                             onUpdate = { viewModel.loadGroupJournal() }
                         )
                     }
@@ -119,7 +119,7 @@ private fun StudentList(
     ) {
         item {
             Text(
-                text = "Всего студентов: $totalCount",
+                text = stringResource(R.string.group_journal_total_students, totalCount),
                 style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.secondary,
                 modifier = Modifier.padding(bottom = 4.dp)

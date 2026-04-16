@@ -28,8 +28,10 @@ class SecureStorage(context: Context) {
 
         const val KEY_SCHEDULE_STATE = "Schedule_key"
         const val KEY_SCHEDULE_NOTIFICATION_STATE = "ScheduleNotification_key"
+        const val KEY_CHAT_NOTIFICATION_STATE = "ChatNotification_key"
 
         const val KEY_GROUP_NAMES_LIST = "group_names_list_key"
+        const val KEY_USER_ACCOUNTS = "user_accounts_key"
     }
 
     private val masterKey: MasterKey = Builder(context)
@@ -117,6 +119,11 @@ class SecureStorage(context: Context) {
 
     fun getScheduleNotificationState(): Boolean = getBoolean(KEY_SCHEDULE_NOTIFICATION_STATE, false)
 
+    fun saveChatNotificationState(state: Boolean) =
+        saveBoolean(KEY_CHAT_NOTIFICATION_STATE, state)
+
+    fun getChatNotificationState(): Boolean = getBoolean(KEY_CHAT_NOTIFICATION_STATE, false)
+
     fun saveGroupNames(groupNames: List<String>) {
         val jsonString = json.encodeToString(groupNames)
         saveString(KEY_GROUP_NAMES_LIST, jsonString)
@@ -127,6 +134,24 @@ class SecureStorage(context: Context) {
         return if (jsonString != null) {
             try {
                 json.decodeFromString<List<String>>(jsonString)
+            } catch (e: Exception) {
+                emptyList()
+            }
+        } else {
+            emptyList()
+        }
+    }
+
+    fun saveUserAccounts(accounts: List<com.rozetka.model.UserAccount>) {
+        val jsonString = json.encodeToString(accounts)
+        saveString(KEY_USER_ACCOUNTS, jsonString)
+    }
+
+    fun getUserAccounts(): List<com.rozetka.model.UserAccount> {
+        val jsonString = getString(KEY_USER_ACCOUNTS)
+        return if (jsonString != null) {
+            try {
+                json.decodeFromString<List<com.rozetka.model.UserAccount>>(jsonString)
             } catch (e: Exception) {
                 emptyList()
             }

@@ -8,10 +8,15 @@ import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.defaultRequest
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
+import java.security.cert.X509Certificate
 import javax.net.ssl.HostnameVerifier
+import javax.net.ssl.X509TrustManager
 
 
 fun provideHttpClient(): HttpClient = HttpClient(Android) {
+
+
+
     install(ContentNegotiation) {
         json(Json {
             prettyPrint = true
@@ -39,6 +44,12 @@ fun provideHttpClientCampus(): HttpClient = HttpClient(Android) {
     }
     defaultRequest {
         url("https://api.campus.dev.dewish.ru")
+    }
+    engine {
+        sslManager = { httpsURLConnection ->
+            httpsURLConnection.sslSocketFactory = Tls12SocketFactory.get()
+            httpsURLConnection.hostnameVerifier = HostnameVerifier { _, _ -> true }
+        }
     }
 
 }

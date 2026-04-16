@@ -24,11 +24,6 @@ import java.time.temporal.TemporalAdjusters
 import java.time.temporal.WeekFields
 import java.util.Locale
 
-
-
-
-
-
 class ScheduleLinkViewModel(
     private val scheduleRepository: ScheduleRepository,
     val application: Application,
@@ -39,17 +34,14 @@ class ScheduleLinkViewModel(
     val uiState: StateFlow<ScheduleUiState> = _uiState.asStateFlow()
     private val secureStorage: SecureStorage = SecureStorage(application)
 
-init {
-    try {
-        viewModelScope.launch {
-            campusToken = campusApi.getBearerToken().token
+    init {
+        try {
+            viewModelScope.launch {
+                campusToken = campusApi.getBearerToken().token
+            }
+        } catch (e: Exception) {
         }
-    } catch (e: Exception){
-
     }
-
-
-}
 
     fun getSchedule(group: String) {
         viewModelScope.launch {
@@ -75,8 +67,14 @@ init {
                 }
                 .collect { result ->
                     result.onSuccess { scheduleData ->
-                        val screenData = processScheduleData(scheduleData)
-                        _uiState.value = ScheduleUiState.Success(screenData)
+                        try {
+                            val screenData = processScheduleData(scheduleData)
+                            _uiState.value = ScheduleUiState.Success(screenData)
+                        } catch (e: Exception) {
+                            _uiState.value = ScheduleUiState.Error(
+                                application.getString(R.string.error_load_prefix, "Date format error")
+                            )
+                        }
                     }
                     result.onFailure { throwable ->
                         _uiState.value = ScheduleUiState.Error(
@@ -88,8 +86,15 @@ init {
     }
 
     private fun processScheduleData(schedule: ScheduleModel): ScheduleScreenData {
-        val startDate = LocalDate.parse(schedule.group.dateFrom)
-        val endDate = LocalDate.parse(schedule.group.dateTo)
+        val dateFromStr = schedule.group?.dateFrom
+        val dateToStr = schedule.group?.dateTo
+
+        if (dateFromStr == null || dateToStr == null) {
+            throw IllegalArgumentException("Missing date")
+        }
+
+        val startDate = LocalDate.parse(dateFromStr)
+        val endDate = LocalDate.parse(dateToStr)
         val weeks = generateWeeks(startDate, endDate)
         val initialIndex = findCurrentWeekIndex(weeks)
         return ScheduleScreenData(schedule, weeks, initialIndex)
@@ -121,4 +126,3 @@ init {
 
     fun getScheduleState(): Boolean = secureStorage.getScheduleState()
 }
-

@@ -18,6 +18,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
 import com.rozetka.domain.util.StringObject
+import com.rozetka.model.CourseModule
+import com.rozetka.model.ModuleType
 import com.rozetka.presentation.ui.aboutApplication.AboutScreen
 import com.rozetka.presentation.ui.academicPerformance.AcademicPerformanceScreen
 import com.rozetka.presentation.ui.article.ArticleDetailScreen
@@ -31,7 +33,14 @@ import com.rozetka.presentation.ui.home.HomeScreen
 import com.rozetka.presentation.ui.login.LoginScreen
 import com.rozetka.presentation.ui.maps.MapsScreen
 import com.rozetka.presentation.ui.message.MessagesScreen
+import com.rozetka.presentation.ui.moodle.DeadlinesScreen
+import com.rozetka.presentation.ui.moodle.MoodleDetailScreen
+import com.rozetka.presentation.ui.moodle.MoodleScreen
+import com.rozetka.presentation.ui.moodle.quiz.ActiveQuizScreen
+import com.rozetka.presentation.ui.moodle.quiz.QuizScreen
 import com.rozetka.presentation.ui.pay.PayScreen
+import org.koin.androidx.compose.koinViewModel
+import androidx.navigation.compose.composable
 import com.rozetka.presentation.ui.physEdJournal.PhysEdJournalScreen
 import com.rozetka.presentation.ui.profile.ProfileScreen
 import com.rozetka.presentation.ui.projectActivity.ProjectActivityScreen
@@ -41,6 +50,7 @@ import com.rozetka.presentation.ui.sessionSchedule.SessionScheduleScreen
 import com.rozetka.presentation.ui.settings.SettingsScreen
 import com.rozetka.presentation.ui.shedule.ScheduleScreen
 import com.rozetka.presentation.ui.studentCard.StudentCardScreen
+import com.rozetka.presentation.ui.searchPeople.UnifiedSearchScreen
 import com.rozetka.presentation.ui.students.StudentsScreen
 import com.rozetka.presentation.ui.submitanApplication.SubmitAnApplicationScreen
 import com.rozetka.presentation.ui.teacherReview.TeacherReviewScreen
@@ -98,7 +108,20 @@ fun AppNavHost(
                     navController.navigate(targetRoute) {
                         popUpTo(Screen.GuestGroupInput.route) { inclusive = true }
                         popUpTo(Screen.Login.route) { inclusive = true }
+                        popUpTo(Screen.AddAccount.route) { inclusive = true }
                     }
+                }
+            )
+        }
+
+        composable(Screen.AddAccount.route) {
+            LoginScreen(
+                onLoginSuccess = {
+                    StringObject.isGuest = false
+                    navController.popBackStack()
+                },
+                onBackClick = {
+                    navController.popBackStack()
                 }
             )
         }
@@ -111,17 +134,25 @@ fun AppNavHost(
             Screen.Dialo.route,
             arguments = listOf(
                 navArgument("userName") { type = NavType.StringType },
-                navArgument("userId") { type = NavType.StringType }
-
+                navArgument("userId") { type = NavType.StringType },
+                navArgument("avatarUrl") { type = NavType.StringType; defaultValue = "" },
+                navArgument("isSubject") { type = NavType.BoolType; defaultValue = false },
+                navArgument("opponentData") { type = NavType.StringType; defaultValue = "" }
             )
         ) { backStackEntry ->
             val userName = backStackEntry.arguments?.getString("userName") ?: ""
             val userId = backStackEntry.arguments?.getString("userId") ?: ""
+            val avatarUrl = backStackEntry.arguments?.getString("avatarUrl") ?: ""
+            val isSubject = backStackEntry.arguments?.getBoolean("isSubject") ?: false
+            val opponentData = backStackEntry.arguments?.getString("opponentData") ?: ""
 
             DialogScreen(
                 navController = navController,
                 userId = userId,
-                userName = userName
+                userName = userName,
+                avatarURL = avatarUrl,
+                isSubject = isSubject,
+                opponentData = Uri.decode(opponentData)
             )
         }
         composable(
@@ -222,6 +253,9 @@ fun AppNavHost(
 
             StudentsScreen(navController)
         }
+        composable(Screen.SearchPeople.route) {
+            UnifiedSearchScreen(navController = navController)
+        }
         composable(
             route = Screen.ScheduleLink.route + "/{groupName}",
             arguments = listOf(
@@ -310,6 +344,77 @@ fun AppNavHost(
 
         composable(Screen.Payment.route) {
             PayScreen(navController)
+        }
+        composable(Screen.Moodle.route) {
+            MoodleScreen(
+                onBackClick = { navController.popBackStack() },
+                onCourseClick = { course ->
+                    navController.navigate("moodle_detail/${course.id}/${Uri.encode(course.title)}")
+                },
+                onDeadlinesClick = {
+                    navController.navigate(Screen.MoodleDeadlines.route)
+                }
+            )
+        }
+        composable(Screen.MoodleDeadlines.route) {
+            DeadlinesScreen(
+                onBackClick = { navController.popBackStack() },
+                viewModel = koinViewModel()
+            )
+        }
+        composable(
+            route = Screen.MoodleDetail.route,
+            arguments = listOf(
+                navArgument("courseId") { type = NavType.StringType },
+                navArgument("courseTitle") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val courseId = backStackEntry.arguments?.getString("courseId") ?: ""
+            val courseTitle = Uri.decode(backStackEntry.arguments?.getString("courseTitle") ?: "")
+            MoodleDetailScreen(
+                courseId = courseId,
+                courseTitle = courseTitle,
+                onBackClick = { navController.popBackStack() },
+                onModuleClick = { module ->
+                    if (module.type == ModuleType.QUIZ) {
+                        navController.navigate("quiz/${module.id}/${Uri.encode(module.name)}")
+                    }
+                }
+            )
+        }
+        composable(
+            route = Screen.Quiz.route,
+            arguments = listOf(
+                navArgument("quizId") { type = NavType.StringType },
+                navArgument("quizTitle") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val quizId = backStackEntry.arguments?.getString("quizId") ?: ""
+            val quizTitle = Uri.decode(backStackEntry.arguments?.getString("quizTitle") ?: "")
+            QuizScreen(
+                quizId = quizId,
+                quizTitle = quizTitle,
+                onBackClick = { navController.popBackStack() },
+                onStartAttempt = { attemptUrl ->
+                    navController.navigate("active_quiz/${Uri.encode(attemptUrl)}/${Uri.encode(quizTitle)}")
+                }
+            )
+        }
+        composable(
+            route = Screen.ActiveQuiz.route,
+            arguments = listOf(
+                navArgument("quizUrl") { type = NavType.StringType },
+                navArgument("quizTitle") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val quizUrl = Uri.decode(backStackEntry.arguments?.getString("quizUrl") ?: "")
+            val quizTitle = Uri.decode(backStackEntry.arguments?.getString("quizTitle") ?: "")
+            
+            ActiveQuizScreen(
+                attemptUrl = quizUrl,
+                quizTitle = quizTitle,
+                onBackClick = { navController.popBackStack() }
+            )
         }
         composable(Screen.Settings.route, deepLinks = listOf(navDeepLink {
             uriPattern = "app://com.rozetka.epotitech/settings"

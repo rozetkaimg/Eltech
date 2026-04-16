@@ -13,6 +13,7 @@ import com.rozetka.domain.repository.LoginRepository
 import com.rozetka.domain.repository.UsersRepository
 import com.rozetka.domain.util.StringObject
 import com.rozetka.domain.util.StringObject.ApiToken
+import com.rozetka.model.UserAccount
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -66,6 +67,29 @@ class LoginViewModel(
                 secureStorage.savePassword(password)
                 secureStorage.saveToken(token)
                 ApiToken = token
+
+                // Save or Update Account in Multi-Account Storage
+                val currentAccounts = secureStorage.getUserAccounts().toMutableList()
+                val existingAccountIndex = currentAccounts.indexOfFirst { it.login == login }
+                val newAccount = UserAccount(
+                    login = login,
+                    password = password,
+                    token = token,
+                    name = "", // Will be updated after fetchUserData
+                    group = "",
+                    avatar = "",
+                    isActive = true
+                )
+                
+                // Mark others as inactive
+                val updatedAccounts = currentAccounts.map { it.copy(isActive = false) }.toMutableList()
+                
+                if (existingAccountIndex != -1) {
+                    updatedAccounts[existingAccountIndex] = newAccount
+                } else {
+                    updatedAccounts.add(newAccount)
+                }
+                secureStorage.saveUserAccounts(updatedAccounts)
 
                 _uiState.update {
                     it.copy(
@@ -133,6 +157,20 @@ class LoginViewModel(
                             StringObject.Name = data.name
                             StringObject.SurName = data.surname
                             UserDataHolder().saveUserData(data.group, data.name, data.surname, "")
+                            
+                            // Update multi-account storage with profile info
+                            val accounts = secureStorage.getUserAccounts().toMutableList()
+                            val index = accounts.indexOfFirst { it.login == _uiState.value.login }
+                            if (index != -1) {
+                                accounts[index] = accounts[index].copy(
+                                    name = "${data.name} ${data.surname}",
+                                    group = data.group,
+                                    avatar = data.avatar,
+                                    userId = data.id
+                                )
+                                secureStorage.saveUserAccounts(accounts)
+                            }
+
                             profileLoaded = true
                         }
                         .onFailure {

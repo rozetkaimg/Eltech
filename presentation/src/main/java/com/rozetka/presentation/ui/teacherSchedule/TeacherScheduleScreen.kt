@@ -192,7 +192,11 @@ fun TeacherScheduleScreen(
                 }
                 is TeacherScheduleUiState.Error -> ExpressiveErrorState("Ошибка", {})
                 is TeacherScheduleUiState.Success -> {
-                    TeacherScheduleContent(schedule = state.data)
+                    TeacherScheduleContent(
+                        schedule = state.data,
+                        currentFio = fio,
+                        onNavigateToTeacher = {  }
+                    )
                 }
                 is TeacherScheduleUiState.Initial -> {}
             }
@@ -202,7 +206,11 @@ fun TeacherScheduleScreen(
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun TeacherScheduleContent(schedule: ScheduleByDay) {
+fun TeacherScheduleContent(
+    schedule: ScheduleByDay,
+    currentFio: String,
+    onNavigateToTeacher: (String) -> Unit = {}
+) {
     val processedData = remember(schedule) {
         val allLessonsWithDays = schedule.flatMap { entry ->
             entry.value.map { lesson -> LessonWithDay(entry.key, lesson) }
@@ -313,7 +321,13 @@ fun TeacherScheduleContent(schedule: ScheduleByDay) {
     if (selectedLesson != null) {
         TeacherLessonDetailsDialog(
             lesson = selectedLesson!!,
-            onDismissRequest = {  }
+            onDismissRequest = { selectedLesson = null },
+            onTeacherClick = { teacher ->
+                selectedLesson = null
+                if (teacher != currentFio) {
+                    onNavigateToTeacher(teacher)
+                }
+            }
         )
     }
 }
@@ -494,6 +508,3 @@ fun TeacherBreakItem(
         }
     }
 }
-
-
-

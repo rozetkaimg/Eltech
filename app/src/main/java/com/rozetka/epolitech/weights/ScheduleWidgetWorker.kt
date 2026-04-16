@@ -16,6 +16,8 @@ import com.rozetka.network.MospolytechMethods
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.catch
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import java.time.DayOfWeek
@@ -40,6 +42,7 @@ class ScheduleWidgetWorker(
     private val scheduleRepository: ScheduleRepository by inject()
     private val secureStorage: SecureStorage by inject()
     private val mospolytechMethods: MospolytechMethods by inject()
+    private val json = Json { ignoreUnknownKeys = true }
 
     override suspend fun doWork(): Result {
         Log.d(TAG, context.getString(R.string.worker_log_started))
@@ -75,6 +78,7 @@ class ScheduleWidgetWorker(
                                 .filter { lesson -> isLessonInWeek(lesson, weekInfo) }
                                 .map { lesson -> lessonNumber to lesson }
                         }?.sortedBy { (lessonNumber, _) -> lessonNumber.toIntOrNull() ?: 0 } ?: emptyList()
+
                         if (lessonsForToday.isEmpty()) {
                             try {
                                 val sessionSchedule = mospolytechMethods.getSessionSchedule(groupName)
@@ -136,23 +140,30 @@ class ScheduleWidgetWorker(
     }
 
     private fun findCurrentWeek(schedule: ScheduleModel): WeekInfo {
-        val semesterStart = LocalDate.parse(schedule.group.dateFrom)
-        val semesterEnd = LocalDate.parse(schedule.group.dateTo)
         val today = LocalDate.now()
+        val group = schedule.group
 
-        var currentStart = semesterStart.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
-        val maxWeeks = 52
-        var weekCount = 0
+        if (group != null) {
+            try {
+                val semesterStart = LocalDate.parse(group.dateFrom)
+                val semesterEnd = LocalDate.parse(group.dateTo)
 
-        while (!currentStart.isAfter(semesterEnd) && weekCount < maxWeeks) {
-            val currentEnd = currentStart.plusDays(6)
-            if (!today.isBefore(currentStart) && !today.isAfter(currentEnd)) {
-                return WeekInfo(currentStart, currentEnd)
+                var currentStart = semesterStart.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
+                val maxWeeks = 52
+                var weekCount = 0
+
+                while (!currentStart.isAfter(semesterEnd) && weekCount < maxWeeks) {
+                    val currentEnd = currentStart.plusDays(6)
+                    if (!today.isBefore(currentStart) && !today.isAfter(currentEnd)) {
+                        return WeekInfo(currentStart, currentEnd)
+                    }
+                    currentStart = currentStart.plusWeeks(1)
+                    weekCount++
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Error calculating week", e)
             }
-            currentStart = currentStart.plusWeeks(1)
-            weekCount++
         }
-
 
         val fallbackStart = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
         return WeekInfo(

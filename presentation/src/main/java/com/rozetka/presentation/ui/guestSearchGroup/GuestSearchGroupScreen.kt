@@ -105,6 +105,12 @@ fun GuestSearchGroupScreen(
                     if (state.groups.isEmpty()) {
                         EmptyResultState()
                     } else {
+                        Text(
+                            text = "Найдено групп: ${state.groups.size}",
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.padding(vertical = 8.dp)
+                        )
                         GuestGroupList(
                             groups = state.groups,
                             onGroupClick = { groupName ->

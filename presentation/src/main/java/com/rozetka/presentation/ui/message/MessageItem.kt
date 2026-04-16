@@ -1,6 +1,12 @@
 package com.rozetka.presentation.ui.message
 
 import android.content.Context
+import android.graphics.Typeface
+import android.text.SpannableString
+import android.text.style.CharacterStyle
+import android.text.style.StrikethroughSpan
+import android.text.style.StyleSpan
+import android.text.style.TypefaceSpan
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -13,10 +19,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.core.text.HtmlCompat
@@ -91,10 +102,7 @@ fun MessageItem(
 
             Spacer(modifier = Modifier.width(16.dp))
 
-            // Основной контент
             Column(modifier = Modifier.weight(1f)) {
-
-                // 1. ТЕМА (Subject) - отдельной строкой сверху
                 if (!message.subject.isNullOrBlank()) {
                     Surface(
                         color = MaterialTheme.colorScheme.surfaceVariant,
@@ -124,7 +132,7 @@ fun MessageItem(
                         fontWeight = FontWeight.Bold,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.weight(1f) // Имя занимает все свободное место
+                        modifier = Modifier.weight(1f)
                     )
 
                     Text(
@@ -144,19 +152,49 @@ fun MessageItem(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     val annotatedText = remember(messageDisplayText) {
-                        val cleanHtml = messageDisplayText
+                        val preProcessed = messageDisplayText
                             .replace("\\r\\n\\t", "")
                             .replace("\\\"", "\"")
                             .replace("\\/", "/")
                             .replace(Regex("<p>\\s*</p>"), "")
                             .replace("<p>", "")
                             .replace("</p>", "<br>")
+                            .replace(Regex("\\*\\*(.*?)\\*\\*"), "<b>$1</b>")
+                            .replace(Regex("\\*(.*?)\\*"), "<i>$1</i>")
+                            .replace(Regex("~~(.*?)~~"), "<s>$1</s>")
+                            .replace(Regex("`(.*?)`"), "<tt>$1</tt>")
                             .trim()
 
-                        val spanned = HtmlCompat.fromHtml(cleanHtml, HtmlCompat.FROM_HTML_MODE_COMPACT)
-                        AnnotatedString.Builder().apply {
-                            append(spanned)
-                        }.toAnnotatedString()
+                        val spanned = HtmlCompat.fromHtml(preProcessed, HtmlCompat.FROM_HTML_MODE_COMPACT)
+                        val spannable = SpannableString(spanned)
+
+                        buildAnnotatedString {
+                            append(spannable.toString())
+                            val characterStyles = spannable.getSpans(0, spannable.length, CharacterStyle::class.java)
+
+                            for (span in characterStyles) {
+                                val start = spannable.getSpanStart(span)
+                                val end = spannable.getSpanEnd(span)
+                                when (span) {
+                                    is StyleSpan -> {
+                                        if (span.style == Typeface.BOLD || span.style == Typeface.BOLD_ITALIC) {
+                                            addStyle(SpanStyle(fontWeight = FontWeight.Bold), start, end)
+                                        }
+                                        if (span.style == Typeface.ITALIC || span.style == Typeface.BOLD_ITALIC) {
+                                            addStyle(SpanStyle(fontStyle = FontStyle.Italic), start, end)
+                                        }
+                                    }
+                                    is StrikethroughSpan -> {
+                                        addStyle(SpanStyle(textDecoration = TextDecoration.LineThrough), start, end)
+                                    }
+                                    is TypefaceSpan -> {
+                                        if (span.family == "monospace") {
+                                            addStyle(SpanStyle(fontFamily = FontFamily.Monospace, background = Color.Gray.copy(alpha = 0.2f)), start, end)
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                     Text(
                         text = annotatedText,
@@ -172,7 +210,7 @@ fun MessageItem(
                             imageVector = Icons.Default.Check,
                             contentDescription = null,
                             modifier = Modifier.padding(start = 8.dp).size(16.dp),
-                            tint = if (message.lastmessage.readedOpponent)
+                            tint = if (!message.lastmessage.readedOpponent)
                                 MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
                         )
                     } else if (!message.lastmessage.readed) {

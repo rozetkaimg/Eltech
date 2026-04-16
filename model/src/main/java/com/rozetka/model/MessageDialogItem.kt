@@ -10,6 +10,8 @@ data class MessageDialogItem(
     val authorId: String,
     @SerialName("author_name")
     val authorName: String,
+    @SerialName("author_avatar")
+    val authorAvatar: String? = null,
     @SerialName("datetime")
     val datetime: String,
     @SerialName("files")

@@ -25,6 +25,7 @@ import com.rozetka.model.UserStudentCard
 
 interface MospolytechApi {
 
+    suspend fun getNotifications(token: String): List<com.rozetka.model.NotificationModelItem>
     suspend fun getScheduleByGroup(group: String): ScheduleModel
     suspend fun getStudentProfile(credentials: Credentials): StudentProfile?
     suspend fun getPayInfo(toke: String): PayModel

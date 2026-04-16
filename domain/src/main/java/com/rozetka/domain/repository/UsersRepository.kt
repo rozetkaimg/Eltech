@@ -23,17 +23,24 @@ class UsersRepository(
 
     @RequiresPermission(Manifest.permission.ACCESS_NETWORK_STATE)
     fun getUserProfile(token: String): Flow<Result<User>> = flow {
+        val cached = loadProfileFromCache()
+        if (cached.isSuccess) {
+            emit(cached)
+        }
+
         if (NetworkUtils.isNetworkAvailable(context)) {
             try {
                 val networkResponse = fetchProfileFromNetwork(token)
                 emit(Result.success(networkResponse))
             } catch (e: Exception) {
                 if (e is CancellationException) throw e
-                Log.w("UserRepository", "Сетевой запрос не удался, пробуем загрузить из кэша", e)
-                emit(loadProfileFromCache())
+                Log.w("UserRepository", "Сетевой запрос не удался", e)
+                if (cached.isFailure) {
+                    emit(Result.failure(e))
+                }
             }
-        } else {
-            emit(loadProfileFromCache())
+        } else if (cached.isFailure) {
+            emit(cached)
         }
     }
 

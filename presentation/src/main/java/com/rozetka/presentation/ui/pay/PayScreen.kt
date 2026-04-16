@@ -26,12 +26,14 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.rozetka.presentation.R
 import com.rozetka.presentation.util.ExpressiveErrorState
+import com.rozetka.presentation.util.ExpressiveErrorStateTop
+import org.koin.androidx.compose.koinViewModel
 
 
 @Composable
 fun PayScreen(
     navController: NavController,
-    payViewModel: PayViewModel = PayViewModel()
+    payViewModel: PayViewModel = koinViewModel(),
 ) {
     val uiState by payViewModel.uiState.collectAsState()
 
@@ -42,9 +44,11 @@ fun PayScreen(
             navController = navController
         )
 
-        is PayUiState.Error -> ExpressiveErrorState(
+        is PayUiState.Error -> ExpressiveErrorStateTop(
             message = state.message,
-            onUpdate = { payViewModel.getPayInfo() })
+            onUpdate = { payViewModel.getPayInfo() },
+            onBack = {navController.navigateUp()},
+            title =  stringResource(R.string.pay_title))
     }
 }
 

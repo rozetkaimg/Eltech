@@ -10,9 +10,20 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import java.io.File
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+import java.util.UUID
+
+data class PendingMessage(
+    val id: String,
+    val text: String,
+    val files: List<File>,
+    val timestamp: String
+)
 
 class DialogViewModel(
     private val repository: MospolytechMethods
@@ -20,6 +31,9 @@ class DialogViewModel(
 
     private val _uiState = MutableStateFlow<DialogUiState>(DialogUiState.Loading)
     val uiState: StateFlow<DialogUiState> = _uiState.asStateFlow()
+
+    private val _pendingMessages = MutableStateFlow<List<PendingMessage>>(emptyList())
+    val pendingMessages: StateFlow<List<PendingMessage>> = _pendingMessages.asStateFlow()
 
     private var pollingJob: Job? = null
 
@@ -37,6 +51,10 @@ class DialogViewModel(
     fun sendMessage(text: String, userId: String) {
         if (text.isBlank()) return
 
+        val pendingId = UUID.randomUUID().toString()
+        val timestamp = LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME)
+        _pendingMessages.update { it + PendingMessage(pendingId, text, emptyList(), timestamp) }
+
         viewModelScope.launch {
             try {
                 repository.sendMessageNoFiles(
@@ -47,13 +65,18 @@ class DialogViewModel(
                 loadMessages(userId, isSilent = true)
             } catch (e: Exception) {
                 e.printStackTrace()
+            } finally {
+                _pendingMessages.update { list -> list.filter { it.id != pendingId } }
             }
         }
     }
 
-
     fun sendFiles(files: List<File>, userId: String, messageText: String) {
         if (files.isEmpty()) return
+
+        val pendingId = UUID.randomUUID().toString()
+        val timestamp = LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME)
+        _pendingMessages.update { it + PendingMessage(pendingId, messageText, files, timestamp) }
 
         viewModelScope.launch {
             try {
@@ -66,13 +89,15 @@ class DialogViewModel(
                 loadMessages(userId, isSilent = true)
             } catch (e: Exception) {
                 e.printStackTrace()
+            } finally {
+                _pendingMessages.update { list -> list.filter { it.id != pendingId } }
             }
         }
     }
 
     fun loadMessages(userId: String, isSilent: Boolean = false) {
         viewModelScope.launch {
-            if (!isSilent) {
+            if (!isSilent && _uiState.value !is DialogUiState.Success) {
                 _uiState.value = DialogUiState.Loading
             }
 

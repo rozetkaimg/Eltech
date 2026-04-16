@@ -144,9 +144,10 @@ class TodayScheduleWidget : GlanceAppWidget() {
                                         dateString = state.dateString
                                     )
                                 } else {
+
                                     NewLessonCardGlance(
                                         lessonInfo = item,
-
+                                        dateString = state.dateString
                                     )
                                 }
                             }
@@ -154,9 +155,7 @@ class TodayScheduleWidget : GlanceAppWidget() {
                                 Box(
                                     modifier = GlanceModifier.size(4.dp),
                                 ) {
-
                                 }
-
                             }
                         }
                     }

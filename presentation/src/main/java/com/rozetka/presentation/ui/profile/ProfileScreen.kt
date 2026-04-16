@@ -44,6 +44,10 @@ fun ProfileScreen(
 ) {
     val uiState by profileViewModel.uiState.collectAsStateWithLifecycle()
 
+    androidx.compose.runtime.LaunchedEffect(com.rozetka.domain.util.StringObject.ApiToken) {
+        profileViewModel.getProfile()
+    }
+
     when (val state = uiState) {
         is ProfileUiState.Loading -> LoadingState()
         is ProfileUiState.Success -> ProfileSuccessState(
@@ -98,6 +102,7 @@ private fun StudentDataLayout(
     val onPhysJournal = { navController.navigate(Screen.PhysEdJournalScreen.route) }
     val onProjectActivity = { navController.navigate(Screen.ProjectActivity.route) }
     val onStudentCard = { navController.navigate(Screen.StudentCardScreen.route) }
+    val onMoodle = { navController.navigate(Screen.Moodle.route) }
 
     BoxWithConstraints(modifier = modifier) {
         val useTwoPane = this.maxWidth > 600.dp
@@ -134,7 +139,8 @@ private fun StudentDataLayout(
                         onSearch,
                         onDigitalService,
                         onPhysJournal,
-                        onProjectActivity
+                        onProjectActivity,
+                        onMoodle
                     )
                     Spacer(Modifier.height(UiSize().getNavBarPaddingSize()))
                 }
@@ -162,7 +168,8 @@ private fun StudentDataLayout(
                     onSearch,
                     onDigitalService,
                     onPhysJournal,
-                    onProjectActivity
+                    onProjectActivity,
+                    onMoodle
                 )
 
                 Spacer(Modifier.height(UiSize().getNavBarPaddingSize()))

@@ -5,9 +5,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.rozetka.model.local.CalendarAccount
 import com.rozetka.domain.usecase.CalendarUseCase
+import com.rozetka.domain.repository.ScheduleRepository
 import com.rozetka.model.ScheduleModel
-import com.rozetka.network.MospolytechMethods
 import com.rozetka.presentation.R
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -29,7 +30,7 @@ sealed interface CalendarEffect {
 }
 
 class SessionScheduleViewModel(
-    private val mospolytechMethods: MospolytechMethods,
+    private val scheduleRepository: ScheduleRepository,
     private val calendarUseCase: CalendarUseCase,
     private val application: Application
 ) : ViewModel() {
@@ -45,25 +46,34 @@ class SessionScheduleViewModel(
             _uiState.value = SessionScheduleUiState.Loading
 
             if (group.isBlank()) {
-                _uiState.value = SessionScheduleUiState.Error("")
+                _uiState.value = SessionScheduleUiState.Error(
+                    application.getString(R.string.error_group_not_found_prompt)
+                )
                 return@launch
             }
 
-            try {
-                val scheduleData = mospolytechMethods.getSessionSchedule(group)
-                if (scheduleData.grid.isEmpty()) {
+            scheduleRepository.getSessionSchedule(group)
+                .catch { e ->
                     _uiState.value = SessionScheduleUiState.Error(
-                        application.getString(R.string.no_schedule_placeholder)
+                        application.getString(R.string.error_load_prefix, e.message)
                     )
-                } else {
-                    _uiState.value = SessionScheduleUiState.Success(scheduleData)
                 }
-
-            } catch (e: Exception) {
-                _uiState.value = SessionScheduleUiState.Error(
-                    application.getString(R.string.error_load_prefix, e.message)
-                )
-            }
+                .collect { result ->
+                    result.onSuccess { scheduleData ->
+                        if (scheduleData.grid.isEmpty()) {
+                            _uiState.value = SessionScheduleUiState.Error(
+                                application.getString(R.string.no_schedule_placeholder)
+                            )
+                        } else {
+                            _uiState.value = SessionScheduleUiState.Success(scheduleData)
+                        }
+                    }
+                    result.onFailure { throwable ->
+                        _uiState.value = SessionScheduleUiState.Error(
+                            application.getString(R.string.error_load_prefix, throwable.message)
+                        )
+                    }
+                }
         }
     }
 

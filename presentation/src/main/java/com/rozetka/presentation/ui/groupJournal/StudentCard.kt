@@ -16,7 +16,7 @@ import androidx.compose.material3.Badge
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ElevatedCard
+
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -95,7 +95,7 @@ fun StudentCard(
                         modifier = Modifier.padding(start = 8.dp)
                     ) {
                         Text(
-                            "ДОЛГ",
+                            text = stringResource(R.string.group_journal_debt_badge),
                             modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
                             style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold)
                         )
@@ -114,11 +114,11 @@ fun StudentCard(
                     modifier = Modifier.padding(16.dp),
                     horizontalArrangement = Arrangement.SpaceAround
                 ) {
-                    InfoColumn(label = "Посещения", value = student.visits.toString())
+                    InfoColumn(label = stringResource(R.string.group_journal_visits), value = student.visits.toString())
                     VerticalDivider(modifier = Modifier.height(32.dp).align(Alignment.CenterVertically))
-                    InfoColumn(label = "Баллы", value = student.totalPoints.toString())
+                    InfoColumn(label = stringResource(R.string.group_journal_points), value = student.totalPoints.toString())
                     VerticalDivider(modifier = Modifier.height(32.dp).align(Alignment.CenterVertically))
-                    InfoColumn(label = "LMS", value = student.lmsPoints.toString())
+                    InfoColumn(label = stringResource(R.string.group_journal_lms), value = student.lmsPoints.toString())
                 }
             }
 
@@ -176,13 +176,14 @@ private fun InfoColumn(label: String, value: String) {
 }
 
 
+@Composable
 fun translateHealthGroup(group: String): String {
-    return when(group) {
-        "Basic" -> "Основная"
-        "Preparatory" -> "Подготовительная"
-        "SpecialA" -> "Спец. А"
-        "SpecialB" -> "Спец. Б"
-        "None" -> "Не указана"
+    return when (group) {
+        "Basic" -> stringResource(R.string.group_journal_health_group_basic)
+        "Preparatory" -> stringResource(R.string.group_journal_health_group_preparatory)
+        "SpecialA" -> stringResource(R.string.group_journal_health_group_special_a)
+        "SpecialB" -> stringResource(R.string.group_journal_health_group_special_b)
+        "None" -> stringResource(R.string.group_journal_health_group_none)
         else -> group
     }
 }

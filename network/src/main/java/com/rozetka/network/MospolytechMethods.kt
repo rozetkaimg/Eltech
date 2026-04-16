@@ -49,13 +49,30 @@ import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 
 class MospolytechMethods() : MospolytechApi {
+    override suspend fun getNotifications(token: String): List<com.rozetka.model.NotificationModelItem> {
+        val response = provideUnsecureHttpClient().get("/?getNotifications&token=${token}")
+        return if (response.status == HttpStatusCode.OK) {
+            response.body()
+        } else emptyList()
+    }
+
     override suspend fun getScheduleByGroup(group: String): ScheduleModel {
-        return provideHttpClient().get("https://rasp.dmami.ru/site/group?group=${group}&session=0") {
+        val result = provideHttpClient().get("https://rasp.dmami.ru/site/group?group=${group}&session=0") {
             headers {
                 append("Referer", "https://rasp.dmami.ru/")
-
             }
-        }.body()
+        }.body<ScheduleModel>()
+
+
+        if (result.status == "error") {
+            return ScheduleModel(
+                status = result.status,
+                grid = emptyMap(),
+                group = result.group,
+                isSession = false
+            )
+        }
+        return result
     }
 
     override suspend fun getStudentProfile(credentials: Credentials): StudentProfile? {

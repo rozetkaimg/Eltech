@@ -1,6 +1,7 @@
 package com.rozetka.presentation.ui.shedule
 
 import android.app.Application
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.rozetka.data.SecureStorage
@@ -34,7 +35,8 @@ data class WeekInfo(
 data class ScheduleScreenData(
     val fullSchedule: ScheduleModel,
     val weeks: List<WeekInfo>,
-    val initialWeekIndex: Int
+    val initialWeekIndex: Int,
+    val isScheduleMissing: Boolean = false
 )
 
 class ScheduleViewModel(
@@ -47,17 +49,16 @@ class ScheduleViewModel(
     val uiState: StateFlow<ScheduleUiState> = _uiState.asStateFlow()
     private val secureStorage: SecureStorage = SecureStorage(application)
 
-init {
-    try {
+    init {
         viewModelScope.launch {
-            campusToken = campusApi.getBearerToken().token
+            try {
+                campusToken = campusApi.getBearerToken().token
+            } catch (e: Exception) {
+                Log.e("ScheduleViewModel", "Failed to get campus token", e)
+            }
         }
-    } catch (e: Exception){
-
+        getSchedule(StringObject.groupName)
     }
-getSchedule(StringObject.groupName)
-
-}
 
     fun getSchedule(group: String) {
         viewModelScope.launch {
@@ -67,28 +68,36 @@ getSchedule(StringObject.groupName)
             val groupToFetch = if (group.isEmpty()) userOwnGroup else group
 
             if (groupToFetch.isEmpty()) {
-                _uiState.value = ScheduleUiState.Error(application.getString(R.string.error_group_not_found_prompt))
+                _uiState.value =
+                    ScheduleUiState.Error(application.getString(R.string.error_group_not_found_prompt))
                 return@launch
             }
 
-            val scheduleFlow: Flow<Result<ScheduleModel>> = if (group.isNotEmpty()) {
-                scheduleRepository.getScheduleOnlyNetwork(groupToFetch)
-            } else {
-                scheduleRepository.getSchedule(groupToFetch)
-            }
-
-            scheduleFlow
+            // Always use the robust getSchedule from repository
+            scheduleRepository.getSchedule(groupToFetch)
                 .catch { e ->
-                    _uiState.value = ScheduleUiState.Error(application.getString(R.string.error_critical_prefix, e.message))
+                    Log.e("ScheduleViewModel", "Flow error in getSchedule", e)
+                    _uiState.value = ScheduleUiState.Error(
+                        application.getString(
+                            R.string.error_critical_prefix,
+                            e.message ?: "Unknown error"
+                        )
+                    )
                 }
                 .collect { result ->
                     result.onSuccess { scheduleData ->
-                        val screenData = processScheduleData(scheduleData)
-                        _uiState.value = ScheduleUiState.Success(screenData)
+                        try {
+                            val screenData = processScheduleData(scheduleData)
+                            _uiState.value = ScheduleUiState.Success(screenData)
+                        } catch (e: Exception) {
+                            Log.e("ScheduleViewModel", "Error processing schedule data", e)
+                            _uiState.value = ScheduleUiState.Error("Ошибка обработки данных расписания")
+                        }
                     }
                     result.onFailure { throwable ->
+                        Log.e("ScheduleViewModel", "Result failure in getSchedule", throwable)
                         _uiState.value = ScheduleUiState.Error(
-                            application.getString(R.string.error_load_prefix, throwable.message)
+                            application.getString(R.string.error_load_prefix, throwable.message ?: "Network error")
                         )
                     }
                 }
@@ -96,11 +105,25 @@ getSchedule(StringObject.groupName)
     }
 
     private fun processScheduleData(schedule: ScheduleModel): ScheduleScreenData {
-        val startDate = LocalDate.parse(schedule.group.dateFrom)
-        val endDate = LocalDate.parse(schedule.group.dateTo)
+        val group = schedule.group
+        if (group == null || schedule.grid.isNullOrEmpty()) {
+            return ScheduleScreenData(
+                fullSchedule = schedule,
+                weeks = emptyList(),
+                initialWeekIndex = 0,
+                isScheduleMissing = true
+            )
+        }
+
+        // Safer parsing with fallback
+        val startDate = runCatching { LocalDate.parse(group.dateFrom) }
+            .getOrDefault(LocalDate.now())
+        val endDate = runCatching { LocalDate.parse(group.dateTo) }
+            .getOrDefault(startDate.plusMonths(4))
+
         val weeks = generateWeeks(startDate, endDate)
         val initialIndex = findCurrentWeekIndex(weeks)
-        return ScheduleScreenData(schedule, weeks, initialIndex)
+        return ScheduleScreenData(schedule, weeks, initialIndex, isScheduleMissing = false)
     }
 
     private fun generateWeeks(start: LocalDate, end: LocalDate): List<WeekInfo> {

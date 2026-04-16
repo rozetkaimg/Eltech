@@ -45,4 +45,12 @@ class UserRepositoryImpl(
     override suspend fun refreshUser(): Result<Unit> {
         TODO("Not yet implemented")
     }
+
+    override suspend fun getMoodleSession(): String? {
+        return userStorage.getMoodleSession()
+    }
+
+    override suspend fun saveMoodleSession(session: String) {
+        userStorage.saveMoodleSession(session)
+    }
 }
