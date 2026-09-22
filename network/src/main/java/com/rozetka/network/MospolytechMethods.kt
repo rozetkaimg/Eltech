@@ -16,6 +16,7 @@ import com.rozetka.model.NewsModelItem
 import com.rozetka.model.PDModel
 import com.rozetka.model.PayModel
 import com.rozetka.model.PhysEdJournalResponse
+import com.rozetka.model.PhysEdScheduleResponse
 import com.rozetka.model.PolytechEvent
 import com.rozetka.model.RaspData
 import com.rozetka.model.ScheduleByDay
@@ -560,5 +561,16 @@ class MospolytechMethods() : MospolytechApi {
 
     private fun fixUrl(url: String): String {
         return if (url.startsWith("http")) url else "https://mospolytech.ru$url"
+    }
+
+    override suspend fun getPhysEdSchedule(): PhysEdScheduleResponse {
+        val jsonParser = Json {
+            ignoreUnknownKeys = true
+            isLenient = true
+        }
+        val responseText: String = provideUnsecureHttpClientClean()
+            .get("https://raw.githubusercontent.com/EltechDev/file/refs/heads/main/fp_schedule.json")
+            .bodyAsText()
+        return jsonParser.decodeFromString<PhysEdScheduleResponse>(responseText)
     }
 }

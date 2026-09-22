@@ -8,6 +8,7 @@ import androidx.security.crypto.EncryptedSharedPreferences.PrefKeyEncryptionSche
 import androidx.security.crypto.EncryptedSharedPreferences.PrefValueEncryptionScheme.*
 import androidx.security.crypto.MasterKey
 import androidx.security.crypto.MasterKey.*
+import com.rozetka.model.PhysEdSubscribedClass
 import kotlinx.serialization.json.Json
 import java.lang.Exception
 
@@ -29,6 +30,8 @@ class SecureStorage(context: Context) {
         const val KEY_SCHEDULE_STATE = "Schedule_key"
         const val KEY_SCHEDULE_NOTIFICATION_STATE = "ScheduleNotification_key"
         const val KEY_CHAT_NOTIFICATION_STATE = "ChatNotification_key"
+        const val KEY_PHYS_ED_REPLACE_ENABLED = "phys_ed_replace_enabled_key"
+        const val KEY_PHYS_ED_SUBSCRIPTIONS = "phys_ed_subscriptions_key"
 
         const val KEY_GROUP_NAMES_LIST = "group_names_list_key"
         const val KEY_USER_ACCOUNTS = "user_accounts_key"
@@ -123,6 +126,27 @@ class SecureStorage(context: Context) {
         saveBoolean(KEY_CHAT_NOTIFICATION_STATE, state)
 
     fun getChatNotificationState(): Boolean = getBoolean(KEY_CHAT_NOTIFICATION_STATE, false)
+
+    fun savePhysEdReplaceState(enabled: Boolean) = saveBoolean(KEY_PHYS_ED_REPLACE_ENABLED, enabled)
+    fun getPhysEdReplaceState(): Boolean = getBoolean(KEY_PHYS_ED_REPLACE_ENABLED, true)
+
+    fun savePhysEdSubscriptions(subscriptions: List<PhysEdSubscribedClass>) {
+        val jsonString = json.encodeToString(subscriptions)
+        saveString(KEY_PHYS_ED_SUBSCRIPTIONS, jsonString)
+    }
+
+    fun getPhysEdSubscriptions(): List<PhysEdSubscribedClass> {
+        val jsonString = getString(KEY_PHYS_ED_SUBSCRIPTIONS)
+        return if (!jsonString.isNullOrBlank()) {
+            try {
+                json.decodeFromString(jsonString)
+            } catch (e: Exception) {
+                emptyList()
+            }
+        } else {
+            emptyList()
+        }
+    }
 
     fun saveGroupNames(groupNames: List<String>) {
         val jsonString = json.encodeToString(groupNames)

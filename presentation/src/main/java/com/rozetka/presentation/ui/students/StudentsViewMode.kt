@@ -1,8 +1,9 @@
 package com.rozetka.presentation.ui.students
 
+import android.content.Context
+import com.rozetka.data.SecureStorage
 import com.rozetka.model.GroupInfo
 import com.rozetka.model.Specialty
-import com.rozetka.model.StudentProfile
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.rozetka.domain.util.StringObject.ApiToken
@@ -23,11 +24,9 @@ class GroupRepository {
     )
 
     private val rules = listOf(
-        // --- ИСКЛЮЧЕНИЯ (Отрабатывают первыми) ---
         MaskRule(Regex("^(201|321)-33[1-9]$"), Specialty.IBAS, "Обеспечение информационной безопасности распределенных информационных систем"),
         MaskRule(Regex("^101-262$"), Specialty.UTS, "Электронные системы управления"),
 
-        // --- ОБЩИЕ ПРАВИЛА (По хвосту группы) ---
         MaskRule(Regex(".*-11\\d"), Specialty.NTTS, "Спортивные / Перспективные транспортные средства"),
         MaskRule(Regex(".*-12\\d"), Specialty.PTMK, "Проектирование технологических машин"),
         MaskRule(Regex(".*-13\\d"), Specialty.EM, "Энергоустановки для транспорта и малой энергетики"),
@@ -43,17 +42,13 @@ class GroupRepository {
         MaskRule(Regex(".*-28\\d"), Specialty.MTM, "Перспективные материалы и технологии"),
         MaskRule(Regex(".*-29\\d"), Specialty.ATPP, "Роботы и робототехнические устройства"),
 
-        // IT-направления
         MaskRule(Regex(".*-32\\d"), Specialty.IVT, "Инженерия программного обеспечения / Веб-технологии"),
         MaskRule(Regex(".*-(33|72)\\d"), Specialty.ISIT, "Информационные системы и технологии / Цифровая трансформация"),
         MaskRule(Regex(".*-35\\d"), Specialty.IB, "Безопасность компьютерных систем"),
         MaskRule(Regex(".*-36\\d"), Specialty.PI, "Корпоративные информационные системы / Большие и открытые данные"),
 
-        // НОВЫЕ ГРУППЫ ИБАС: 371 и 372
-        // Маска [1-2] означает, что на конце может быть 1 или 2
         MaskRule(Regex(".*-37[1-2]"), Specialty.IBAS, "Обеспечение информационной безопасности распределенных информационных систем"),
 
-        // Энергетика, строительство, безопасность
         MaskRule(Regex(".*-41\\d"), Specialty.EE, "Электрооборудование и промышленная электроника"),
         MaskRule(Regex(".*-43\\d"), Specialty.TT, "Теплоэнергетические установки, системы и комплексы"),
         MaskRule(Regex(".*-44\\d"), Specialty.STR, "Промышленное и гражданское строительство"),
@@ -64,7 +59,6 @@ class GroupRepository {
         MaskRule(Regex(".*-53\\d"), Specialty.HTENMI, "Автоматизированное производство химических предприятий"),
         MaskRule(Regex(".*-54\\d"), Specialty.HKT, "Холодильная техника и технологии"),
 
-        // Экономика, гуманитарные и творческие направления
         MaskRule(Regex(".*-61\\d"), Specialty.EK, "Экономика предприятий и организаций"),
         MaskRule(Regex(".*-62\\d"), Specialty.MEN, "Управление бизнес-процессами"),
         MaskRule(Regex(".*-63\\d"), Specialty.RSO, "Реклама и связи с общественностью в цифровых медиа"),
@@ -109,10 +103,11 @@ sealed interface StudentsUiState {
 }
 
 class StudentsViewModel(
-    private val repository: MospolytechMethods
+    private val repository: MospolytechMethods,
+    private val secureStorage: SecureStorage
 ) : ViewModel() {
 
-    private val groupRepository = GroupRepository()
+    val groupRepository = GroupRepository()
 
     fun getGroupInfo(groupNumber: String): GroupInfo {
         return groupRepository.getInfoByGroup(groupNumber)
@@ -131,13 +126,51 @@ class StudentsViewModel(
     private val perPage = 50
     private val currentItems = mutableListOf<StudentR>()
 
+    init {
+        val userGroup = secureStorage.getGroupName()?.trim().orEmpty()
+        if (userGroup.isNotBlank()) {
+            _searchQuery.value = userGroup
+            searchStudents()
+        }
+    }
+
+    fun exportToExcel(context: Context) {
+        val state = uiState.value
+        if (state is StudentsUiState.Content) {
+            StudentsExporter.exportToExcel(
+                context = context,
+                students = state.items,
+                groupRepository = groupRepository,
+                query = searchQuery.value
+            )
+        }
+    }
+
+    fun copyStudentList(context: Context) {
+        val state = uiState.value
+        if (state is StudentsUiState.Content) {
+            StudentsExporter.copyTextList(
+                context = context,
+                students = state.items,
+                query = searchQuery.value
+            )
+        }
+    }
+
+    fun shareStudentList(context: Context) {
+        copyStudentList(context)
+    }
+
     fun onSearchQueryChange(query: String) {
         _searchQuery.value = query
     }
 
     fun searchStudents() {
         val query = _searchQuery.value.trim()
-        if (query.isBlank()) return
+        if (query.isBlank()) {
+            _uiState.value = StudentsUiState.Initial
+            return
+        }
 
         currentPage = 1
         currentItems.clear()

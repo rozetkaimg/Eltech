@@ -229,7 +229,7 @@ fun BreakItem(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "Перерыв",
+                text = stringResource(R.string.break_item),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)

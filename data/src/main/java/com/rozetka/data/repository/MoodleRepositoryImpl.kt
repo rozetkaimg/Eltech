@@ -2,9 +2,11 @@ package com.rozetka.data.repository
 
 import com.rozetka.domain.repository.MoodleRepository
 import com.rozetka.model.ActiveQuizAttempt
+import com.rozetka.model.AttachmentItem
 import com.rozetka.model.CourseModule
 import com.rozetka.model.CourseSection
 import com.rozetka.model.GradeItem
+import com.rozetka.model.ModuleContentNative
 import com.rozetka.model.ModuleType
 import com.rozetka.model.MoodleCourse
 import com.rozetka.model.ParticipantItem
@@ -131,11 +133,105 @@ class MoodleRepositoryImpl : MoodleRepository {
     override suspend fun getCourseDetail(moodleSession: String, courseId: String): List<CourseSection> = withContext(Dispatchers.IO) {
         try {
             val document = getJsoupConnection("https://lms.mospolytech.ru/course/view.php?id=$courseId", moodleSession).get()
-            val sections = document.select("li.section.main")
 
+            // 1. Поиск через боковое меню (courseindex) - актуально для новой темы Moodle 4.x
+            val sidebarSections = document.select("div.courseindex-section")
+            if (sidebarSections.isNotEmpty()) {
+                val parsedSections = sidebarSections.mapNotNull { section ->
+                    val nameNode = section.selectFirst("a[data-for='section_title']")
+                    val name = nameNode?.text()?.trim() ?: "Общее"
+                    val sectionLink = nameNode?.attr("abs:href") ?: ""
+
+                    val modules = mutableListOf<CourseModule>()
+
+                    // Извлекаем описание и картинки из центральной части
+                    val sectionNumber = section.attr("data-number")
+                    val mainSection = document.selectFirst("li#section-$sectionNumber")
+                    val summaryText = mainSection?.selectFirst(".summarytext")
+
+                    val hasImages = summaryText?.selectFirst("img") != null
+                    val textContent = summaryText?.text()?.trim() ?: ""
+
+                    // Если в разделе есть картинки или осмысленный текст - добавляем ссылку на страницу раздела
+                    if (sectionLink.isNotEmpty() && (hasImages || textContent.length > 20)) {
+                        modules.add(
+                            CourseModule(
+                                id = "desc_$sectionNumber",
+                                name = "🖼 Читать описание раздела (материалы и картинки)",
+                                link = sectionLink,
+                                type = ModuleType.URL,
+                                isCompleted = true
+                            )
+                        )
+                    }
+
+                    // Собираем остальные модули из бокового меню
+                    val activities = section.select("li.courseindex-item").mapNotNull { activity ->
+                        val linkNode = activity.selectFirst("a.courseindex-link") ?: return@mapNotNull null
+                        val link = linkNode.attr("abs:href")
+                        val modName = linkNode.text().trim()
+
+                        if (modName.isEmpty() || link.isEmpty()) return@mapNotNull null
+
+                        val type = when {
+                            link.contains("/mod/resource/") -> ModuleType.RESOURCE
+                            link.contains("/mod/assign/") -> ModuleType.ASSIGN
+                            link.contains("/mod/quiz/") -> ModuleType.QUIZ
+                            link.contains("/mod/forum/") || link.contains("/mod/chat/") -> ModuleType.FORUM
+                            link.contains("/mod/folder/") -> ModuleType.FOLDER
+                            link.contains("/mod/page/") || link.contains("/mod/lesson/") -> ModuleType.PAGE
+                            link.contains("/mod/url/") -> ModuleType.URL
+                            else -> ModuleType.UNKNOWN
+                        }
+
+                        val isCompleted = activity.select("span.completioninfo i")
+                            .attr("title").contains("Выполнено", ignoreCase = true)
+
+                        val rawId = activity.attr("id").substringAfterLast("-")
+
+                        CourseModule(
+                            id = rawId,
+                            name = modName,
+                            link = link,
+                            type = type,
+                            isCompleted = isCompleted
+                        )
+                    }
+                    modules.addAll(activities)
+
+                    if (name.isNotEmpty() || modules.isNotEmpty()) {
+                        CourseSection(section.attr("data-id"), name, modules)
+                    } else null
+                }
+                if (parsedSections.isNotEmpty()) return@withContext parsedSections
+            }
+
+            // 2. Fallback: старый способ (если бокового меню нет)
+            val sections = document.select("li.section.main")
             sections.map { section ->
-                val name = section.select("h3.sectionname").text().trim()
-                val modules = section.select("li.activity").map { activity ->
+                val sectionLinkNode = section.select("h3.sectionname a").first()
+                val name = sectionLinkNode?.text()?.trim() ?: section.select("h3.sectionname").text().trim()
+                val sectionLink = sectionLinkNode?.attr("abs:href") ?: ""
+
+                val modules = mutableListOf<CourseModule>()
+
+                val summaryText = section.selectFirst(".summarytext")
+                val hasImages = summaryText?.selectFirst("img") != null
+                val textContent = summaryText?.text()?.trim() ?: ""
+
+                if (sectionLink.isNotEmpty() && (hasImages || textContent.length > 20)) {
+                    modules.add(
+                        CourseModule(
+                            id = "desc_${section.attr("id")}",
+                            name = "🖼 Читать описание раздела (материалы и картинки)",
+                            link = sectionLink,
+                            type = ModuleType.URL,
+                            isCompleted = true
+                        )
+                    )
+                }
+
+                val activities = section.select("li.activity").map { activity ->
                     val typeClass = activity.className().split(" ").find { it.startsWith("modtype_") }?.substringAfter("modtype_")
                     val rawId = activity.attr("id")
                     val cleanId = if (rawId.startsWith("module-")) rawId.substringAfter("module-") else rawId
@@ -157,8 +253,11 @@ class MoodleRepositoryImpl : MoodleRepository {
                         isCompleted = activity.select(".completionstatus.complete").isNotEmpty()
                     )
                 }.filter { it.name.isNotEmpty() }
+
+                modules.addAll(activities)
                 CourseSection(section.attr("id"), name, modules)
             }.filter { it.name.isNotEmpty() || it.modules.isNotEmpty() }
+
         } catch (e: Exception) {
             emptyList()
         }
@@ -224,6 +323,91 @@ class MoodleRepositoryImpl : MoodleRepository {
             Pair(participants, hasNextPage)
         } catch (e: Exception) {
             Pair(emptyList(), false)
+        }
+    }
+
+    override suspend fun getModuleContentNative(moodleSession: String, moduleUrl: String): ModuleContentNative = withContext(Dispatchers.IO) {
+        try {
+            // Выполняем запрос. Игнорируем тип контента, чтобы не упасть, если это бинарный файл (PDF, DOCX)
+            val response = Jsoup.connect(moduleUrl)
+                .header("Cookie", "MoodleSession=$moodleSession")
+                .sslSocketFactory(trustAllCertificates())
+                .ignoreContentType(true)
+                .followRedirects(true)
+                .execute()
+
+            val contentType = response.contentType() ?: ""
+
+            // 1. Если это не HTML, значит Moodle напрямую отдал файл для скачивания
+            if (!contentType.contains("text/html")) {
+                val fileName = response.header("Content-Disposition")?.let {
+                    Regex("filename=\"?([^\"]+)\"?").find(it)?.groupValues?.get(1)
+                } ?: moduleUrl.substringAfterLast("/").substringBefore("?")
+
+                return@withContext ModuleContentNative(
+                    title = "Файл",
+                    textHtml = "Это файл, доступный для загрузки.",
+                    images = emptyList(),
+                    files = listOf(AttachmentItem(fileName, response.url().toString())),
+                    links = emptyList()
+                )
+            }
+
+            // 2. Если это HTML, парсим содержимое
+            val document = response.parse()
+            val title = document.select("h2, .page-header-headings").first()?.text()?.trim() ?: "Материал"
+
+            val contentNode = document.selectFirst("[role=main] .box.generalbox")
+                ?: document.selectFirst("[role=main] .intro")
+                ?: document.selectFirst("[role=main]")
+                ?: document.selectFirst(".course-content")
+
+            val images = mutableListOf<String>()
+            val links = mutableListOf<AttachmentItem>()
+            val files = mutableListOf<AttachmentItem>()
+
+            // Вытаскиваем все изображения (удаляем из HTML, чтобы отрисовать их нативно через Coil)
+            contentNode?.select("img")?.forEach { img ->
+                images.add(img.attr("abs:src"))
+                img.remove()
+            }
+
+            // Вытаскиваем встроенные видео (iframe) как ссылки
+            contentNode?.select("iframe")?.forEach { iframe ->
+                val src = iframe.attr("abs:src")
+                if (src.isNotEmpty()) links.add(AttachmentItem("Видео / Внешний ресурс", src))
+                iframe.remove()
+            }
+
+            // Страницы ресурсов Moodle часто содержат специальную ссылку на скачивание
+            val workaround = document.selectFirst("div.resourceworkaround a")
+            if (workaround != null) {
+                files.add(AttachmentItem(workaround.text().trim().ifEmpty { "Скачать файл" }, workaround.attr("abs:href")))
+            }
+
+            // Перебираем все ссылки в тексте
+            contentNode?.select("a[href]")?.forEach { a ->
+                val href = a.attr("abs:href")
+                val text = a.text().trim().ifEmpty { "Ссылка" }
+
+                if (href.contains("pluginfile.php") || href.endsWith(".pdf") || href.endsWith(".zip") || href.endsWith(".docx")) {
+                    files.add(AttachmentItem(text, href))
+                } else if (href != workaround?.attr("abs:href") && !href.startsWith("#")) {
+                    links.add(AttachmentItem(text, href))
+                }
+            }
+
+            val textHtml = contentNode?.html() ?: "Содержимое отсутствует"
+
+            ModuleContentNative(
+                title = title,
+                textHtml = textHtml,
+                images = images.distinct(),
+                files = files.distinctBy { it.url },
+                links = links.distinctBy { it.url }
+            )
+        } catch (e: Exception) {
+            ModuleContentNative("Ошибка", "Не удалось загрузить содержимое: ${e.message}", emptyList(), emptyList(), emptyList())
         }
     }
 

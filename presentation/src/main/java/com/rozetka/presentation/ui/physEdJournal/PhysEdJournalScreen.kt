@@ -27,6 +27,7 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Star
@@ -124,6 +125,7 @@ fun PhysEdJournalScreen(
                             PhysEdJournalSuccessState(
                                 data = it,
                                 toGroup = { navController.navigate(Screen.PhysGroupJournalScreen.route) },
+                                toSchedule = { navController.navigate(Screen.PhysEdSchedule.route) },
                                 scrollBehavior = scrollBehavior
                             )
                         }
@@ -148,6 +150,7 @@ fun PhysEdJournalScreen(
 private fun PhysEdJournalSuccessState(
     data: FKStudentData,
     toGroup: () -> Unit,
+    toSchedule: () -> Unit,
     scrollBehavior: TopAppBarScrollBehavior
 ) {
     val scope = rememberCoroutineScope()
@@ -180,42 +183,90 @@ private fun PhysEdJournalSuccessState(
                     specialization = data.specialization,
                 )
 
-                Card(
+                Row(
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(22.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
-                    onClick = toGroup
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    Row(
-                        modifier = Modifier.padding(12.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                    Card(
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(22.dp),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+                        onClick = toGroup
                     ) {
-                        Box(
-                            Modifier
-                                .size(72.dp)
-                                .clip(Cookie9Sided.toShape())
-                                .background(generateColorFromHash("Журнал группы").copy(0.15f))
+                        Row(
+                            modifier = Modifier.padding(12.dp),
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Icon(
-                                painter = painterResource(R.drawable.users_outline),
-                                contentDescription = null,
-                                tint = generateColorFromHash("Журнал группы"),
-                                modifier = Modifier
-                                    .size(24.dp)
-                                    .align(Alignment.Center)
-                            )
+                            Box(
+                                Modifier
+                                    .size(48.dp)
+                                    .clip(Cookie9Sided.toShape())
+                                    .background(generateColorFromHash("Журнал группы").copy(0.15f))
+                            ) {
+                                Icon(
+                                    painter = painterResource(R.drawable.users_outline),
+                                    contentDescription = null,
+                                    tint = generateColorFromHash("Журнал"),
+                                    modifier = Modifier
+                                        .size(24.dp)
+                                        .align(Alignment.Center)
+                                )
+                            }
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Column {
+                                Text(
+                                    text = "Журнал",
+                                    style = MaterialTheme.typography.titleSmall,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                Text(
+                                    text = "Рейтинг",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
                         }
-                        Spacer(modifier = Modifier.width(12.dp))
-                        Column {
-                            Text(
-                                text = "Журнал группы",
-                                style = MaterialTheme.typography.titleMedium
-                            )
-                            Text(
-                                text = "Рейтинг твоей группы",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
+                    }
+
+                    Card(
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(22.dp),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
+                        onClick = toSchedule
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(12.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Box(
+                                Modifier
+                                    .size(48.dp)
+                                    .clip(Cookie9Sided.toShape())
+                                    .background(generateColorFromHash(stringResource(R.string.physed_schedule_title)).copy(0.15f))
+                            ) {
+                                Icon(
+                                    painter = painterResource(R.drawable.physical),
+                                    contentDescription = null,
+                                    tint = generateColorFromHash(stringResource(R.string.physed_schedule_title)),
+                                    modifier = Modifier
+                                        .size(24.dp)
+                                        .align(Alignment.Center)
+                                )
+                            }
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Column {
+                                Text(
+                                    text = stringResource(R.string.physed_schedule_title),
+                                    style = MaterialTheme.typography.titleSmall,
+                                    fontWeight = FontWeight.Bold,
+                                    maxLines = 1
+                                )
+                                Text(
+                                    text = "Спортзалы",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
                         }
                     }
                 }

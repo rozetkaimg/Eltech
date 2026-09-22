@@ -7,7 +7,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class Group(
     @SerialName("comment")
-    val comment: String,
+    val comment: String? = "",
     @SerialName("course")
     val course: Int,
     @SerialName("dateFrom")

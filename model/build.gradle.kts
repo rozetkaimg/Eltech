@@ -6,7 +6,7 @@ plugins {
 
 android {
     namespace = "com.rozetka.model"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         minSdk = 26
@@ -25,16 +25,16 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_21
-        targetCompatibility = JavaVersion.VERSION_21
+        sourceCompatibility = JavaVersion.VERSION_25
+        targetCompatibility = JavaVersion.VERSION_25
     }
     kotlin {
-        jvmToolchain(21)
+        jvmToolchain(25)
     }
 }
 
 dependencies {
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.androidx.core.ktx)
-
+    testImplementation(libs.junit)
 }

@@ -25,6 +25,7 @@ val domainModule = module {
         ScheduleRepository(
             networkApi = get(),
             storage = get(),
+            projectActivityRepository = get(),
             context = androidContext()
         )
     }

@@ -17,6 +17,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
+import com.rozetka.domain.repository.ProjectActivityRepository
+import com.rozetka.domain.util.StringObject
 import kotlinx.coroutines.launch
 import java.time.DayOfWeek
 import java.time.LocalDate
@@ -26,6 +28,7 @@ import java.util.Locale
 
 class ScheduleLinkViewModel(
     private val scheduleRepository: ScheduleRepository,
+    private val projectActivityRepository: ProjectActivityRepository,
     val application: Application,
     private val campusApi: CampusApi
 ) : ViewModel() {
@@ -47,8 +50,9 @@ class ScheduleLinkViewModel(
         viewModelScope.launch {
             _uiState.value = ScheduleUiState.Loading
 
-            val userOwnGroup = secureStorage.getGroupName().toString()
-            val groupToFetch = if (group.isEmpty()) userOwnGroup else group
+            val userOwnGroup = secureStorage.getGroupName().toString().trim()
+            val groupToFetch = if (group.isEmpty()) userOwnGroup else group.trim()
+            val isUserOwnGroup = userOwnGroup.isNotEmpty() && groupToFetch.equals(userOwnGroup, ignoreCase = true)
 
             if (groupToFetch.isEmpty()) {
                 _uiState.value = ScheduleUiState.Error(application.getString(R.string.error_group_not_found_prompt))
@@ -68,7 +72,15 @@ class ScheduleLinkViewModel(
                 .collect { result ->
                     result.onSuccess { scheduleData ->
                         try {
-                            val screenData = processScheduleData(scheduleData)
+                            val token = StringObject.ApiToken
+                            val updatedSchedule = if (isUserOwnGroup && token.isNotBlank()) {
+                                runCatching {
+                                    projectActivityRepository.replacePDDiscipline(scheduleData, token)
+                                }.getOrDefault(scheduleData)
+                            } else {
+                                scheduleData
+                            }
+                            val screenData = processScheduleData(updatedSchedule)
                             _uiState.value = ScheduleUiState.Success(screenData)
                         } catch (e: Exception) {
                             _uiState.value = ScheduleUiState.Error(

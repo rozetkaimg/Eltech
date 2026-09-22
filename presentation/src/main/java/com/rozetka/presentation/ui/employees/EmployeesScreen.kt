@@ -122,7 +122,7 @@ fun EmployeesScreen(
                                     onSearch = { viewModel.searchEmployees() },
                                     expanded = false,
                                     onExpandedChange = {},
-                                    placeholder = { Text("Поиск сотрудников") },
+                                    placeholder = { Text(stringResource(R.string.search_employees_placeholder)) },
                                     leadingIcon = {
                                         Icon(
                                             imageVector = Icons.Default.Search,
@@ -199,7 +199,7 @@ fun EmployeesScreen(
                     if (selectedTab == EmployeeTab.TEACHERS && displayedItems.isEmpty() && state.items.isNotEmpty()) {
                         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                             Text(
-                                "Преподаватели не найдены",
+                                stringResource(R.string.teachers_not_found),
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
@@ -388,7 +388,7 @@ private fun EmployeeItem(
                 }
                 if (teacherSmall != null) {
                     Text(
-                        text = "${teacherSmall.rating.count} отзывов",
+                        text = stringResource(R.string.reviews_count_format, teacherSmall.rating.count),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -468,7 +468,7 @@ private fun EmployeeDetailsBottomSheet(
             if (employee.division.isNotBlank()) {
                 EmployeeInfoRow(
                     icon = Icons.Default.Info,
-                    label = "Подразделение",
+                    label = stringResource(R.string.label_division),
                     value = employee.division
                 )
             }
@@ -476,7 +476,7 @@ private fun EmployeeDetailsBottomSheet(
             if (employee.email.isNotBlank()) {
                 EmployeeInfoRow(
                     icon = Icons.Default.Email,
-                    label = "Email",
+                    label = stringResource(R.string.email_label),
                     value = employee.email
                 )
             }
@@ -491,7 +491,7 @@ private fun EmployeeDetailsBottomSheet(
         ) {
             Icon(Icons.Default.DateRange, contentDescription = null)
             Spacer(modifier = Modifier.width(8.dp))
-            Text("Расписание сотрудника")
+            Text(stringResource(R.string.employee_schedule))
         }
     }
 }
@@ -596,7 +596,7 @@ private fun InitialState() {
             }
             Spacer(modifier = Modifier.height(24.dp))
             Text(
-                text = "Введите ФИО или подразделение\nдля поиска сотрудников",
+                text = stringResource(R.string.initial_search_employees),
                 style = MaterialTheme.typography.headlineSmall,
                 color = MaterialTheme.colorScheme.onSurface
             )

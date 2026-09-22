@@ -3,6 +3,10 @@ package com.rozetka.localdata
 import android.content.Context
 
 interface SettingsStoreInt {
+    suspend fun saveThemeConfig(themeConfig: String)
+    suspend fun getThemeConfig(): String
+    suspend fun saveColorConfig(colorConfig: String)
+    suspend fun getColorConfig(): String
     suspend fun saveThemeState(themeState: Int, context: Context)
     suspend fun getThemeState(context: Context): Int
     suspend fun getMonetState(context: Context): Boolean

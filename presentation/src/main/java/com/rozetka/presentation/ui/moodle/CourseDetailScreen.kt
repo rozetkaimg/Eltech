@@ -18,6 +18,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -88,8 +89,17 @@ private fun CourseContentList(sections: List<CourseSection>) {
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun ModuleItem(module: CourseModule) {
+    val uriHandler = LocalUriHandler.current
+
     Surface(
-        modifier = Modifier.fillMaxWidth().clip(MaterialTheme.shapes.medium).clickable { },
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(MaterialTheme.shapes.medium)
+            .clickable {
+                if (module.link.isNotEmpty() && module.type != ModuleType.QUIZ) {
+                    uriHandler.openUri(module.link)
+                }
+            },
         color = MaterialTheme.colorScheme.surfaceContainerLow
     ) {
         Row(

@@ -9,12 +9,16 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -342,10 +346,18 @@ fun AppNavigationRail(
     currentScreen: Screen?,
     navController: NavHostController
 ) {
-    NavigationRail(containerColor = MaterialTheme.colorScheme.surfaceContainerLow) {
+    NavigationRail(
+        containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+        modifier = Modifier
+            .padding(horizontal = 8.dp)
+
+            .windowInsetsPadding(WindowInsets.systemBars)
+            .clip(RoundedCornerShape(16.dp))
+    ) {
+        Spacer(Modifier.size(80.dp))
         bottomBarItems.forEach { screen ->
             val isSelected =
-                currentScreen?.route == screen.route || 
+                currentScreen?.route == screen.route ||
                         currentScreen?.parentRoute == screen.route ||
                         currentScreen?.isChildOf(screen.route) == true
             NavigationRailItem(
@@ -361,7 +373,8 @@ fun AppNavigationRail(
             )
         }
     }
-}
+    }
+
 
 @Preview
 @Composable

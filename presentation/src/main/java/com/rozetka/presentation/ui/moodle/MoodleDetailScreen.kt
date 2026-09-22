@@ -1,6 +1,8 @@
 package com.rozetka.presentation.ui.moodle
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -10,6 +12,7 @@ import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.material3.MaterialShapes.Companion.Cookie9Sided
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -108,26 +111,55 @@ private fun CourseModulesList(
     val uriHandler = LocalUriHandler.current
     LazyColumn(
         contentPadding = PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(24.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
         modifier = Modifier.fillMaxSize()
     ) {
         items(sections) { section ->
-            Column {
-                if (section.name.isNotEmpty()) {
-                    Text(
-                        text = section.name,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Black,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier.padding(start = 8.dp, bottom = 12.dp)
-                    )
-                }
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    section.modules.forEach { module ->
-                        ModuleItemExpressive(module) {
-                            onModuleClick(module)
-                            if (module.link.isNotEmpty() && module.type != ModuleType.QUIZ) {
-                                uriHandler.openUri(module.link)
+            // Первый раздел открыт по умолчанию
+            var expanded by rememberSaveable { mutableStateOf(sections.firstOrNull() == section) }
+
+            Card(
+                shape = MaterialTheme.shapes.extraLarge,
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    // Заголовок раздела стал кликабельным аккордеоном
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { expanded = !expanded }
+                            .padding(16.dp)
+                    ) {
+                        Text(
+                            text = section.name.ifEmpty { "Материалы раздела" },
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier.weight(1f)
+                        )
+                        Icon(
+                            imageVector = if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                            contentDescription = "Раскрыть/Скрыть",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+
+                    // Анимация раскрытия материалов внутри
+                    AnimatedVisibility(visible = expanded) {
+                        Column(
+                            modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 16.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            section.modules.forEach { module ->
+                                ModuleItemExpressive(module) {
+                                    onModuleClick(module)
+                                    // Открытие ссылки в браузере
+                                    if (module.link.isNotEmpty() && module.type != ModuleType.QUIZ) {
+                                        uriHandler.openUri(module.link)
+                                    }
+                                }
                             }
                         }
                     }

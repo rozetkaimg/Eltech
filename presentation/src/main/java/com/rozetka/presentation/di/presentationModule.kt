@@ -13,14 +13,19 @@ import com.rozetka.presentation.ui.home.HomeViewModel
 import com.rozetka.presentation.ui.login.LoginViewModel
 import com.rozetka.presentation.ui.message.MessagesViewModel
 import com.rozetka.presentation.ui.moodle.DeadlinesViewModel
+import com.rozetka.presentation.ui.moodle.ModuleNativeViewModel
 import com.rozetka.presentation.ui.moodle.MoodleViewModel
 import com.rozetka.presentation.ui.moodle.QuizViewModel
 import com.rozetka.presentation.ui.moodle.quiz.ActiveQuizViewModel
+import com.rozetka.presentation.ui.pay.PayViewModel
 import com.rozetka.presentation.ui.physEdJournal.PhysEdJournalViewModel
+import com.rozetka.presentation.ui.physEdSchedule.PhysEdScheduleViewModel
 import com.rozetka.presentation.ui.profile.ProfileViewModel
+import com.rozetka.presentation.ui.projectActivity.AllProjectsViewModel
 import com.rozetka.presentation.ui.projectActivity.ProjectActivityViewModel
 import com.rozetka.presentation.ui.scheduleLink.ScheduleLinkViewModel
 import com.rozetka.presentation.ui.searchGroup.SearchGroupViewModel
+import com.rozetka.presentation.ui.sessionSchedule.SessionScheduleViewModel
 import com.rozetka.presentation.ui.settings.SettingsViewModel
 import com.rozetka.presentation.ui.shedule.ScheduleViewModel
 import com.rozetka.presentation.ui.studentCard.StudentCardViewModel
@@ -42,17 +47,20 @@ val presentationModule = module {
     viewModelOf(::TeacherScheduleViewModel)
     viewModelOf(::MessagesViewModel)
     viewModelOf(::DialogViewModel)
+    viewModelOf(::PayViewModel)
     viewModelOf(::AcademicPerformanceViewModel)
     viewModelOf(::StudentCardViewModel)
     viewModelOf(::SearchGroupViewModel)
     viewModelOf(::PhysEdJournalViewModel)
-    viewModelOf(::DigitalServiceViewModel)
+    viewModelOf(::PhysEdScheduleViewModel)
     viewModelOf(::DigitalServiceViewModel)
     viewModelOf(::TeacherRatingViewModel)
     viewModelOf(::GroupJournalViewModel)
     viewModelOf(::StudentsViewModel)
     viewModelOf(::TeacherReviewViewModel)
+    viewModelOf(::SessionScheduleViewModel)
     viewModelOf(::ProjectActivityViewModel)
+    viewModelOf(::AllProjectsViewModel)
     viewModelOf(::ScheduleLinkViewModel)
     viewModelOf(::GuestSearchGroupViewModel)
     viewModelOf(::CreateApplicationViewModel)
@@ -61,4 +69,5 @@ val presentationModule = module {
     viewModelOf(::QuizViewModel)
     viewModelOf(::ActiveQuizViewModel)
     viewModelOf(::DeadlinesViewModel)
+    viewModelOf(::ModuleNativeViewModel)
 }

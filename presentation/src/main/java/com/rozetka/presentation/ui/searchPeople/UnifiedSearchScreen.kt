@@ -21,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.isTraversalGroup
@@ -38,7 +39,6 @@ import com.rozetka.model.StudentR
 import com.rozetka.model.campus.TeacherSmall
 import com.rozetka.presentation.R
 import com.rozetka.presentation.navigation.Screen
-import com.rozetka.presentation.ui.employees.EmployeeTab
 import com.rozetka.presentation.ui.employees.EmployeesUiState
 import com.rozetka.presentation.ui.employees.EmployeesViewModel
 import com.rozetka.presentation.ui.pay.LoadingState
@@ -148,6 +148,7 @@ fun UnifiedSearchScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun StudentsSearchContent(viewModel: StudentsViewModel, navController: NavController) {
+    val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val messageUiState by viewModel.messageUiState.collectAsStateWithLifecycle()
     var selectedStudent by remember { mutableStateOf<StudentR?>(null) }
@@ -161,6 +162,54 @@ private fun StudentsSearchContent(viewModel: StudentsViewModel, navController: N
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                     contentPadding = PaddingValues(top = 8.dp, bottom = 16.dp)
                 ) {
+                    item {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 4.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = stringResource(R.string.search_found_count, state.items.size),
+                                style = MaterialTheme.typography.titleMedium,
+                                color = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.weight(1f)
+                            )
+
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                FilledTonalButton(
+                                    onClick = { viewModel.exportToExcel(context) },
+                                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.TableChart,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(6.dp))
+                                    Text(stringResource(R.string.export_excel), style = MaterialTheme.typography.labelMedium)
+                                }
+
+                                OutlinedButton(
+                                    onClick = { viewModel.copyStudentList(context) },
+                                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.ContentCopy,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(6.dp))
+                                    Text(stringResource(R.string.action_copy), style = MaterialTheme.typography.labelMedium)
+                                }
+                            }
+                        }
+                    }
+
                     itemsIndexed(state.items) { index, student ->
                         if (index >= state.items.size - 1 && !state.isLoadingMore) {
                             viewModel.loadNextPage()
@@ -201,7 +250,7 @@ private fun StudentsSearchContent(viewModel: StudentsViewModel, navController: N
                     viewModel.resetMessageState()
                 },
                 onScheduleClick = { group ->
-                    navController.navigate(Screen.Schedule.route + "/$group")
+                    navController.navigate(Screen.ScheduleLink.route + "/$group")
                 }
             )
         }

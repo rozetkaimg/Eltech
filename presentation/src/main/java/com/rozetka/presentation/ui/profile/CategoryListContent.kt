@@ -6,7 +6,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.rozetka.presentation.R
@@ -88,8 +87,8 @@ fun CategoryListContent(
 
     CategoryItem(
         iconResId = R.drawable.moodle_595b40b75ba036ed117d67bb,
-        title = "Moodle (LMS)",
-        subtitle = "Учебные курсы и материалы",
+        title = stringResource(R.string.moodle_title),
+        subtitle = stringResource(R.string.moodle_subtitle),
         shape = RoundedCornerShape(8.dp),
         onClick = toMoodle,
         Color(0xFFFFE082)
@@ -98,8 +97,8 @@ fun CategoryListContent(
 
     CategoryItem(
         iconResId = R.drawable.users_outline,
-        title = "Студенты",
-        subtitle = "Поиск студентов",
+        title = stringResource(R.string.tab_students),
+        subtitle = stringResource(R.string.search_students_placeholder),
         shape =
             RoundedCornerShape(
                 topStart = 8.dp,

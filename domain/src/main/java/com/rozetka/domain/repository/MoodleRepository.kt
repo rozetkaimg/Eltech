@@ -3,6 +3,7 @@ package com.rozetka.domain.repository
 import com.rozetka.model.ActiveQuizAttempt
 import com.rozetka.model.CourseSection
 import com.rozetka.model.GradeItem
+import com.rozetka.model.ModuleContentNative
 import com.rozetka.model.MoodleCourse
 import com.rozetka.model.ParticipantItem
 import com.rozetka.model.QuizInfoNative
@@ -14,6 +15,7 @@ interface MoodleRepository {
     suspend fun getCourseDetail(moodleSession: String, courseId: String): List<CourseSection>
     suspend fun getCourseGrades(moodleSession: String, courseId: String): List<GradeItem>
     suspend fun getCourseParticipants(moodleSession: String, courseId: String, page: Int = 0): Pair<List<ParticipantItem>, Boolean>
+    suspend fun getModuleContentNative(moodleSession: String, moduleUrl: String): ModuleContentNative
     suspend fun getQuizInfoNative(moodleSession: String, quizId: String): QuizInfoNative
     suspend fun getActiveAttempt(moodleSession: String, attemptUrl: String): ActiveQuizAttempt?
     suspend fun submitQuizAnswers(

@@ -17,17 +17,19 @@ import com.rozetka.domain.repository.PayRepository
 import com.rozetka.domain.repository.PhysEdJournalRepository
 import com.rozetka.domain.repository.ProjectActivityRepository
 import com.rozetka.domain.repository.UserRepository
+import com.rozetka.network.MospolytechMethods
 import org.koin.android.ext.koin.androidContext
 import org.koin.dsl.module
 
 val dataModule = module {
     single<UserRepository> { UserRepositoryImpl(get(), get()) }
     single { SecureStorage(androidContext()) }
+    single { com.rozetka.localdata.SettingsData(androidContext()) }
     single<CalendarRepository> { CalendarRepositoryImpl(androidContext()) }
     single<MoodleRepository> { MoodleRepositoryImpl() }
     single<GroupJournalRepository> { GroupJournalRepositoryImpl(get()) }
     single<PhysEdJournalRepository> { PhysEdJournalRepositoryImpl(get()) }
     single<PayRepository> { PayRepositoryImpl(get()) }
     single<DigitalServiceRepository> { DigitalServiceRepositoryImpl(get()) }
-    single<ProjectActivityRepository> { ProjectActivityRepositoryImpl(get()) }
+    single<ProjectActivityRepository> { ProjectActivityRepositoryImpl(get<MospolytechMethods>()) }
 }

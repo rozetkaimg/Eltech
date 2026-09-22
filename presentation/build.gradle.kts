@@ -6,7 +6,7 @@ plugins {
 
 android {
     namespace = "com.rozetka.presentation"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         minSdk = 26
@@ -30,11 +30,11 @@ android {
         compose = true
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_21
-        targetCompatibility = JavaVersion.VERSION_21
+        sourceCompatibility = JavaVersion.VERSION_25
+        targetCompatibility = JavaVersion.VERSION_25
     }
     kotlin {
-        jvmToolchain(21)
+        jvmToolchain(25)
     }
 }
 

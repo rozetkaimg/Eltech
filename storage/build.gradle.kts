@@ -1,13 +1,13 @@
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
-    id("com.google.devtools.ksp") version "2.2.20-2.0.4"
+    alias(libs.plugins.ksp)
     alias(libs.plugins.kotlin.serialization)
 }
 
 android {
     namespace = "com.rozetka.storage"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         minSdk = 26
@@ -26,11 +26,11 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_21
-        targetCompatibility = JavaVersion.VERSION_21
+        sourceCompatibility = JavaVersion.VERSION_25
+        targetCompatibility = JavaVersion.VERSION_25
     }
     kotlin {
-        jvmToolchain(21)
+        jvmToolchain(25)
     }
 }
 
@@ -46,4 +46,5 @@ dependencies {
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
     implementation(libs.koin.android)
+    testImplementation(libs.junit)
 }

@@ -23,6 +23,8 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material3.Switch
+import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material.icons.rounded.School
@@ -58,6 +60,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
@@ -94,6 +97,7 @@ fun ScheduleScreen(
     viewModel: ScheduleViewModel = koinViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val isPhysEdReplaceEnabled by viewModel.isPhysEdReplaceEnabled.collectAsStateWithLifecycle()
     var showMenu by remember { mutableStateOf(false) }
 
     Scaffold(
@@ -152,6 +156,35 @@ fun ScheduleScreen(
                             DropdownMenuItem(
                                 text = {
                                     Text(
+                                        text = stringResource(R.string.phys_ed_in_schedule),
+                                        style = MaterialTheme.typography.bodyLarge
+                                    )
+                                },
+                                onClick = {
+                                    viewModel.togglePhysEdReplace()
+                                },
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = Icons.Default.FitnessCenter,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                },
+                                trailingIcon = {
+                                    Switch(
+                                        checked = isPhysEdReplaceEnabled,
+                                        onCheckedChange = { viewModel.togglePhysEdReplace() }
+                                    )
+                                },
+                                colors = MenuDefaults.itemColors(
+                                    textColor = MaterialTheme.colorScheme.onSurface,
+                                    leadingIconColor = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            )
+
+                            DropdownMenuItem(
+                                text = {
+                                    Text(
                                         text = stringResource(R.string.employees),
                                         style = MaterialTheme.typography.bodyLarge
                                     )
@@ -172,6 +205,7 @@ fun ScheduleScreen(
                                     leadingIconColor = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             )
+
 
                             DropdownMenuItem(
                                 text = {
@@ -212,7 +246,7 @@ fun ScheduleScreen(
             when (val state = uiState) {
                 is ScheduleUiState.Loading -> LoadingState()
                 is ScheduleUiState.Error -> ExpressiveErrorState(
-                    "Расписание недоступно",
+                    stringResource(R.string.schedule_unavailable),
                     { viewModel.getSchedule(StringObject.groupName) })
 
                 is ScheduleUiState.Success -> {
@@ -578,9 +612,12 @@ fun ScheduleDayHeader(dayKey: String, week: WeekInfo) {
     val date = remember(dayKey, week) {
         week.startDate.plusDays(dayKey.toLong() - 1)
     }
-    val dayOfWeekFormatter = remember { SimpleDateFormat("EEEE", Locale.getDefault()) }
-    val dayName = dayOfWeekFormatter.format(date.toEpochDay() * 24 * 60 * 60 * 1000L)
-        .replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
+    val locale = LocalConfiguration.current.locales[0]
+    val dayOfWeekFormatter = remember(locale) { SimpleDateFormat("EEEE", locale) }
+    val dayName = remember(date, locale) {
+        dayOfWeekFormatter.format(date.toEpochDay() * 24 * 60 * 60 * 1000L)
+            .replaceFirstChar { if (it.isLowerCase()) it.titlecase(locale) else it.toString() }
+    }
     Text(
         text = "$dayName, ${date.dayOfMonth}.${date.monthValue}",
         style = MaterialTheme.typography.titleLarge,
@@ -621,7 +658,7 @@ fun MissingScheduleView(
         Spacer(modifier = Modifier.height(24.dp))
 
         Text(
-            text = "Расписание отсутствует",
+            text = stringResource(R.string.schedule_missing_title),
             style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Bold,
             textAlign = TextAlign.Center
@@ -630,7 +667,7 @@ fun MissingScheduleView(
         Spacer(modifier = Modifier.height(8.dp))
 
         Text(
-            text = "Для группы $groupName не найдено регулярного расписания.",
+            text = stringResource(R.string.schedule_missing_message, groupName),
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center
@@ -643,7 +680,7 @@ fun MissingScheduleView(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 32.dp),
             shape = RoundedCornerShape(12.dp)
         ) {
-            Text("Проверить расписание сессии")
+            Text(stringResource(R.string.to_session_schedule_button))
         }
     }
 }

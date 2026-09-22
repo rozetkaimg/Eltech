@@ -10,7 +10,7 @@ plugins {
 
 android {
     namespace = "com.rozetka.epolitech"
-    compileSdk = 36
+    compileSdk = 37
     val varMajor = 1
     val varMinor = 0
     val varPatch = 0
@@ -19,7 +19,7 @@ android {
     defaultConfig {
         applicationId = "com.rozetka.eltech"
         minSdk = 26
-        targetSdk = 36
+        targetSdk = 37
         versionCode = (System.currentTimeMillis() / 60000).toInt()
         versionName = "$varMajor.$varMinor.$varPatch$varBuild${getBuildDate()}"
 
@@ -47,11 +47,11 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_21
-        targetCompatibility = JavaVersion.VERSION_21
+        sourceCompatibility = JavaVersion.VERSION_25
+        targetCompatibility = JavaVersion.VERSION_25
     }
     kotlin {
-        jvmToolchain(21)
+        jvmToolchain(25)
     }
     buildFeatures {
         compose = true

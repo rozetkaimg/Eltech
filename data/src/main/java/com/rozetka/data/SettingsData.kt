@@ -5,6 +5,23 @@ import android.content.Context
 class SettingsData(context: Context): SettingsStoreInt {
     val dataStore = DataStoreManager.getSettingsDataStore(context)
     val settingsStorage = SettingsStorage(dataStore)
+
+    override suspend fun saveThemeConfig(themeConfig: String) {
+        settingsStorage.saveThemeConfig(themeConfig)
+    }
+
+    override suspend fun getThemeConfig(): String {
+        return settingsStorage.getThemeConfig()
+    }
+
+    override suspend fun saveColorConfig(colorConfig: String) {
+        settingsStorage.saveColorConfig(colorConfig)
+    }
+
+    override suspend fun getColorConfig(): String {
+        return settingsStorage.getColorConfig()
+    }
+
     override suspend fun saveThemeState(themeState: Int, context: Context) {
         settingsStorage.saveThemeState(themeState)
     }

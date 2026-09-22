@@ -34,6 +34,7 @@ import com.rozetka.presentation.ui.login.LoginScreen
 import com.rozetka.presentation.ui.maps.MapsScreen
 import com.rozetka.presentation.ui.message.MessagesScreen
 import com.rozetka.presentation.ui.moodle.DeadlinesScreen
+import com.rozetka.presentation.ui.moodle.ModuleNativeScreen
 import com.rozetka.presentation.ui.moodle.MoodleDetailScreen
 import com.rozetka.presentation.ui.moodle.MoodleScreen
 import com.rozetka.presentation.ui.moodle.quiz.ActiveQuizScreen
@@ -42,7 +43,9 @@ import com.rozetka.presentation.ui.pay.PayScreen
 import org.koin.androidx.compose.koinViewModel
 import androidx.navigation.compose.composable
 import com.rozetka.presentation.ui.physEdJournal.PhysEdJournalScreen
+import com.rozetka.presentation.ui.physEdSchedule.PhysEdScheduleScreen
 import com.rozetka.presentation.ui.profile.ProfileScreen
+import com.rozetka.presentation.ui.projectActivity.AllProjectsScreen
 import com.rozetka.presentation.ui.projectActivity.ProjectActivityScreen
 import com.rozetka.presentation.ui.scheduleLink.ScheduleLinkScreen
 import com.rozetka.presentation.ui.searchGroup.SearchGroupScreen
@@ -74,7 +77,6 @@ fun AppNavHost(
         startDestination = startDestination,
         modifier = modifier,
         popExitTransition = {
-            // Уходящий экран: уменьшается и растворяется
             scaleOut(
                 targetScale = 0.9f,
                 animationSpec = tween(durationMillis = 300, easing = FastOutSlowInEasing),
@@ -184,6 +186,10 @@ fun AppNavHost(
             PhysEdJournalScreen(navController)
 
         }
+        composable(Screen.PhysEdSchedule.route) {
+            PhysEdScheduleScreen(navController)
+
+        }
         composable(
             route = Screen.SearchGroupScreen.route,
             deepLinks = listOf(navDeepLink {
@@ -198,7 +204,9 @@ fun AppNavHost(
         }
         composable(Screen.ProjectActivity.route) {
             ProjectActivityScreen(navController)
-
+        }
+        composable(Screen.AllProjects.route) {
+            AllProjectsScreen(navController)
         }
         composable(Screen.Employees.route) {
             EmployeesScreen(navController)
@@ -251,7 +259,7 @@ fun AppNavHost(
 
         composable(Screen.SearchStudentsScreen.route) {
 
-            StudentsScreen(navController)
+            StudentsScreen(navController = navController, windowSizeClass = windowSizeClass.widthSizeClass)
         }
         composable(Screen.SearchPeople.route) {
             UnifiedSearchScreen(navController = navController)
@@ -378,8 +386,22 @@ fun AppNavHost(
                 onModuleClick = { module ->
                     if (module.type == ModuleType.QUIZ) {
                         navController.navigate("quiz/${module.id}/${Uri.encode(module.name)}")
+                    } else if (module.link.isNotEmpty()) {
+                        navController.navigate("moodle_module_native/${Uri.encode(module.link)}")
                     }
                 }
+            )
+        }
+        composable(
+            route = Screen.MoodleModuleNative.route,
+            arguments = listOf(
+                navArgument("moduleUrl") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val moduleUrl = Uri.decode(backStackEntry.arguments?.getString("moduleUrl") ?: "")
+            ModuleNativeScreen(
+                url = moduleUrl,
+                onBackClick = { navController.popBackStack() }
             )
         }
         composable(

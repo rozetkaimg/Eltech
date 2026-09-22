@@ -19,8 +19,8 @@ import androidx.navigation.compose.rememberNavController
 import com.rozetka.domain.util.StringObject
 import com.rozetka.presentation.navigation.AppNavHost
 import com.rozetka.presentation.navigation.Screen
+import com.rozetka.presentation.navigation.allScreens
 import com.rozetka.presentation.navigation.bottomNavItems
-import com.rozetka.presentation.ui.moodle.MoodleScreen
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
@@ -28,42 +28,6 @@ fun MainScreen(
     windowSizeClass: WindowSizeClass
 ) {
     val navController = rememberNavController()
-
-    val allScreens = listOf(
-        Screen.Login,
-        Screen.Schedule,
-        Screen.Mail,
-        Screen.Profile,
-        Screen.Service,
-        Screen.Settings,
-        Screen.Payment,
-        Screen.Home,
-        Screen.Dialo,
-        Screen.AcademicPerScreen,
-        Screen.DigitalService,
-        Screen.PhysEdJournalScreen,
-        Screen.SearchGroupScreen,
-        Screen.AboutApplication,
-        Screen.ProjectActivity,
-        Screen.Maps,
-        Screen.SubmitAnApplication,
-        Screen.StudentCardScreen,
-        Screen.Employees,
-        Screen.TeacherSchedule,
-        Screen.TeacherRating,
-        Screen.ScheduleLink,
-        Screen.SearchStudentsScreen,
-        Screen.PhysGroupJournalScreen,
-        Screen.TeacherReview,
-        Screen.SessionSchedule,
-        Screen.GuestGroupInput,
-        Screen.CreateApplicationScreen,
-        Screen.ArticleScreen,
-        Screen.MoodleDetail,
-        Screen.Moodle,
-        Screen.Login,
-
-    )
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination

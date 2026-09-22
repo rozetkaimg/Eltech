@@ -4,6 +4,10 @@ import android.content.Context
 import androidx.datastore.preferences.core.Preferences
 
 interface SettingsStore {
+    suspend fun saveThemeConfig(themeConfig: String)
+    suspend fun getThemeConfig(): String
+    suspend fun saveColorConfig(colorConfig: String)
+    suspend fun getColorConfig(): String
     suspend fun saveThemeState(themeState: Int)
     suspend fun getThemeState(): Int
     suspend fun getMonetState(): Boolean

@@ -13,6 +13,7 @@ import com.rozetka.model.NewsModelItem
 import com.rozetka.model.PDModel
 import com.rozetka.model.PayModel
 import com.rozetka.model.PhysEdJournalResponse
+import com.rozetka.model.PhysEdScheduleResponse
 import com.rozetka.model.PolytechEvent
 import com.rozetka.model.ScheduleByDay
 import com.rozetka.model.ScheduleModel
@@ -55,4 +56,5 @@ interface MospolytechApi {
     suspend fun getEventsList(page: Int): List<PolytechEvent>
     suspend fun getExternalNewsDetail(url: String): ArticleDetail??
     suspend fun sendApplicationData(applicationId: String, token: String, params: Map<String, String>): MessageResponse
+    suspend fun getPhysEdSchedule(): PhysEdScheduleResponse
 }

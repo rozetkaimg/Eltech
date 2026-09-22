@@ -5,6 +5,8 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.rozetka.data.SecureStorage
+import com.rozetka.domain.repository.PhysEdJournalRepository
+import com.rozetka.domain.repository.ProjectActivityRepository
 import com.rozetka.domain.repository.ScheduleRepository
 import com.rozetka.domain.util.StringObject
 import com.rozetka.domain.util.StringObject.campusToken
@@ -41,6 +43,8 @@ data class ScheduleScreenData(
 
 class ScheduleViewModel(
     private val scheduleRepository: ScheduleRepository,
+    private val projectActivityRepository: ProjectActivityRepository,
+    private val physEdJournalRepository: PhysEdJournalRepository,
     val application: Application,
     private val campusApi: CampusApi
 ) : ViewModel() {
@@ -49,23 +53,44 @@ class ScheduleViewModel(
     val uiState: StateFlow<ScheduleUiState> = _uiState.asStateFlow()
     private val secureStorage: SecureStorage = SecureStorage(application)
 
+    private val _isPhysEdReplaceEnabled = MutableStateFlow(secureStorage.getPhysEdReplaceState())
+    val isPhysEdReplaceEnabled: StateFlow<Boolean> = _isPhysEdReplaceEnabled.asStateFlow()
+
+    fun togglePhysEdReplace() {
+        val newState = !_isPhysEdReplaceEnabled.value
+        secureStorage.savePhysEdReplaceState(newState)
+        _isPhysEdReplaceEnabled.value = newState
+        getSchedule(StringObject.groupName)
+    }
+
     init {
         viewModelScope.launch {
+            val token = secureStorage.getToken().orEmpty()
+            if (token.isNotBlank()) {
+                StringObject.ApiToken = token
+            }
             try {
                 campusToken = campusApi.getBearerToken().token
             } catch (e: Exception) {
                 Log.e("ScheduleViewModel", "Failed to get campus token", e)
             }
+            getSchedule(StringObject.groupName)
         }
-        getSchedule(StringObject.groupName)
     }
 
     fun getSchedule(group: String) {
         viewModelScope.launch {
+            if (StringObject.ApiToken.isBlank()) {
+                val savedToken = secureStorage.getToken().orEmpty()
+                if (savedToken.isNotBlank()) {
+                    StringObject.ApiToken = savedToken
+                }
+            }
             _uiState.value = ScheduleUiState.Loading
 
-            val userOwnGroup = secureStorage.getGroupName().toString()
-            val groupToFetch = if (group.isEmpty()) userOwnGroup else group
+            val userOwnGroup = secureStorage.getGroupName().toString().trim()
+            val groupToFetch = if (group.isEmpty()) userOwnGroup else group.trim()
+            val isUserOwnGroup = userOwnGroup.isNotEmpty() && groupToFetch.equals(userOwnGroup, ignoreCase = true)
 
             if (groupToFetch.isEmpty()) {
                 _uiState.value =
@@ -87,11 +112,36 @@ class ScheduleViewModel(
                 .collect { result ->
                     result.onSuccess { scheduleData ->
                         try {
-                            val screenData = processScheduleData(scheduleData)
+                            val token = StringObject.ApiToken
+                            var updatedSchedule = if (isUserOwnGroup && token.isNotBlank()) {
+                                runCatching {
+                                    projectActivityRepository.replacePDDiscipline(scheduleData, token)
+                                }.getOrDefault(scheduleData)
+                            } else {
+                                scheduleData
+                            }
+
+                            if (isUserOwnGroup && _isPhysEdReplaceEnabled.value) {
+                                updatedSchedule = runCatching {
+                                    val journalResponse = runCatching {
+                                        physEdJournalRepository.getStudentJournal(StringObject.guid)
+                                    }.getOrNull()
+                                    val fkData = journalResponse?.data
+                                    val subscriptions = secureStorage.getPhysEdSubscriptions()
+
+                                    PhysEdScheduleReplacer.replacePhysEdInSchedule(
+                                        schedule = updatedSchedule,
+                                        fkData = fkData,
+                                        subscriptions = subscriptions
+                                    )
+                                }.getOrDefault(updatedSchedule)
+                            }
+
+                            val screenData = processScheduleData(updatedSchedule)
                             _uiState.value = ScheduleUiState.Success(screenData)
                         } catch (e: Exception) {
                             Log.e("ScheduleViewModel", "Error processing schedule data", e)
-                            _uiState.value = ScheduleUiState.Error("Ошибка обработки данных расписания")
+                            _uiState.value = ScheduleUiState.Error(application.getString(R.string.error_processing_schedule_data))
                         }
                     }
                     result.onFailure { throwable ->

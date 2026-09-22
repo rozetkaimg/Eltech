@@ -2,6 +2,7 @@ package com.rozetka.network.di
 
 import com.rozetka.network.ApiMethods
 import com.rozetka.network.Methods
+import com.rozetka.network.MospolytechApi
 import com.rozetka.network.MospolytechMethods
 import com.rozetka.network.campus.CampusApi
 import com.rozetka.network.provideHttpClient
@@ -17,4 +18,5 @@ val networkModule = module {
     single { ApiMethods() }
     single { CampusApi() }
     single { MospolytechMethods() }
+    single<MospolytechApi> { get<MospolytechMethods>() }
 }

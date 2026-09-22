@@ -2,27 +2,31 @@ package com.rozetka.presentation.ui.message
 
 import androidx.activity.compose.BackHandler
 import android.net.Uri
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.automirrored.filled.Chat
-import androidx.compose.material3.ExtendedFloatingActionButton
-import androidx.compose.material3.FabPosition
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialShapes.Companion.Cookie9Sided
@@ -32,12 +36,12 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.VerticalDivider
 import androidx.compose.material3.toShape
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -47,10 +51,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
@@ -59,7 +67,6 @@ import com.rozetka.model.MessageModelItem
 import com.rozetka.presentation.R
 import com.rozetka.presentation.ui.dialog.DialogScreen
 import com.rozetka.presentation.ui.pay.LoadingState
-import com.rozetka.presentation.ui.settings.components.MonetItem
 import com.rozetka.presentation.util.ExpressiveErrorState
 import com.rozetka.presentation.util.getNavigationBarHeightDp
 import org.koin.androidx.compose.koinViewModel
@@ -74,6 +81,10 @@ fun MessagesScreen(
     val isTablet = windowSizeClass != WindowWidthSizeClass.Compact
 
     var selectedMessage by remember { mutableStateOf<MessageModelItem?>(null) }
+    var listPanelWidthDp by remember { mutableStateOf(320.dp) }
+    val density = LocalDensity.current
+    var totalWidthPx by remember { mutableFloatStateOf(0f) }
+    var isDragging by remember { mutableStateOf(false) }
 
     when (val state = uiState) {
         is MessagesUiState.Loading -> LoadingState()
@@ -83,19 +94,69 @@ fun MessagesScreen(
         )
         is MessagesUiState.Success -> {
             if (isTablet) {
-                Row(modifier = Modifier.fillMaxSize()) {
-                    Box(modifier = Modifier.weight(0.4f)) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .onGloballyPositioned { totalWidthPx = it.size.width.toFloat() }
+                ) {
+                    Box(modifier = Modifier.width(listPanelWidthDp)) {
                         MessagesListContent(
                             messages = state.data,
                             selectedId = selectedMessage?.id,
+                            isTablet = true,
                             onSelect = { selectedMessage = it },
                             navController = navController
                         )
                     }
 
-                    VerticalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.outlineVariant)
+                    val dividerColor by animateColorAsState(
+                        targetValue = if (isDragging) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant
+                    )
 
-                    Box(modifier = Modifier.weight(0.6f)) {
+                    val indicatorWidth by animateDpAsState(
+                        targetValue = if (isDragging) 8.dp else 4.dp
+                    )
+
+                    val indicatorHeight by animateDpAsState(
+                        targetValue = if (isDragging) 56.dp else 48.dp
+                    )
+
+                    Box(
+                        modifier = Modifier
+                            .fillMaxHeight()
+                            .width(32.dp)
+                            .pointerInput(Unit) {
+                                detectHorizontalDragGestures(
+                                    onDragStart = { isDragging = true },
+                                    onDragEnd = { isDragging = false },
+                                    onDragCancel = { isDragging = false }
+                                ) { change, dragAmount ->
+                                    change.consume()
+                                    with(density) {
+                                        val currentWidthPx = listPanelWidthDp.toPx()
+                                        val newWidthPx = currentWidthPx + dragAmount
+
+                                        val minWidthPx = 280.dp.toPx()
+                                        val maxWidthPx = totalWidthPx * 0.5f
+
+                                        if (newWidthPx in minWidthPx..maxWidthPx) {
+                                            listPanelWidthDp = newWidthPx.toDp()
+                                        }
+                                    }
+                                }
+                            },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .width(indicatorWidth)
+                                .height(indicatorHeight)
+                                .clip(RoundedCornerShape(4.dp))
+                                .background(dividerColor)
+                        )
+                    }
+
+                    Box(modifier = Modifier.weight(1f)) {
                         if (selectedMessage != null) {
                             key(selectedMessage?.id) {
                                 DialogScreen(
@@ -116,6 +177,7 @@ fun MessagesScreen(
             } else {
                 MessagesListContent(
                     messages = state.data,
+                    isTablet = false,
                     onSelect = { message ->
                         val encodedAvatar = Uri.encode(message.opponent.avatar ?: "")
                         val encodedData = Uri.encode(message.opponent.data ?: "")
@@ -134,6 +196,7 @@ fun MessagesScreen(
 private fun MessagesListContent(
     messages: List<MessageModelItem>,
     selectedId: String? = null,
+    isTablet: Boolean,
     onSelect: (MessageModelItem) -> Unit,
     navController: NavController
 ) {
@@ -161,13 +224,24 @@ private fun MessagesListContent(
 
     Scaffold(
         floatingActionButton = {
+            val fabBottomPadding = if (isTablet) {
+                0.dp
+            } else {
+                getNavigationBarHeightDp() + 64.dp
+            }
+
             FloatingActionButton(
                 onClick = { navController.navigate(Screen.SearchPeople.route) },
                 containerColor = MaterialTheme.colorScheme.primaryContainer,
                 contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                modifier = Modifier.padding(bottom = getNavigationBarHeightDp() + 60.dp)
+                modifier = Modifier.padding(
+                    bottom = fabBottomPadding
+                )
             ) {
-                Icon(ImageVector.vectorResource(R.drawable.add_chat), contentDescription = stringResource(R.string.new_message))
+                Icon(
+                    imageVector = ImageVector.vectorResource(R.drawable.add_chat),
+                    contentDescription = stringResource(R.string.new_message)
+                )
             }
         },
         topBar = {
@@ -204,7 +278,7 @@ private fun MessagesListContent(
                         onClick = {
                             if (isSearchActive) {
                                 isSearchActive = false
-                                searchQuery = "" // Очищаем поиск при закрытии
+                                searchQuery = ""
                             } else {
                                 isSearchActive = true
                             }
@@ -251,7 +325,9 @@ private fun MessagesListContent(
                     )
                 }
             }
-            item { Spacer(Modifier.height(getNavigationBarHeightDp() + 80.dp)) }
+            item {
+                Spacer(Modifier.height(getNavigationBarHeightDp() + 80.dp))
+            }
         }
     }
 }
@@ -259,30 +335,35 @@ private fun MessagesListContent(
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun EmptyChatPlaceholder() {
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Row {
-            Box(
-                modifier = Modifier
-                    .size(120.dp)
-                    .clip(Cookie9Sided.toShape())
-                    .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.15f)),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    painter = painterResource(com.rozetka.presentation.R.drawable.chats_outline_28),
-                    contentDescription = null,
-                    modifier = Modifier.size(48.dp),
-                    tint = MaterialTheme.colorScheme.surface
-                )
-            }
-            Spacer(Modifier.size(16.dp))
-            Text(
-                text = stringResource(R.string.select_chat_placeholder),
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.align(Alignment.CenterVertically)
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Box(
+            modifier = Modifier
+                .size(120.dp)
+                .clip(Cookie9Sided.toShape())
+                .background(MaterialTheme.colorScheme.surfaceVariant),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                painter = painterResource(com.rozetka.presentation.R.drawable.chats_outline_28),
+                contentDescription = null,
+                modifier = Modifier.size(48.dp),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        Text(
+            text = stringResource(R.string.select_chat_placeholder),
+            style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSurface
+        )
     }
 }

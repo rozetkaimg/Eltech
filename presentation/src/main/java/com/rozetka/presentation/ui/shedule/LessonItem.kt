@@ -230,7 +230,7 @@ fun LessonItem(
                 Icon(
                     painter = painterResource(R.drawable.loc_point),
                     contentDescription = null,
-tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                     modifier = Modifier.padding(end = 4.dp).size(20.dp)
                 )
 

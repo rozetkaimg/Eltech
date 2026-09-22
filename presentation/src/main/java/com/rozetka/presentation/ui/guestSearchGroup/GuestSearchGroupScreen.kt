@@ -73,10 +73,10 @@ fun GuestSearchGroupScreen(
                         SearchBarDefaults.InputField(
                             query = searchQuery,
                             onQueryChange = viewModel::onSearchQueryChange,
-                            onSearch = { /* Локальный поиск работает мгновенно при вводе */ },
+                            onSearch = {  },
                             expanded = false,
                             onExpandedChange = {},
-                            placeholder = { Text("Поиск группы...") }, // Можно заменить на stringResource
+                            placeholder = { Text("Поиск группы...") },
                             leadingIcon = {
                                 Icon(
                                     imageVector = Icons.Default.Search,

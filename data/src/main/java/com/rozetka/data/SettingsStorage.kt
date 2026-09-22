@@ -15,6 +15,20 @@ import kotlinx.coroutines.flow.map
 class SettingsStorage(private val dataStore: DataStore<Preferences>) : SettingsStore {
 
 
+    override suspend fun saveThemeConfig(themeConfig: String) {
+        saveData(DataStoreManager.THEME_CONFIG_KEY, themeConfig)
+    }
+
+    override suspend fun getThemeConfig(): String =
+        getData(DataStoreManager.THEME_CONFIG_KEY, "SYSTEM")
+
+    override suspend fun saveColorConfig(colorConfig: String) {
+        saveData(DataStoreManager.COLOR_CONFIG_KEY, colorConfig)
+    }
+
+    override suspend fun getColorConfig(): String =
+        getData(DataStoreManager.COLOR_CONFIG_KEY, "DEFAULT")
+
     override suspend fun saveThemeState(themeState: Int) {
         saveData(DataStoreManager.THEME_STATE_KEY, themeState)
     }
@@ -84,6 +98,8 @@ object DataStoreManager {
         return context.dataStore
     }
 
+    val THEME_CONFIG_KEY = stringPreferencesKey("theme_config")
+    val COLOR_CONFIG_KEY = stringPreferencesKey("color_config")
     val THEME_STATE_KEY = intPreferencesKey("theme_state")
     val MONET_STATE_KEY = booleanPreferencesKey("monet_state")
     val DYNAMIC_COLOR_STATE_KEY = booleanPreferencesKey("dynamic_color_state")

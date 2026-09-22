@@ -81,6 +81,14 @@ sealed class Screen(
         parentRoute = Service.route
     )
 
+    data object AllProjects : Screen(
+        route = "all_projects",
+        titleResId = R.string.all_projects_title,
+        icon = R.drawable.newsfeed,
+        isFullScreen = false,
+        parentRoute = ProjectActivity.route
+    )
+
     data object Dialo : Screen(
         route = "dialo/{userName}/{userId}?avatarUrl={avatarUrl}&isSubject={isSubject}&opponentData={opponentData}",
         titleResId = R.string.back_content_description,
@@ -103,6 +111,14 @@ sealed class Screen(
         icon = 0,
         isFullScreen = false,
         parentRoute = Service.route
+    )
+
+    data object PhysEdSchedule : Screen(
+        route = "PhysEdSchedule",
+        titleResId = R.string.physed_schedule_title,
+        icon = R.drawable.physical,
+        isFullScreen = false,
+        parentRoute = PhysEdJournalScreen.route
     )
 
     data object PhysGroupJournalScreen : Screen(
@@ -251,6 +267,14 @@ sealed class Screen(
         parentRoute = Quiz.route
     )
 
+    data object MoodleModuleNative : Screen(
+        route = "moodle_module_native/{moduleUrl}",
+        titleResId = R.string.services,
+        icon = R.drawable.moodle_595b40b75ba036ed117d67bb,
+        isFullScreen = false,
+        parentRoute = MoodleDetail.route
+    )
+
     data object Settings : Screen(
         route = "Settings",
         titleResId = R.string.settings,
@@ -297,9 +321,11 @@ val allScreens = listOf(
     Screen.AcademicPerScreen,
     Screen.DigitalService,
     Screen.PhysEdJournalScreen,
+    Screen.PhysEdSchedule,
     Screen.SearchGroupScreen,
     Screen.AboutApplication,
     Screen.ProjectActivity,
+    Screen.AllProjects,
     Screen.Maps,
     Screen.SubmitAnApplication,
     Screen.StudentCardScreen,
@@ -320,6 +346,7 @@ val allScreens = listOf(
     Screen.MoodleDeadlines,
     Screen.Quiz,
     Screen.ActiveQuiz,
+    Screen.MoodleModuleNative,
     Screen.AddAccount
 )
 

@@ -16,7 +16,7 @@ class ScheduleStorage(
 
         val groupEntity = GroupEntity(
             groupTitle = groupTitle,
-            comment = group.comment,
+            comment = group.comment?:"",
             course = group.course,
             dateFrom = group.dateFrom,
             dateTo = group.dateTo,
